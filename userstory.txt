@@ -1,0 +1,342 @@
+CAR POOLING SYSTEM – MASTER PROJECT PROMPT (FOR CURSOR)
+1. PROJECT OVERVIEW
+
+Build a desktop-first, responsive car pooling web application for office and daily commute, starting with Mumbai, with Pune and Bangalore visible but locked for future rollout.
+
+The system must remember that car pooling is corridor-based, admin-controlled, and community-driven.
+
+2. CORE REQUIREMENTS
+Cities
+
+Mumbai → Active
+
+Pune → Visible but Locked
+
+Bangalore → Visible but Locked
+
+Admin can unlock cities later
+
+3. USER ROLES
+Normal User
+
+Login via Google (Gmail OAuth)
+
+Can offer rides
+
+Can request rides
+
+Can chat within ride
+
+Can make payment and mark payment status
+
+Earns carbon credits
+
+Admin
+
+Full control over system
+
+Manages users, corridors, rides, cities
+
+Can increase corridor limits per user
+
+Can enable / disable features
+
+4. AUTHENTICATION
+
+Google OAuth (no passwords)
+
+Role-based access (User / Admin)
+
+Auth token used for all APIs
+
+5. USER PROFILE
+
+Each user has:
+
+Name
+
+Email
+
+Phone (optional initially)
+
+City
+
+Role
+
+Assigned corridors
+
+Vehicle list
+
+Carbon credits
+
+Active rides
+
+6. CORRIDOR MANAGEMENT (ADMIN CONTROLLED)
+Corridor Fields
+
+City (Mumbai / Pune / Bangalore)
+
+Corridor name (e.g. Powai → BKC)
+
+Location From (society / area)
+
+Location To (office hub)
+
+Allowed internal pickup points (free text)
+
+Terms & Conditions (admin defined)
+
+Active / Inactive
+
+Rules
+
+Only admin can create/edit corridors
+
+Users can only offer rides in assigned corridors
+
+Admin can increase corridor access per user
+
+7. VEHICLE REGISTRATION (MANDATORY FOR RIDE GIVERS)
+
+Users must register at least one vehicle to offer rides.
+
+Vehicle Fields
+
+Vehicle type (Car / Bike)
+
+Make & model
+
+Color
+
+Vehicle number
+
+Total seats
+
+Default available seats
+
+8. OFFER A RIDE (USER FLOW)
+
+User selects:
+
+Corridor
+
+Date (Today or next 2 days only)
+
+Time slot (manual entry, e.g. 8:10 AM)
+
+Pickup point (manual)
+
+Drop point (manual)
+
+Optional route description
+
+Price per seat
+
+Number of available seats
+
+Vehicle
+
+Ride statuses:
+
+Open
+
+Partially filled
+
+Full
+
+Completed
+
+Cancelled
+
+9. REQUEST A RIDE
+
+Users can:
+
+View available rides for today + next 2 days
+
+Filter by corridor, time, price
+
+Request seats (1 or more)
+
+Add a comment
+
+Ride giver can:
+
+Accept / Reject requests
+
+Seat count updates automatically
+
+10. RIDE DETAILS PAGE
+
+Must show:
+
+Ride information
+
+Participants list
+
+Pickup points of each user
+
+Available seats
+
+Ride-specific chat
+
+Payment status per user
+
+Optional map preview (Google Maps)
+
+11. MAP & DISTANCE (OPTIONAL, ADMIN CONTROLLED)
+
+Static route map initially
+
+Admin can enable live distance tracking later
+
+Map visibility controlled by admin per corridor
+
+12. PAYMENT FLOW
+
+Ride giver displays QR code
+
+Rider pays externally
+
+Rider marks “Payment Done”
+
+Ride giver marks “Payment Received”
+
+Admin can override payment status
+
+13. CARBON CREDITS
+
+Credits issued on ride completion
+
+Credits logic configurable by admin
+
+Displayed on user profile
+
+Used for future rewards
+
+14. HOME PAGE REQUIREMENTS
+
+Home page should display:
+
+How it works (3 steps)
+
+Cities available (locked/unlocked status)
+
+Live counters:
+
+Rides today
+
+Rides taken today
+
+Users online
+
+Mumbai corridors showcase
+
+CTA: Offer Ride / Find Ride
+
+15. ADMIN PANEL
+
+Admin can:
+
+Manage users
+
+Manage corridors
+
+Manage cities (lock/unlock)
+
+Manage rides
+
+Override permissions
+
+Control feature toggles
+
+View analytics & counts
+
+16. TECH STACK
+Frontend
+
+React or Next.js
+
+Desktop-first UI
+
+Fully responsive for mobile
+
+Component-based architecture
+
+Backend
+
+Go (Golang)
+
+REST APIs
+
+Clean modular services
+
+Easy to deploy on free tier (Railway / Fly.io)
+
+Database
+
+PostgreSQL or Firebase
+
+Schema designed for scalability
+
+Maps
+
+Google Maps API (optional toggle)
+
+17. SYSTEM DESIGN REQUIREMENTS
+
+API-first architecture
+
+Feature flags controlled by admin
+
+Modular codebase
+
+Easy to add new cities, corridors, features
+
+Secure role-based access
+
+18. IMPLEMENTATION ORDER
+
+Authentication & roles
+
+City & corridor management
+
+Vehicle registration
+
+Offer ride flow
+
+Request ride flow
+
+Ride details & chat
+
+Payment status
+
+Carbon credits
+
+Admin panel
+
+Maps & enhancements
+
+19. EXPECTED OUTPUT
+
+Fully functional car pooling website
+
+Clean admin panel
+
+Scalable backend
+
+Ready for Mumbai launch
+
+Pune & Bangalore visible but locked
+
+🔥 IMPORTANT
+
+Code should be:
+
+Clean
+
+Commented
+
+Production-ready
+
+Easy to extend

@@ -1,0 +1,17 @@
+{
+  "name": "cpool.ai",
+  "version": "1.0.0",
+  "description": "Car Pooling System - Corridor-based ride sharing platform",
+  "private": true,
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd frontend && npm start",
+    "backend": "cd backend && go run main.go",
+    "install-all": "cd frontend && npm install && cd ../backend && go mod download"
+  },
+  "keywords": ["car-pooling", "ride-sharing", "carpool"],
+  "author": "",
+  "license": "MIT"
+}
+
