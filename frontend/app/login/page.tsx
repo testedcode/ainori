@@ -81,6 +81,9 @@ export default function LoginPage() {
           </button>
         </form>
 
+        <p className="mt-4 text-center text-xs text-gray-500">
+          Demo admin: <span className="font-mono">admin@135</span> / <span className="font-mono">admin</span>
+        </p>
         <p className="mt-6 text-center text-sm text-gray-600">
           Don't have an account?{' '}
           <Link href="/register" className="text-blue-600 hover:underline">

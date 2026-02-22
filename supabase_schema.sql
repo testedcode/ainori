@@ -1,8 +1,9 @@
-package db
+-- =============================================================================
+-- cpool.ai – Run this ONCE in Supabase: SQL Editor → New query → Paste → Run
+-- Admin login after run: Email admin@135  Password password
+-- =============================================================================
 
-// Database schema migrations
-
-const createUsersTable = `
+-- Users
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -16,9 +17,8 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-`
 
-const createCitiesTable = `
+-- Cities
 CREATE TABLE IF NOT EXISTS cities (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) UNIQUE NOT NULL,
@@ -26,9 +26,8 @@ CREATE TABLE IF NOT EXISTS cities (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-`
 
-const createCorridorsTable = `
+-- Corridors
 CREATE TABLE IF NOT EXISTS corridors (
     id SERIAL PRIMARY KEY,
     city_id INTEGER REFERENCES cities(id) ON DELETE CASCADE,
@@ -42,9 +41,8 @@ CREATE TABLE IF NOT EXISTS corridors (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-`
 
-const createUserCorridorsTable = `
+-- User Corridors
 CREATE TABLE IF NOT EXISTS user_corridors (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -52,9 +50,8 @@ CREATE TABLE IF NOT EXISTS user_corridors (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, corridor_id)
 );
-`
 
-const createVehiclesTable = `
+-- Vehicles
 CREATE TABLE IF NOT EXISTS vehicles (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -68,9 +65,8 @@ CREATE TABLE IF NOT EXISTS vehicles (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-`
 
-const createRidesTable = `
+-- Rides
 CREATE TABLE IF NOT EXISTS rides (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -88,9 +84,8 @@ CREATE TABLE IF NOT EXISTS rides (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-`
 
-const createRideRequestsTable = `
+-- Ride Requests
 CREATE TABLE IF NOT EXISTS ride_requests (
     id SERIAL PRIMARY KEY,
     ride_id INTEGER REFERENCES rides(id) ON DELETE CASCADE,
@@ -101,9 +96,8 @@ CREATE TABLE IF NOT EXISTS ride_requests (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-`
 
-const createMessagesTable = `
+-- Messages
 CREATE TABLE IF NOT EXISTS messages (
     id SERIAL PRIMARY KEY,
     ride_id INTEGER REFERENCES rides(id) ON DELETE CASCADE,
@@ -111,9 +105,8 @@ CREATE TABLE IF NOT EXISTS messages (
     message TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-`
 
-const createPaymentsTable = `
+-- Payments
 CREATE TABLE IF NOT EXISTS payments (
     id SERIAL PRIMARY KEY,
     ride_id INTEGER REFERENCES rides(id) ON DELETE CASCADE,
@@ -127,9 +120,8 @@ CREATE TABLE IF NOT EXISTS payments (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(ride_id, rider_id)
 );
-`
 
-const createCarbonCreditsTable = `
+-- Carbon Credits
 CREATE TABLE IF NOT EXISTS carbon_credits (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -138,9 +130,8 @@ CREATE TABLE IF NOT EXISTS carbon_credits (
     reason VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-`
 
-const createFeatureFlagsTable = `
+-- Feature Flags
 CREATE TABLE IF NOT EXISTS feature_flags (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) UNIQUE NOT NULL,
@@ -149,53 +140,30 @@ CREATE TABLE IF NOT EXISTS feature_flags (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-`
 
-const insertInitialData = `
--- Insert cities
+-- SEED DATA
 INSERT INTO cities (name, status) VALUES 
     ('Mumbai', 'active'),
     ('Pune', 'locked'),
     ('Bangalore', 'locked')
 ON CONFLICT (name) DO NOTHING;
 
--- Insert default admin user (password: admin)
--- Password hash for 'admin' using bcrypt (cost 10)
--- Generated with: echo -n "admin" | htpasswd -nBCi 10 "" | cut -d: -f2
 INSERT INTO users (email, password_hash, name, role, city) VALUES 
     ('admin@135', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Admin User', 'admin', 'Mumbai')
 ON CONFLICT (email) DO NOTHING;
 
--- Insert sample corridors for Mumbai
-INSERT INTO corridors (city_id, name, location_from, location_to, pickup_points, terms_conditions, is_active) 
-SELECT 
-    c.id,
-    'Powai → BKC',
-    'Powai',
-    'BKC',
-    'Hiranandani, IIT Bombay, Powai Lake',
-    'Standard carpooling terms apply',
-    true
+INSERT INTO corridors (city_id, name, location_from, location_to, pickup_points, terms_conditions, is_active)
+SELECT c.id, 'Powai → BKC', 'Powai', 'BKC', 'Hiranandani, IIT Bombay, Powai Lake', 'Standard carpooling terms apply', true
 FROM cities c WHERE c.name = 'Mumbai'
-ON CONFLICT DO NOTHING;
+AND NOT EXISTS (SELECT 1 FROM corridors cor WHERE cor.city_id = c.id AND cor.name = 'Powai → BKC');
 
-INSERT INTO corridors (city_id, name, location_from, location_to, pickup_points, terms_conditions, is_active) 
-SELECT 
-    c.id,
-    'Andheri → Bandra',
-    'Andheri',
-    'Bandra',
-    'Andheri Station, Lokhandwala, Versova',
-    'Standard carpooling terms apply',
-    true
+INSERT INTO corridors (city_id, name, location_from, location_to, pickup_points, terms_conditions, is_active)
+SELECT c.id, 'Andheri → Bandra', 'Andheri', 'Bandra', 'Andheri Station, Lokhandwala, Versova', 'Standard carpooling terms apply', true
 FROM cities c WHERE c.name = 'Mumbai'
-ON CONFLICT DO NOTHING;
+AND NOT EXISTS (SELECT 1 FROM corridors cor WHERE cor.city_id = c.id AND cor.name = 'Andheri → Bandra');
 
--- Insert feature flags
 INSERT INTO feature_flags (name, enabled, description) VALUES 
     ('maps_enabled', false, 'Enable map features'),
     ('live_tracking', false, 'Enable live distance tracking'),
     ('ai_features', true, 'Enable AI-powered features')
 ON CONFLICT (name) DO NOTHING;
-`
-

@@ -76,7 +76,7 @@ npm run dev
 ## 🔐 Default Login
 
 - Email: `admin@135`
-- Password: `admin`
+- Password: `password`
 
 ---
 

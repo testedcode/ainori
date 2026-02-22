@@ -1,0 +1,39 @@
+
+> cpool-frontend@1.0.0 build
+> next build
+
+ ⚠ Invalid next.config.js options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+  ▲ Next.js 14.2.35
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+Failed to compile.
+
+./lib/auth-server.ts
+Module not found: Can't resolve 'jsonwebtoken'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./app/api/[...path]/route.ts
+
+./lib/auth-server.ts
+Module not found: Can't resolve 'bcryptjs'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./app/api/[...path]/route.ts
+
+./lib/db.ts
+Module not found: Can't resolve 'pg'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./app/api/[...path]/route.ts
+
+
+> Build failed because of webpack errors

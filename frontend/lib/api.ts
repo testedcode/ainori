@@ -1,10 +1,13 @@
 import axios from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'
+// In browser and server: always use /api for internal Next.js serverless routes
+function getApiBaseUrl(): string {
+  return '/api'
+}
 
 // Create axios instance
 const apiClient = axios.create({
-  baseURL: API_URL,
+  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -36,23 +39,23 @@ export const api = {
   // Auth
   login: (email: string, password: string) =>
     apiClient.post('/auth/login', { email, password }),
-  
+
   register: (data: any) =>
     apiClient.post('/auth/register', data),
-  
+
   getProfile: () =>
     apiClient.get('/auth/profile'),
-  
+
   // Stats
   get: (endpoint: string) =>
     apiClient.get(endpoint),
-  
+
   post: (endpoint: string, data?: any) =>
     apiClient.post(endpoint, data),
-  
+
   put: (endpoint: string, data?: any) =>
     apiClient.put(endpoint, data),
-  
+
   delete: (endpoint: string) =>
     apiClient.delete(endpoint),
 }

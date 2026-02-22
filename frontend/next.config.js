@@ -4,6 +4,9 @@ const nextConfig = {
   images: {
     domains: ['localhost'],
   },
+  experimental: {
+    serverComponentsExternalPackages: ['pg', 'bcryptjs', 'jsonwebtoken']
+  },
   // Enable CORS for API calls
   async headers() {
     return [
@@ -21,4 +24,3 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
-
