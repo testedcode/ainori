@@ -81,9 +81,9 @@ export async function handleLogin(pool: Pool, body: unknown) {
       upi_id: row.upi_id,
     }
     return jsonResponse({ token, user })
-  } catch (e) {
-    console.error('Login DB error:', e)
-    return errResponse('Database error', 500)
+  } catch (e: any) {
+    console.error('Login DB error:', e.message)
+    return errResponse('Database error: ' + e.message, 500)
   }
 }
 
