@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Car, Loader2 } from 'lucide-react'
-import { api } from '@/lib/api'
+import { createClient } from '@/utils/supabase/client'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
@@ -19,14 +19,21 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
 
+    const supabase = createClient()
+
     try {
-      const response = await api.login(formData.email, formData.password) as any
-      localStorage.setItem('token', response.token)
-      localStorage.setItem('user', JSON.stringify(response.user))
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      })
+
+      if (error) throw error
+
       toast.success('Login successful!')
       router.push('/dashboard')
+      router.refresh()
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Login failed')
+      toast.error(error.message || 'Login failed')
     } finally {
       setLoading(false)
     }
