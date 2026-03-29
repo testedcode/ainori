@@ -15,6 +15,7 @@ export default function LoginPage() {
     email: '',
     password: '',
   })
+  const [errorDetails, setErrorDetails] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,7 +43,10 @@ export default function LoginPage() {
       router.refresh()
     } catch (error: any) {
       console.error('Full Login Error:', error);
-      toast.error(error.message || 'Login failed')
+      const msg = error.message || 'Login failed';
+      setErrorDetails(msg);
+      alert('Login Error: ' + msg);
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -57,6 +61,12 @@ export default function LoginPage() {
         </div>
 
         <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
+
+        {errorDetails && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+            <strong>Error:</strong> {errorDetails}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
