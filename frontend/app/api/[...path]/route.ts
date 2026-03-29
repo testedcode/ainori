@@ -17,7 +17,22 @@ async function requireAuth(request: NextRequest) {
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
     if (!supabase) return { error: Response.json({ error: 'Supabase not configured' }, { status: 500 }) }
-    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    // Check for token in header first (more reliable for API calls)
+    const authHeader = request.headers.get('authorization')
+    let user = null
+    
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1]
+      const { data } = await supabase.auth.getUser(token)
+      user = data.user
+    }
+    
+    // Fallback to cookies
+    if (!user) {
+      const { data } = await supabase.auth.getUser()
+      user = data.user
+    }
 
     if (user && user.email) {
       // 1. Fetch role and userId from our database based on email
