@@ -96,8 +96,8 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="mt-4 text-center text-xs text-gray-500">
-          Demo admin: <span className="font-mono">admin@135</span> / <span className="font-mono">admin</span>
+        <p className="mt-6 text-center text-sm text-gray-600">
+          Demo admin: <span className="font-mono bg-gray-100 px-1">admin@cpoolai.com</span> / <span className="font-mono bg-gray-100 px-1">admin@1357</span>
         </p>
         <p className="mt-6 text-center text-sm text-gray-600">
           Don't have an account?{' '}
