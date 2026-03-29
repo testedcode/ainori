@@ -6,7 +6,7 @@ export const createClient = (cookieStore: Awaited<ReturnType<typeof cookies>>) =
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    // Return a dummy client or handle it in the Page
+    // If you see this, ensure your Vercel environment variables are set and the page is redeployed.
     return null;
   }
 
