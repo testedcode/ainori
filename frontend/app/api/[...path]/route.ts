@@ -1,12 +1,46 @@
 import { NextRequest } from 'next/server'
 import { getPool } from '@/lib/db'
-import { getAuthFromRequest } from '@/lib/auth-server'
+import { getAuthFromRequest, verifyToken } from '@/lib/auth-server'
+import { createClient } from '@/utils/supabase/server'
+import { cookies } from 'next/headers'
 import * as h from '@/lib/api-handlers'
 
-function requireAuth(request: NextRequest) {
-  const auth = getAuthFromRequest(request)
-  if (!auth) return { error: Response.json({ error: 'Authorization header required' }, { status: 401 }) }
-  return { auth }
+async function requireAuth(request: NextRequest) {
+  const pool = getPool()
+  
+  // 1. Try legacy auth first (for transition)
+  const legacyAuth = getAuthFromRequest(request)
+  if (legacyAuth) return { auth: legacyAuth }
+
+  // 2. Try Supabase Auth
+  try {
+    const cookieStore = await cookies()
+    const supabase = createClient(cookieStore)
+    if (!supabase) return { error: Response.json({ error: 'Supabase not configured' }, { status: 500 }) }
+    const { data: { user }, error } = await supabase.auth.getUser()
+
+    if (user && user.email) {
+      // Fetch role and userId from our database based on email
+      const r = await pool.query(
+        'SELECT id, email, role FROM users WHERE email = $1',
+        [user.email]
+      )
+      if (r.rows.length > 0) {
+        const row = r.rows[0]
+        return { 
+          auth: { 
+            userId: row.id, 
+            email: row.email, 
+            role: row.role 
+          } 
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Supabase auth error in API:', e)
+  }
+
+  return { error: Response.json({ error: 'Authorization required' }, { status: 401 }) }
 }
 
 function requireAdmin(auth: { role: string }) {
@@ -29,81 +63,81 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   if (pathStr === 'auth/profile') {
-    const r = requireAuth(request)
+    const r = await requireAuth(request)
     if ('error' in r) return r.error
     return h.handleProfile(pool, r.auth)
   }
   if (pathStr === 'stats') {
-    const r = requireAuth(request)
+    const r = await requireAuth(request)
     if ('error' in r) return r.error
     return h.handleStats(pool)
   }
   if (pathStr === 'cities') {
-    const r = requireAuth(request)
+    const r = await requireAuth(request)
     if ('error' in r) return r.error
     return h.handleGetCities(pool)
   }
   if (pathStr === 'corridors') {
-    const r = requireAuth(request)
+    const r = await requireAuth(request)
     if ('error' in r) return r.error
     return h.handleGetCorridors(pool, searchParams)
   }
   if (pathStr === 'user/corridors') {
-    const r = requireAuth(request)
+    const r = await requireAuth(request)
     if ('error' in r) return r.error
     return h.handleGetUserCorridors(pool, r.auth)
   }
   if (pathStr === 'vehicles') {
-    const r = requireAuth(request)
+    const r = await requireAuth(request)
     if ('error' in r) return r.error
     return h.handleGetVehicles(pool, r.auth)
   }
   if (path.length === 2 && path[0] === 'vehicles' && /^\d+$/.test(path[1])) {
-    const r = requireAuth(request)
+    const r = await requireAuth(request)
     if ('error' in r) return r.error
     return h.handleGetVehicle(pool, parseInt(path[1], 10), r.auth)
   }
   if (pathStr === 'rides') {
-    const r = requireAuth(request)
+    const r = await requireAuth(request)
     if ('error' in r) return r.error
     return h.handleGetRides(pool, searchParams)
   }
   if (path.length === 2 && path[0] === 'rides' && /^\d+$/.test(path[1])) {
-    const r = requireAuth(request)
+    const r = await requireAuth(request)
     if ('error' in r) return r.error
     return h.handleGetRide(pool, parseInt(path[1], 10))
   }
   if (path.length === 3 && path[0] === 'rides' && /^\d+$/.test(path[1]) && path[2] === 'requests') {
-    const r = requireAuth(request)
+    const r = await requireAuth(request)
     if ('error' in r) return r.error
     return h.handleGetRideRequests(pool, parseInt(path[1], 10))
   }
   if (path.length === 3 && path[0] === 'rides' && /^\d+$/.test(path[1]) && path[2] === 'messages') {
-    const r = requireAuth(request)
+    const r = await requireAuth(request)
     if ('error' in r) return r.error
     return h.handleGetMessages(pool, parseInt(path[1], 10), searchParams)
   }
   if (path.length === 3 && path[0] === 'rides' && /^\d+$/.test(path[1]) && path[2] === 'payments') {
-    const r = requireAuth(request)
+    const r = await requireAuth(request)
     if ('error' in r) return r.error
     return h.handleGetPayments(pool, parseInt(path[1], 10))
   }
   if (pathStr === 'admin/users') {
-    const r = requireAuth(request)
+    const r = await requireAuth(request)
     if ('error' in r) return r.error
     const adminErr = requireAdmin(r.auth)
     if (adminErr) return adminErr
     return h.handleGetAllUsers(pool, r.auth)
   }
   if (pathStr === 'admin/analytics') {
-    const r = requireAuth(request)
+    const r = await requireAuth(request)
     if ('error' in r) return r.error
     const adminErr = requireAdmin(r.auth)
     if (adminErr) return adminErr
     return h.handleGetAnalytics(pool)
   }
   if (path.length === 2 && path[0] === 'corridors' && /^\d+$/.test(path[1])) {
-    const r = requireAuth(request)
+    const r = await requireAuth(request)
     if ('error' in r) return r.error
     return h.handleGetCorridor(pool, parseInt(path[1], 10))
   }
@@ -125,7 +159,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (pathStr === 'auth/register') return h.handleRegister(pool, body)
   if (pathStr === 'auth/login') return h.handleLogin(pool, body)
 
-  const r = requireAuth(request)
+  const r = await requireAuth(request)
   if ('error' in r) return r.error
   const { auth } = r
 
@@ -159,7 +193,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   const pathStr = path.join('/')
   const body = await request.json().catch(() => ({}))
 
-  const r = requireAuth(request)
+  const r = await requireAuth(request)
   if ('error' in r) return r.error
   const { auth } = r
 
@@ -206,7 +240,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const pool = getPool()
   const pathStr = path.join('/')
 
-  const r = requireAuth(request)
+  const r = await requireAuth(request)
   if ('error' in r) return r.error
   const { auth } = r
 

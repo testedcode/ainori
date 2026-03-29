@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Car, Loader2 } from 'lucide-react'
+import { createClient } from '@/utils/supabase/client'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
 
@@ -22,14 +23,34 @@ export default function RegisterPage() {
     e.preventDefault()
     setLoading(true)
 
+    const supabase = createClient()
+
     try {
+      // 1. Sign up with Supabase
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.name,
+          }
+        }
+      })
+
+      if (authError) throw authError
+
+      // 2. Create the user in our PostgreSQL database via API
+      // We pass the data to our existing register endpoint which will now be updated to handle Supabase users
       const response = await api.register(formData) as any
-      localStorage.setItem('token', response.token)
+      
+      localStorage.setItem('token', authData.session?.access_token || '')
       localStorage.setItem('user', JSON.stringify(response.user))
-      toast.success('Registration successful!')
+      
+      toast.success('Registration successful! Please check your email if confirmation is required.')
       router.push('/dashboard')
+      router.refresh()
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Registration failed')
+      toast.error(error.message || 'Registration failed')
     } finally {
       setLoading(false)
     }

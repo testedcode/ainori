@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Car, Loader2 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
+import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
@@ -22,12 +23,19 @@ export default function LoginPage() {
     const supabase = createClient()
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       })
 
-      if (error) throw error
+      if (authError) throw authError
+
+      // Fetch the full profile from our database using the logged-in session
+      // This will use the Supabase token for authentication back to our local API
+      localStorage.setItem('token', authData.session?.access_token || '')
+      
+      const profileResponse = await api.getProfile() as any
+      localStorage.setItem('user', JSON.stringify(profileResponse))
 
       toast.success('Login successful!')
       router.push('/dashboard')
