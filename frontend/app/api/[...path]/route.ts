@@ -20,11 +20,12 @@ async function requireAuth(request: NextRequest) {
     const { data: { user }, error } = await supabase.auth.getUser()
 
     if (user && user.email) {
-      // Fetch role and userId from our database based on email
+      // 1. Fetch role and userId from our database based on email
       const r = await pool.query(
         'SELECT id, email, role FROM users WHERE email = $1',
         [user.email]
       )
+
       if (r.rows.length > 0) {
         const row = r.rows[0]
         return { 
@@ -33,6 +34,29 @@ async function requireAuth(request: NextRequest) {
             email: row.email, 
             role: row.role 
           } 
+        }
+      } else {
+        // 2. Auto-create the user in our database if they don't exist yet
+        // This handles users manually added via the Supabase Dashboard
+        const name = user.user_metadata?.full_name || user.email.split('@')[0]
+        const role = user.email === 'admin@cpoolai.com' ? 'admin' : 'user'
+        
+        try {
+          const insertRes = await pool.query(
+            `INSERT INTO users (email, name, role, password_hash) 
+             VALUES ($1, $2, $3, 'supabase_auth') RETURNING id, email, role`,
+            [user.email, name, role]
+          )
+          const newRow = insertRes.rows[0]
+          return { 
+            auth: { 
+              userId: newRow.id, 
+              email: newRow.email, 
+              role: newRow.role 
+            } 
+          }
+        } catch (e) {
+          console.error('Error auto-creating PG user:', e)
         }
       }
     }
