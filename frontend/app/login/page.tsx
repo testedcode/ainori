@@ -41,6 +41,7 @@ export default function LoginPage() {
       router.push('/dashboard')
       router.refresh()
     } catch (error: any) {
+      console.error('Full Login Error:', error);
       toast.error(error.message || 'Login failed')
     } finally {
       setLoading(false)
