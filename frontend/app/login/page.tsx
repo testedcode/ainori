@@ -43,7 +43,7 @@ export default function LoginPage() {
       router.refresh()
     } catch (error: any) {
       console.error('Full Login Error:', error);
-      const msg = error.message || 'Login failed';
+      const msg = error.response?.data?.error || error.message || 'Login failed';
       setErrorDetails(msg);
       alert('Login Error: ' + msg);
       toast.error(msg)

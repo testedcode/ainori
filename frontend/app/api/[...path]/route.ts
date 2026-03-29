@@ -52,7 +52,6 @@ async function requireAuth(request: NextRequest) {
         }
       } else {
         // 2. Auto-create the user in our database if they don't exist yet
-        // This handles users manually added via the Supabase Dashboard
         const name = user.user_metadata?.full_name || user.email.split('@')[0]
         const role = user.email === 'admin@cpoolai.com' ? 'admin' : 'user'
         
@@ -70,16 +69,20 @@ async function requireAuth(request: NextRequest) {
               role: newRow.role 
             } 
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error('Error auto-creating PG user:', e)
+          return { error: Response.json({ error: 'Database sync failed: ' + e.message }, { status: 500 }) }
         }
       }
+    } else {
+      return { error: Response.json({ error: 'Supabase could not verify user' }, { status: 401 }) }
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error('Supabase auth error in API:', e)
+    return { error: Response.json({ error: 'Auth system error: ' + e.message }, { status: 500 }) }
   }
 
-  return { error: Response.json({ error: 'Authorization required' }, { status: 401 }) }
+  return { error: Response.json({ error: 'Authorization failed' }, { status: 401 }) }
 }
 
 function requireAdmin(auth: { role: string }) {
