@@ -3,9 +3,17 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     domains: ['localhost'],
+    remotePatterns: [{ protocol: 'https', hostname: '**' }],
   },
   experimental: {
-    serverComponentsExternalPackages: ['pg', 'bcryptjs', 'jsonwebtoken']
+    serverComponentsExternalPackages: ['pg', 'bcryptjs', 'jsonwebtoken'],
+    // Disable vendor-chunk symlinks - they break on Windows OneDrive paths
+    webpackBuildWorker: false,
+  },
+  webpack: (config) => {
+    // Disable symlink resolution that breaks on OneDrive
+    config.resolve.symlinks = false;
+    return config;
   },
   // Enable CORS for API calls
   async headers() {

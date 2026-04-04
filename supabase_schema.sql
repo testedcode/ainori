@@ -152,18 +152,29 @@ INSERT INTO cities (name, status) VALUES
 ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO users (email, password_hash, name, role, city) VALUES 
-    ('admin@135', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Admin User', 'admin', 'Mumbai')
+    ('admin@135', '$2a$10$3moAuCK0NMbiytuy8xQoEfu6X1O07G/a70L1WQw.GiQFWSlUbYi', 'Admin User', 'admin', 'Mumbai')
 ON CONFLICT (email) DO NOTHING;
 
+-- JOOL Phase 2 Corridors
 INSERT INTO corridors (city_id, name, location_from, location_to, pickup_points, terms_conditions, is_active)
-SELECT c.id, 'Powai → BKC', 'Powai', 'BKC', 'Hiranandani, IIT Bombay, Powai Lake', 'Standard carpooling terms apply', true
+SELECT c.id, 'Casa Rio ↔ RCP', 'Casa Rio', 'RCP', 'Casa Rio Gate 1, Lodha Heaven, Nilje', 'Standard JOOL terms apply', true
 FROM cities c WHERE c.name = 'Mumbai'
-AND NOT EXISTS (SELECT 1 FROM corridors cor WHERE cor.city_id = c.id AND cor.name = 'Powai → BKC');
+AND NOT EXISTS (SELECT 1 FROM corridors cor WHERE cor.city_id = c.id AND cor.name = 'Casa Rio ↔ RCP');
 
 INSERT INTO corridors (city_id, name, location_from, location_to, pickup_points, terms_conditions, is_active)
-SELECT c.id, 'Andheri → Bandra', 'Andheri', 'Bandra', 'Andheri Station, Lokhandwala, Versova', 'Standard carpooling terms apply', true
+SELECT c.id, 'Casa Bella ↔ RCP', 'Casa Bella', 'RCP', 'Casa Bella Gold, Casa Bella Diamond', 'Standard JOOL terms apply', true
 FROM cities c WHERE c.name = 'Mumbai'
-AND NOT EXISTS (SELECT 1 FROM corridors cor WHERE cor.city_id = c.id AND cor.name = 'Andheri → Bandra');
+AND NOT EXISTS (SELECT 1 FROM corridors cor WHERE cor.city_id = c.id AND cor.name = 'Casa Bella ↔ RCP');
+
+INSERT INTO corridors (city_id, name, location_from, location_to, pickup_points, terms_conditions, is_active)
+SELECT c.id, 'Lakeshore ↔ RCP', 'Lakeshore', 'RCP', 'Lakeshore Greens, Palava Gate 2', 'Standard JOOL terms apply', true
+FROM cities c WHERE c.name = 'Mumbai'
+AND NOT EXISTS (SELECT 1 FROM corridors cor WHERE cor.city_id = c.id AND cor.name = 'Lakeshore ↔ RCP');
+
+INSERT INTO corridors (city_id, name, location_from, location_to, pickup_points, terms_conditions, is_active)
+SELECT c.id, 'Kharghar ↔ RCP', 'Kharghar', 'RCP', 'Hiranandani, Jalvayu Vihar', 'Standard JOOL terms apply', true
+FROM cities c WHERE c.name = 'Mumbai'
+AND NOT EXISTS (SELECT 1 FROM corridors cor WHERE cor.city_id = c.id AND cor.name = 'Kharghar ↔ RCP');
 
 INSERT INTO feature_flags (name, enabled, description) VALUES 
     ('maps_enabled', false, 'Enable map features'),
