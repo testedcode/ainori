@@ -97,7 +97,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   if (pathStr === 'health') return h.handleHealth()
 
-  let pool = getPool()
+  let pool: any = getPool()
 
   if (pathStr === 'auth/profile') {
     // Fast path: decode token directly without requiring DB round-trip
@@ -214,7 +214,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const pathStr = path.join('/')
   const body = await request.json().catch(() => ({}))
 
-  let pool
+  let pool: any
   try {
     pool = getPool()
   } catch (e) {
@@ -254,7 +254,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params
-  const pool = getPool()
+  const pool: any = getPool()
   const pathStr = path.join('/')
   const body = await request.json().catch(() => ({}))
 
@@ -306,7 +306,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params
-  const pool = getPool()
+  const pool: any = getPool()
   const pathStr = path.join('/')
 
   const r = await requireAuth(request)
