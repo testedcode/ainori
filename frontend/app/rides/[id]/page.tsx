@@ -371,14 +371,14 @@ export default function RideDetailPage() {
                   </button>
                   {requestSent && (
                     <p className="text-[10px] text-center font-black text-blue-400 uppercase tracking-widest animate-pulse">
-                      Waiting for driver approval...
+                      Waiting for host approval...
                     </p>
                   )}
                 </div>
              )}
              {isOwner && (
                <div className="text-xs font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
-                  <Shield className="w-4 h-4" /> MANAGING AS DRIVER
+                  <Shield className="w-4 h-4" /> MANAGING AS HOST
                </div>
              )}
           </div>
@@ -391,7 +391,7 @@ export default function RideDetailPage() {
         <div className="lg:col-span-8 space-y-12">
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Driver Profile */}
+            {/* Host Profile */}
             <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8 flex flex-col items-center text-center">
                 <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-4xl shadow-[0_15px_30px_rgba(37,99,235,0.3)] mb-6 relative">
                   {initials}

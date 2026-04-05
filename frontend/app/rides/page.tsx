@@ -300,7 +300,7 @@ function RidesContent() {
             <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5">
               <Search className="w-4 h-4 text-slate-500 flex-shrink-0" />
               <input value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Search driver, route..." className="bg-transparent text-sm text-white placeholder-slate-600 focus:outline-none w-36" />
+                placeholder="Search host, route..." className="bg-transparent text-sm text-white placeholder-slate-600 focus:outline-none w-36" />
             </div>
 
             {/* Show filled toggle */}
@@ -397,7 +397,7 @@ function RidesContent() {
             {view === 'compact' && (
               <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden">
                 <div className="px-4 py-3 border-b border-white/5 grid grid-cols-4 text-[10px] font-black text-slate-600 uppercase tracking-widest">
-                  <span>Driver & Route</span><span>Corridor</span><span>Seats</span><span>Price</span>
+                  <span>Host & Route</span><span>Corridor</span><span>Seats</span><span>Price</span>
                 </div>
                 {paginated.map(ride => <CompactView key={ride.id} ride={ride} onRequest={handleRequest} />)}
               </div>

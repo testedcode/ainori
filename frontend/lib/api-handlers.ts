@@ -89,7 +89,7 @@ export async function handleLogin(pool: Pool, body: unknown) {
 
 export async function handleProfile(pool: Pool, auth: Auth) {
   const r = await pool.query(
-    `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, created_at, updated_at
+    `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, created_at, updated_at
      FROM users WHERE id = $1`,
     [auth.userId]
   )
@@ -102,7 +102,7 @@ export async function handleUpdateProfile(pool: Pool, body: unknown, auth: Auth)
   const updates: string[] = []
   const args: unknown[] = []
   let i = 1
-  for (const key of ['name', 'phone', 'city', 'upi_id']) {
+  for (const key of ['name', 'phone', 'city', 'upi_id', 'avatar_url']) {
     if (b[key] !== undefined) {
       updates.push(`${key} = $${i++}`)
       args.push(b[key])
@@ -113,7 +113,7 @@ export async function handleUpdateProfile(pool: Pool, body: unknown, auth: Auth)
   args.push(auth.userId)
   await pool.query(`UPDATE users SET ${updates.join(', ')} WHERE id = $${i}`, args)
   const r = await pool.query(
-    `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, created_at, updated_at
+    `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, created_at, updated_at
      FROM users WHERE id = $1`,
     [auth.userId]
   )
@@ -312,6 +312,29 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
   const r = await pool.query(query, args)
   return jsonResponse(r.rows)
 }
+
+export async function handleGetUserRides(pool: Pool, auth: Auth) {
+  const query = `
+    SELECT DISTINCT r.id, r.user_id, u.name as user_name, u.avatar_url, r.corridor_id, c.name as corridor_name,
+           r.ride_date, r.ride_time, r.pickup_point, r.drop_point,
+           r.price_per_seat, r.available_seats, r.total_seats, r.status,
+           CASE WHEN r.user_id = $1 THEN 'host' ELSE 'co-commuter' END as role
+    FROM rides r 
+    JOIN users u ON r.user_id = u.id 
+    JOIN corridors c ON r.corridor_id = c.id
+    LEFT JOIN ride_requests req ON r.id = req.ride_id AND req.status = 'accepted'
+    WHERE r.user_id = $1 OR req.user_id = $1
+    ORDER BY r.ride_date DESC, r.ride_time DESC
+  `
+  const r = await pool.query(query, [auth.userId])
+  
+  const formatted = r.rows.map((row: any) => ({
+    ...row,
+    driver_name: row.user_name // map user_name to driver_name for frontend compatibility
+  }))
+  return jsonResponse(formatted)
+}
+
 
 export async function handleGetRide(pool: Pool, id: number) {
   const r = await pool.query(

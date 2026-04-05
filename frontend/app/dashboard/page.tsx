@@ -39,7 +39,7 @@ interface Ride {
   total_seats: number
   status: string
   driver_name?: string
-  role?: 'driver' | 'rider'
+  role?: 'host' | 'co-commuter' | 'driver' | 'rider'
 }
 
 const DEMO_MY_RIDES: Ride[] = [
@@ -55,7 +55,7 @@ const DEMO_MY_RIDES: Ride[] = [
     total_seats: 4,
     status: 'active',
     driver_name: 'Aayushi Singh',
-    role: 'rider'
+    role: 'co-commuter'
   },
   {
     id: 102,
@@ -68,7 +68,7 @@ const DEMO_MY_RIDES: Ride[] = [
     available_seats: 2,
     total_seats: 4,
     status: 'active',
-    role: 'driver'
+    role: 'host'
   }
 ]
 
@@ -106,22 +106,22 @@ export default function DashboardPage() {
       }
 
       try {
-        const corridorsRes = await api.get('/corridors')
+        const corridorsRes = await api.get('/corridors?active=true')
         if (Array.isArray(corridorsRes)) {
           setCorridors(corridorsRes as unknown as Corridor[])
         }
-      } catch {
-        setCorridors([
-          { id: 1, name: 'Casa Rio', location_from: 'Casa Rio', location_to: 'RCP' },
-          { id: 2, name: 'Casa Bella', location_from: 'Casa Bella', location_to: 'RCP' },
-          { id: 3, name: 'Lakeshore', location_from: 'Lakeshore', location_to: 'RCP' },
-          { id: 4, name: 'Kharghar', location_from: 'Kharghar', location_to: 'RCP' },
-        ])
-      }
+      } catch {}
       
-      // In real app, we'd fetch user's rides/bookings here
-      // const ridesRes = await api.get('/user/rides')
-      // setMyRides(ridesRes)
+      try {
+        const ridesRes = await api.get('/user/rides')
+        if (Array.isArray(ridesRes)) {
+          setMyRides(ridesRes as unknown as Ride[])
+        } else {
+          setMyRides([])
+        }
+      } catch {
+        setMyRides([])
+      }
       
       setLoading(false)
     }
@@ -140,8 +140,13 @@ export default function DashboardPage() {
     )
   }
 
-  const bookedRides = myRides.filter(r => r.role === 'rider')
-  const offeredRides = myRides.filter(r => r.role === 'driver')
+  const todayStr = new Date().toISOString().split('T')[0]
+  
+  const upcomingRides = myRides.filter(r => r.ride_date >= todayStr)
+  const pastRides = myRides.filter(r => r.ride_date < todayStr)
+  
+  const bookedRides = upcomingRides.filter(r => r.role === 'co-commuter' || r.role === 'rider')
+  const offeredRides = upcomingRides.filter(r => r.role === 'host' || r.role === 'driver')
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white pb-20 font-sans overflow-x-hidden relative">
@@ -244,7 +249,7 @@ export default function DashboardPage() {
                         <h4 className="font-bold text-lg text-white">{ride.corridor_name}</h4>
                         <div className="flex items-center gap-2 mt-1 text-slate-400 text-xs">
                           <User className="w-3 h-3 text-blue-400" />
-                          Driver: {ride.driver_name}
+                          Host: {ride.driver_name}
                         </div>
                       </div>
                       <div className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
@@ -303,6 +308,41 @@ export default function DashboardPage() {
             </div>
           </div>
         </section>
+
+        {/* Past Trips / History */}
+        {pastRides.length > 0 && (
+          <section className="mb-16">
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
+              <div>
+                <h2 className="text-xl font-black text-white">Past Trips & Settlements</h2>
+                <p className="text-white/40 text-xs mt-1">Review history and finalize pending payments</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               {pastRides.map(ride => (
+                  <Link key={ride.id} href={`/rides/${ride.id}`} className="block bg-white/5 border border-white/10 rounded-3xl p-5 hover:bg-white/10 transition-all opacity-80 hover:opacity-100">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h4 className="font-bold text-md text-white">{ride.corridor_name}</h4>
+                        <div className="flex items-center gap-2 mt-1 text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+                          <User className="w-3 h-3 text-slate-500" />
+                          {ride.role === 'host' ? 'Hosted Route' : `Host: ${ride.driver_name}`}
+                        </div>
+                      </div>
+                      <div className="bg-slate-500/10 text-slate-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-tighter">
+                        {ride.ride_date}
+                      </div>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-3">
+                       <span className="text-xs font-black text-white/40">Status: <span className="text-white/80">{ride.status}</span></span>
+                       <span className="text-xs font-black text-blue-400 flex items-center gap-1">VIEW HUB <ChevronRight className="w-3 h-3"/></span>
+                    </div>
+                  </Link>
+               ))}
+            </div>
+          </section>
+        )}
 
         {/* Dynamic AI Corridor Display */}
         {corridors.length > 0 && (

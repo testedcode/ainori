@@ -9,6 +9,7 @@ import {
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
 import JoolNav from '../components/JoolNav'
+import { createClient } from '@/utils/supabase/client'
 
 interface ProfileData {
   id: number
@@ -20,6 +21,7 @@ interface ProfileData {
   carbon_credits: number
   role: string
   bio?: string
+  avatar_url?: string
 }
 
 export default function ProfilePage() {
@@ -34,8 +36,12 @@ export default function ProfilePage() {
     phone: '',
     city: '',
     upi_id: '',
-    bio: ''
+    bio: '',
+    avatar_url: ''
   })
+  
+  const [uploading, setUploading] = useState(false)
+  const supabase = createClient()
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -56,7 +62,8 @@ export default function ProfilePage() {
           phone: data.phone || '',
           city: data.city || '',
           upi_id: data.upi_id || '',
-          bio: data.bio || ''
+          bio: data.bio || '',
+          avatar_url: data.avatar_url || ''
         })
         localStorage.setItem('user', JSON.stringify(data))
       }
@@ -79,6 +86,31 @@ export default function ProfilePage() {
       toast.error(e?.response?.data?.error || 'Synchronization failed')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploading(true)
+      if (!e.target.files || e.target.files.length === 0) {
+        throw new Error('You must select an image to upload.')
+      }
+      const file = e.target.files[0]
+      const fileExt = file.name.split('.').pop()
+      const filePath = `${profile?.id}-${Math.random()}.${fileExt}`
+
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file)
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath)
+      
+      await api.put('/auth/profile', { ...formData, avatar_url: publicUrl })
+      toast.success('System Avatar updated!')
+      fetchProfile()
+    } catch (e: any) {
+      toast.error(e.message || 'Error uploading avatar')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -112,12 +144,22 @@ export default function ProfilePage() {
            <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
               {/* Avatar Section */}
               <div className="relative group">
-                 <div className="w-40 h-40 rounded-[3rem] bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-6xl shadow-[0_20px_50px_rgba(37,99,235,0.3)] border-4 border-white/5">
-                   {initials}
+                 <div className="w-40 h-40 rounded-[3rem] bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-6xl shadow-[0_20px_50px_rgba(37,99,235,0.3)] border-4 border-white/5 overflow-hidden relative">
+                   {profile?.avatar_url ? (
+                     <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                   ) : (
+                     initials
+                   )}
+                   {uploading && (
+                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
+                       <Loader2 className="w-8 h-8 text-white animate-spin" />
+                     </div>
+                   )}
                  </div>
-                 <button className="absolute bottom-2 right-2 p-3 bg-white text-black rounded-2xl shadow-xl hover:scale-110 transition-transform active:scale-95">
+                 <label className="absolute bottom-2 right-2 p-3 bg-white text-black rounded-2xl shadow-xl hover:scale-110 transition-transform active:scale-95 cursor-pointer z-10">
                     <Camera className="w-5 h-5" />
-                 </button>
+                    <input type="file" accept="image/*" onChange={handleAvatarUpload} disabled={uploading} className="hidden" />
+                 </label>
               </div>
 
               {/* Identity Section */}

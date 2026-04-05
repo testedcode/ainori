@@ -162,6 +162,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if ('error' in r) return r.error
     return h.handleGetVehicle(pool as any, parseInt(path[1], 10), r.auth)
   }
+  if (pathStr === 'user/rides') {
+    const r = await requireAuth(request)
+    if ('error' in r) return r.error
+    return h.handleGetUserRides(pool as any, r.auth)
+  }
   if (pathStr === 'rides') {
     const r = await requireAuth(request)
     if ('error' in r) return r.error
