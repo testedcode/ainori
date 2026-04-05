@@ -47,10 +47,10 @@ class MockPool {
     if (t.includes('from corridors')) {
       return {
         rows: [
-          { id: 1, city_id: 1, city_name: 'Mumbai', name: 'Casa Rio', location_from: 'Casa Rio', location_to: 'RCP', is_active: true, pickup_points: 'Gate 1, Gate 2' },
-          { id: 2, city_id: 1, city_name: 'Mumbai', name: 'Casa Bella', location_from: 'Casa Bella', location_to: 'RCP', is_active: true, pickup_points: 'Main Gate' },
-          { id: 3, city_id: 1, city_name: 'Mumbai', name: 'Lakeshore', location_from: 'Lakeshore', location_to: 'RCP', is_active: true, pickup_points: 'Phase 2' },
-          { id: 4, city_id: 1, city_name: 'Mumbai', name: 'Kharghar', location_from: 'Kharghar', location_to: 'RCP', is_active: true, pickup_points: 'Sector 20' }
+          { id: 1, city_id: 1, city_name: 'Mumbai', name: 'Casa Rio', location_from: 'Casa Rio', location_to: 'RCP', description: 'Palava City Gate 1 to Reliance Corporate Park', is_active: true, pickup_points: 'Gate 1, Gate 2' },
+          { id: 2, city_id: 1, city_name: 'Mumbai', name: 'Casa Bella', location_from: 'Casa Bella', location_to: 'RCP', description: 'Casa Bella Main Gate to Reliance Corporate Park', is_active: true, pickup_points: 'Main Gate' },
+          { id: 3, city_id: 1, city_name: 'Mumbai', name: 'Lakeshore', location_from: 'Lakeshore', location_to: 'RCP', description: 'Lakeshore Greens Phase 2 to RCP', is_active: true, pickup_points: 'Phase 2' },
+          { id: 4, city_id: 1, city_name: 'Mumbai', name: 'Kharghar', location_from: 'Kharghar', location_to: 'RCP', description: 'Kharghar Sector 20 to RCP via Highway', is_active: true, pickup_points: 'Sector 20' }
         ]
       };
     }

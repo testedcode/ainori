@@ -7,7 +7,7 @@ import {
   ArrowLeft, Users, MapPin, Car, BarChart3, Lock, Unlock, 
   CheckCircle, XCircle, Shield, Search, Plus, AlertTriangle,
   ChevronRight, Activity, Leaf, Ban, UserCheck, Clock,
-  TrendingUp, Globe, Database
+  TrendingUp, Globe, Database, Pencil
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
@@ -18,7 +18,7 @@ interface User {
   city?: string; carbon_credits: number; created_at: string
   approved?: boolean; blocked?: boolean
 }
-interface Corridor { id: number; name: string; city_name?: string; location_from: string; location_to: string; is_active: boolean }
+interface Corridor { id: number; city_id?: number; name: string; city_name?: string; location_from: string; location_to: string; description?: string; is_active: boolean }
 interface City { id: number; name: string; status: string }
 interface Analytics { total_users: number; total_rides: number; active_corridors: number; completed_rides: number; total_revenue: number; total_credits: number }
 interface RideRequest { id: number; rider_name: string; driver_name: string; pickup_point: string; seats_requested: number; corridor_name: string; ride_date: string; ride_time: string; status: string }
@@ -34,10 +34,10 @@ const DEMO_USERS: User[] = [
   { id: 6, name: 'Arjun Sharma', email: 'arjun@example.com', role: 'user', carbon_credits: 90, created_at: '2026-03-05', approved: true, blocked: true },
 ]
 const DEMO_CORRIDORS: Corridor[] = [
-  { id: 1, name: 'Casa Rio', location_from: 'Casa Rio', location_to: 'RCP', is_active: true },
-  { id: 2, name: 'Casa Bella', location_from: 'Casa Bella', location_to: 'RCP', is_active: true },
-  { id: 3, name: 'Lakeshore', location_from: 'Lakeshore', location_to: 'RCP', is_active: true },
-  { id: 4, name: 'Kharghar', location_from: 'Kharghar', location_to: 'RCP', is_active: false },
+  { id: 1, city_id: 1, name: 'Casa Rio', location_from: 'Casa Rio', location_to: 'RCP', description: 'Palava City Gate 1 to Reliance Corporate Park', is_active: true },
+  { id: 2, city_id: 1, name: 'Casa Bella', location_from: 'Casa Bella', location_to: 'RCP', description: 'Casa Bella Main Gate to Reliance Corporate Park', is_active: true },
+  { id: 3, city_id: 1, name: 'Lakeshore', location_from: 'Lakeshore', location_to: 'RCP', description: 'Lakeshore Greens Phase 2 to RCP', is_active: true },
+  { id: 4, city_id: 1, name: 'Kharghar', location_from: 'Kharghar', location_to: 'RCP', description: 'Kharghar Sector 20 to RCP via Highway', is_active: false },
 ]
 const DEMO_CITIES: City[] = [
   { id: 1, name: 'Mumbai', status: 'active' },
@@ -74,7 +74,8 @@ export default function AdminPage() {
   const [requests, setRequests] = useState<RideRequest[]>(DEMO_REQUESTS)
   const [searchUser, setSearchUser] = useState('')
   const [showAddCorridor, setShowAddCorridor] = useState(false)
-  const [newCorridor, setNewCorridor] = useState({ name: '', location_from: '', location_to: '' })
+  const [editCorridorMode, setEditCorridorMode] = useState<number | null>(null)
+  const [newCorridor, setNewCorridor] = useState({ city_id: 1, name: '', location_from: '', location_to: '', description: '' })
   const [showAddCity, setShowAddCity] = useState(false)
   const [newCity, setNewCity] = useState('')
 
@@ -127,15 +128,38 @@ export default function AdminPage() {
     toast.success(`${newStatus === 'active' ? 'Opened' : 'Locked'} city ecosystem.`)
   }
   const addCorridor = async () => {
-    if (!newCorridor.name || !newCorridor.location_from || !newCorridor.location_to) {
-      toast.error('Missing route geometry'); return
+    if (!newCorridor.name || !newCorridor.location_from || !newCorridor.location_to || !newCorridor.city_id) {
+      toast.error('Missing route geometry or city'); return
     }
     const fake: Corridor = { id: Date.now(), ...newCorridor, is_active: true }
     setCorridors(prev => [...prev, fake])
-    try { await api.post('/corridors', newCorridor) } catch {}
-    setNewCorridor({ name: '', location_from: '', location_to: '' })
+    try { 
+      await api.post('/corridors', newCorridor) 
+      toast.success('New corridor integrated.')
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to create corridor (City missing?)')
+      fetchAll() // refresh to revert fake
+    }
+    setNewCorridor({ city_id: 1, name: '', location_from: '', location_to: '', description: '' })
     setShowAddCorridor(false)
-    toast.success('New corridor integrated.')
+  }
+
+  const saveEditCorridor = async () => {
+    if (!editCorridorMode) return
+    const id = editCorridorMode
+    if (!newCorridor.name || !newCorridor.location_from || !newCorridor.location_to) {
+      toast.error('Missing route geometry'); return
+    }
+    setCorridors(prev => prev.map(c => c.id === id ? { ...c, ...newCorridor } : c))
+    try { 
+      await api.put(`/corridors/${id}`, newCorridor) 
+      toast.success('Corridor architecture updated.')
+    } catch (e: any) {
+      toast.error(e.message || 'Error updating corridor')
+      fetchAll() 
+    }
+    setNewCorridor({ city_id: 1, name: '', location_from: '', location_to: '', description: '' })
+    setEditCorridorMode(null)
   }
   const addCity = async () => {
     if (!newCity.trim()) return
@@ -309,14 +333,18 @@ export default function AdminPage() {
                  <h2 className="text-3xl font-black">Route Architecture</h2>
                  <p className="text-white/40 font-bold">Configuring commute geometry and active zones.</p>
                </div>
-               <button onClick={() => setShowAddCorridor(!showAddCorridor)} className="bg-white text-black hover:bg-blue-600 hover:text-white px-10 py-5 rounded-[2rem] font-black text-lg transition-all active:scale-95 shadow-2xl">
+               <button onClick={() => {
+                 setNewCorridor({ city_id: 1, name: '', location_from: '', location_to: '', description: '' });
+                 setEditCorridorMode(null);
+                 setShowAddCorridor(!showAddCorridor);
+               }} className="bg-white text-black hover:bg-blue-600 hover:text-white px-10 py-5 rounded-[2rem] font-black text-lg transition-all active:scale-95 shadow-2xl">
                  NEW CORRIDOR
                </button>
             </div>
 
-            {showAddCorridor && (
+            {(showAddCorridor || editCorridorMode !== null) && (
               <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 mb-12">
-                <h3 className="text-2xl font-black mb-8">Define New Corridor</h3>
+                <h3 className="text-2xl font-black mb-8">{editCorridorMode ? 'Edit Corridor Architecture' : 'Define New Corridor'}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                   <div className="space-y-3">
                     <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Display Name</label>
@@ -333,10 +361,20 @@ export default function AdminPage() {
                     <input value={newCorridor.location_to} onChange={e => setNewCorridor(p => ({ ...p, location_to: e.target.value }))}
                       placeholder="Ending Sector" className="w-full px-6 py-4 bg-[#0f172a] border border-white/5 rounded-2xl text-white font-bold placeholder-white/20 focus:outline-none focus:border-blue-600 transition-all" />
                   </div>
+                  <div className="space-y-3 col-span-1 md:col-span-3">
+                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Detailed Route Description</label>
+                    <textarea value={newCorridor.description} onChange={e => setNewCorridor(p => ({ ...p, description: e.target.value }))}
+                      rows={2} placeholder="Type exact locations, minimum ride charges, and context for users." className="w-full px-6 py-4 bg-[#0f172a] border border-white/5 rounded-2xl text-white font-bold placeholder-white/20 focus:outline-none focus:border-blue-600 transition-all resize-none" />
+                  </div>
                 </div>
                 <div className="flex gap-4">
-                  <button onClick={addCorridor} className="bg-blue-600 hover:bg-blue-700 px-12 py-5 rounded-2xl font-black shadow-xl">PUBLISH TO NETWORK</button>
-                  <button onClick={() => setShowAddCorridor(false)} className="px-12 py-5 bg-white/5 border border-white/10 rounded-2xl font-black text-white/40 hover:bg-white/10 transition-all">ABORT</button>
+                  <button onClick={editCorridorMode ? saveEditCorridor : addCorridor} className="bg-blue-600 hover:bg-blue-700 px-12 py-5 rounded-2xl font-black shadow-xl">
+                    {editCorridorMode ? 'SAVE CHANGES' : 'PUBLISH TO NETWORK'}
+                  </button>
+                  <button onClick={() => {
+                     setShowAddCorridor(false);
+                     setEditCorridorMode(null);
+                  }} className="px-12 py-5 bg-white/5 border border-white/10 rounded-2xl font-black text-white/40 hover:bg-white/10 transition-all">ABORT</button>
                 </div>
               </div>
             )}
@@ -349,10 +387,20 @@ export default function AdminPage() {
                          <div className={`w-4 h-4 rounded-full ${c.is_active ? 'bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.6)] animate-pulse' : 'bg-red-600'}`} />
                          <h4 className="text-3xl font-black tracking-tight">{c.name}</h4>
                       </div>
-                      <button onClick={() => toggleCorridor(c.id, c.is_active)} className={`p-4 rounded-2xl transition-all ${c.is_active ? 'bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white' : 'bg-green-600/10 text-green-500 hover:bg-green-600 hover:text-white'}`}>
-                         {c.is_active ? <Lock className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => {
+                          setEditCorridorMode(c.id);
+                          setNewCorridor({ city_id: c.city_id || 1, name: c.name, location_from: c.location_from, location_to: c.location_to, description: c.description || '' });
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }} className="p-4 rounded-2xl bg-blue-600/10 text-blue-500 hover:bg-blue-600 hover:text-white transition-all">
+                           <Pencil className="w-5 h-5" />
+                        </button>
+                        <button onClick={() => toggleCorridor(c.id, c.is_active)} className={`p-4 rounded-2xl transition-all ${c.is_active ? 'bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white' : 'bg-green-600/10 text-green-500 hover:bg-green-600 hover:text-white'}`}>
+                           {c.is_active ? <Lock className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
+                        </button>
+                      </div>
                    </div>
+                   {c.description && <p className="mb-6 text-sm text-white/60 bg-[#0f172a] p-4 rounded-xl border border-white/5">{c.description}</p>}
                    <div className="flex items-center gap-6 text-lg font-bold text-white/60">
                       <div className="flex flex-col">
                          <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">ORIGIN</span>

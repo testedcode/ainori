@@ -165,7 +165,7 @@ export async function handleGetCorridors(pool: Pool, searchParams: URLSearchPara
   const activeOnly = searchParams.get('active') === 'true'
   let query = `
     SELECT c.id, c.city_id, ci.name as city_name, c.name, c.location_from, c.location_to,
-           c.pickup_points, c.terms_conditions, c.is_active, c.map_enabled, c.created_at, c.updated_at
+           c.pickup_points, c.terms_conditions, c.description, c.is_active, c.map_enabled, c.created_at, c.updated_at
     FROM corridors c JOIN cities ci ON c.city_id = ci.id WHERE 1=1
   `
   const args: unknown[] = []
@@ -183,7 +183,7 @@ export async function handleGetCorridors(pool: Pool, searchParams: URLSearchPara
 export async function handleGetCorridor(pool: Pool, id: number) {
   const r = await pool.query(
     `SELECT c.id, c.city_id, ci.name as city_name, c.name, c.location_from, c.location_to,
-            c.pickup_points, c.terms_conditions, c.is_active, c.map_enabled, c.created_at, c.updated_at
+            c.pickup_points, c.terms_conditions, c.description, c.is_active, c.map_enabled, c.created_at, c.updated_at
      FROM corridors c JOIN cities ci ON c.city_id = ci.id WHERE c.id = $1`,
     [id]
   )
@@ -194,7 +194,7 @@ export async function handleGetCorridor(pool: Pool, id: number) {
 export async function handleGetUserCorridors(pool: Pool, auth: Auth) {
   const r = await pool.query(
     `SELECT c.id, c.city_id, ci.name as city_name, c.name, c.location_from, c.location_to,
-            c.pickup_points, c.terms_conditions, c.is_active, c.map_enabled, c.created_at, c.updated_at
+            c.pickup_points, c.terms_conditions, c.description, c.is_active, c.map_enabled, c.created_at, c.updated_at
      FROM user_corridors uc JOIN corridors c ON uc.corridor_id = c.id JOIN cities ci ON c.city_id = ci.id
      WHERE uc.user_id = $1 AND c.is_active = true ORDER BY c.name`,
     [auth.userId]
@@ -607,12 +607,12 @@ export async function handleToggleFeature(pool: Pool, name: string, body: unknow
 }
 
 export async function handleCreateCorridor(pool: Pool, body: unknown, _auth: Auth) {
-  const b = body as { city_id?: number; name?: string; location_from?: string; location_to?: string; pickup_points?: string; terms_conditions?: string; is_active?: boolean; map_enabled?: boolean }
+  const b = body as { city_id?: number; name?: string; location_from?: string; location_to?: string; description?: string; pickup_points?: string; terms_conditions?: string; is_active?: boolean; map_enabled?: boolean }
   if (!b?.city_id || !b?.name || !b?.location_from || !b?.location_to) return errResponse('city_id, name, location_from, location_to required', 400)
   const r = await pool.query(
-    `INSERT INTO corridors (city_id, name, location_from, location_to, pickup_points, terms_conditions, is_active, map_enabled)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
-    [b.city_id, b.name, b.location_from, b.location_to, b.pickup_points || null, b.terms_conditions || null, b.is_active ?? true, b.map_enabled ?? false]
+    `INSERT INTO corridors (city_id, name, location_from, location_to, description, pickup_points, terms_conditions, is_active, map_enabled)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+    [b.city_id, b.name, b.location_from, b.location_to, b.description || null, b.pickup_points || null, b.terms_conditions || null, b.is_active ?? true, b.map_enabled ?? false]
   )
   return jsonResponse({ id: r.rows[0].id, message: 'Corridor created' }, 201)
 }
@@ -622,7 +622,7 @@ export async function handleUpdateCorridor(pool: Pool, id: number, body: unknown
   const updates: string[] = []
   const args: unknown[] = []
   let i = 1
-  for (const key of ['name', 'location_from', 'location_to', 'pickup_points', 'terms_conditions', 'is_active', 'map_enabled']) {
+  for (const key of ['name', 'location_from', 'location_to', 'description', 'pickup_points', 'terms_conditions', 'is_active', 'map_enabled']) {
     if (b[key] !== undefined) {
       updates.push(`${key} = $${i++}`)
       args.push(b[key])

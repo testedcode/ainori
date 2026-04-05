@@ -25,6 +25,7 @@ interface Corridor {
   name: string
   location_from: string
   location_to: string
+  description?: string
 }
 
 interface Ride {
@@ -371,9 +372,16 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     
-                    <div className="bg-slate-800/50 w-max px-3 py-1 rounded-lg text-[10px] font-black tracking-[0.2em] text-slate-400 mb-6">
-                      CHANNELS {idx + 1}
-                    </div>
+                    {c.description && (
+                      <div className="bg-slate-800/50 w-max max-w-[200px] px-3 py-1 rounded-lg text-[10px] font-black tracking-wider text-slate-400 mb-6 truncate">
+                        {c.description}
+                      </div>
+                    )}
+                    {!c.description && (
+                      <div className="bg-slate-800/50 w-max px-3 py-1 rounded-lg text-[10px] font-black tracking-[0.2em] text-slate-400 mb-6">
+                        ROUTE
+                      </div>
+                    )}
                     
                     <h4 className="text-xl font-bold text-white mb-4 line-clamp-1 pr-12">{c.name}</h4>
                     
