@@ -239,7 +239,7 @@ function RidesContent() {
   useEffect(() => {
     const fetchCorridors = async () => {
       try {
-        const res = await api.get('/corridors?active=true') as Corridor[]
+        const res = await api.get('/corridors?active=true') as unknown as Corridor[]
         if (Array.isArray(res)) setCorridors(res)
       } catch (err) {
         console.error('Failed to fetch corridors')

@@ -32,7 +32,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const data = await api.get(`/users/${id}`) as UserProfile
+        const data = await api.get(`/users/${id}`) as unknown as UserProfile
         setProfile(data)
       } catch {
         toast.error('Profile not found or access restricted')

@@ -71,9 +71,9 @@ export default function OfferRidePage() {
     
     // Fetch Data
     Promise.all([
-      api.get('/corridors?active=true'), 
-      api.get('/vehicles'),
-      api.get('/user/rides') // To fetch last ride for pre-fill
+      api.get('/corridors?active=true') as unknown as Promise<Corridor[]>, 
+      api.get('/vehicles') as unknown as Promise<Vehicle[]>,
+      api.get('/user/rides') as unknown as Promise<any[]> // To fetch last ride for pre-fill
     ]).then(([c, v, ur]) => {
       if (Array.isArray(c) && c.length > 0) setCorridors(c as Corridor[])
       
@@ -148,7 +148,7 @@ export default function OfferRidePage() {
         available_seats: parseInt(form.available_seats),
         total_seats: parseInt(form.total_seats),
         pickup_points: pickupPoints,
-      }) as { id: number }
+      }) as unknown as { id: number }
       
       // 2. Post Return Ride if requested
       if (postRoundTrip) {

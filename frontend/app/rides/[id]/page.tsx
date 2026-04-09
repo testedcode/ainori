@@ -749,7 +749,10 @@ export default function RideDetailPage() {
                        </div>
                      )}
                      <div className="absolute inset-0 border-4 border-slate-100/50 pointer-events-none rounded-2xl" />
-                     <p className="absolute bottom-4 text-slate-300 text-[8px] font-black uppercase tracking-[0.2em]">Scan to Pay ₹{ride.price_per_sea                   {!isOwner ? (
+                     <p className="absolute bottom-4 text-slate-300 text-[8px] font-black uppercase tracking-[0.2em]">Scan to Pay ₹{ride.price_per_seat}</p>
+                   </div>
+                   
+                   {!isOwner ? (
                     (() => {
                       const myPay = payments.find(p => p.rider_id === user?.id)
                       const isDone = myPay?.rider_status === 'done'
@@ -851,7 +854,6 @@ export default function RideDetailPage() {
                <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 blur-3xl -z-10 rounded-full" />
                <h3 className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-8 flex items-center gap-2">
                   <Shield className="w-3 h-3" /> {isAdmin ? 'ADMIN OVERRIDE' : 'MANAGER CONSOLE'}
-               </h3>ame="w-3 h-3" /> MANAGER CONSOLE
                </h3>
                
                {requests.length === 0 ? (
