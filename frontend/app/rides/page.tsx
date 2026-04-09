@@ -34,10 +34,10 @@ interface Ride {
   pickup_points?: string[]
 }
 
-const CORRIDORS = [
-  { id: 1, name: 'Casa Rio' }, { id: 2, name: 'Casa Bella' },
-  { id: 3, name: 'Lakeshore' }, { id: 4, name: 'Kharghar' },
-]
+interface Corridor {
+  id: number
+  name: string
+}
 
 const PAGE_SIZE = 12
 
@@ -54,24 +54,58 @@ function SeatDots({ available, total }: { available: number; total: number }) {
   return (
     <div className="flex gap-1">
       {Array.from({ length: total }).map((_, i) => (
-        <div key={i} className={`h-1.5 rounded-full transition-colors ${i < (total - available) ? 'bg-slate-700 w-3' : 'bg-green-400 w-3'}`} />
+        <div key={i} className={`h-1.5 rounded-full transition-colors ${i < (total - available) ? 'bg-slate-700 w-3' : 'bg-blue-400 w-3'}`} />
       ))}
     </div>
   )
 }
 
+const OFFICE_KEYWORDS = ['rcp', 'reliance', 'corporate park', 'office']
+
+function getTripType(pickup: string, drop: string) {
+  const isToOffice = OFFICE_KEYWORDS.some(k => drop.toLowerCase().includes(k))
+  const isToHome = OFFICE_KEYWORDS.some(k => pickup.toLowerCase().includes(k))
+  if (isToOffice) return { label: 'To Office', icon: '🏢', color: 'text-blue-400', isToOffice: true }
+  if (isToHome) return { label: 'To Home', icon: '🏠', color: 'text-orange-400', isToOffice: false }
+  return { label: 'General', icon: '📍', color: 'text-slate-400', isToOffice: false }
+}
+
 // ─── CARD VIEW ───────────────────────────────────────────────────────────────
 function CardView({ ride, onRequest }: { ride: Ride; onRequest: (id: number) => void }) {
   const initials = ride.user_name?.split(' ').map(n => n[0]).join('').toUpperCase()
-  const isEvening = getTimeSlot(ride.ride_time) === 'evening'
+  const slot = getTimeSlot(ride.ride_time)
+  const isEvening = slot === 'evening'
+  const isMorning = slot === 'morning'
+  const type = getTripType(ride.pickup_point, ride.drop_point)
+  const isMorningPeak = isMorning && type.isToOffice
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-white/20 hover:bg-white/[0.07] transition-all group flex flex-col">
-      <div className={`h-1 w-full ${isEvening ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-gradient-to-r from-blue-500 to-indigo-500'}`} />
+    <div className={`relative bg-white/5 border rounded-3xl overflow-hidden hover:bg-white/[0.07] transition-all group flex flex-col ${
+      isMorningPeak ? 'border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.1)]' : 'border-white/10 hover:border-white/20'
+    }`}>
+      {isMorningPeak && (
+        <div className="absolute top-3 right-3 z-10">
+          <div className="bg-amber-500 text-[8px] font-black text-black px-2 py-0.5 rounded-full uppercase tracking-tighter flex items-center gap-1">
+            <Zap className="w-2 h-2 fill-black" /> Morning Peak
+          </div>
+        </div>
+      )}
+      <div className={`h-1 w-full ${isEvening ? 'bg-gradient-to-r from-orange-500 to-pink-500' : isMorningPeak ? 'bg-gradient-to-r from-amber-400 to-orange-400' : 'bg-gradient-to-r from-blue-500 to-indigo-500'}`} />
       <div className="p-5 flex flex-col flex-1">
         <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border border-white/5 bg-white/5 ${type.color}`}>
+              {type.icon} {type.label}
+            </span>
+          </div>
+          <span className={`text-[10px] font-black px-2 py-1 rounded-lg border ${isEvening ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-blue-500/10 border-blue-500/20 text-blue-400'}`}>
+            {ride.ride_time?.slice(0, 5)}
+          </span>
+        </div>
+        
+        <div className="flex items-center justify-between mb-4 mt-2">
           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm flex-shrink-0 relative">
+             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-sm flex-shrink-0 relative ${isMorningPeak ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-blue-600 to-indigo-600'}`}>
                 {initials}
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]" />
              </div>
@@ -197,8 +231,22 @@ function RidesContent() {
     city: '',
     corridor: corridorParam || '',
     date: new Date().toISOString().split('T')[0],
-    timeRange: 'all' // all, morning, midday, evening, night
+    timeRange: 'all', // all, morning, midday, evening, night
+    direction: 'all' // all, to_office, to_home
   })
+  const [corridors, setCorridors] = useState<Corridor[]>([])
+
+  useEffect(() => {
+    const fetchCorridors = async () => {
+      try {
+        const res = await api.get('/corridors?active=true') as Corridor[]
+        if (Array.isArray(res)) setCorridors(res)
+      } catch (err) {
+        console.error('Failed to fetch corridors')
+      }
+    }
+    fetchCorridors()
+  }, [])
   const [showFilled, setShowFilled] = useState(false)
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
@@ -240,8 +288,16 @@ function RidesContent() {
 
     if (search) {
       const s = search.toLowerCase()
-      return r.user_name.toLowerCase().includes(s) || r.pickup_point.toLowerCase().includes(s) || r.corridor_name.toLowerCase().includes(s)
+      if (!(r.user_name.toLowerCase().includes(s) || r.pickup_point.toLowerCase().includes(s) || r.corridor_name.toLowerCase().includes(s))) return false
     }
+
+    if (filter.direction !== 'all') {
+      const isToOffice = OFFICE_KEYWORDS.some(k => r.drop_point.toLowerCase().includes(k))
+      const isToHome = OFFICE_KEYWORDS.some(k => r.pickup_point.toLowerCase().includes(k))
+      if (filter.direction === 'to_office' && !isToOffice) return false
+      if (filter.direction === 'to_home' && !isToHome) return false
+    }
+
     return true
   })
 
@@ -304,15 +360,16 @@ function RidesContent() {
              </div>
           </div>
 
-          <div className="bg-white/5 border border-white/5 rounded-3xl p-5 space-y-4 text-xs">
+          <div className="bg-white/5 border border-white/5 rounded-3xl p-5 space-y-4 text-xs font-black">
              <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest px-1">Corridor & Time</label>
+                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest px-1">Route & Time</label>
                 <div className="grid grid-cols-2 gap-2">
-                  <select value={filter.corridor} onChange={e => setFilter({...filter, corridor: e.target.value})} className="bg-white/5 border border-white/5 text-white/60 p-2.5 rounded-xl outline-none">
-                    <option value="">All Corridors</option>
-                    {CORRIDORS.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  <select value={filter.direction} onChange={e => setFilter({...filter, direction: e.target.value})} className="bg-[#0f172a] border border-white/10 text-white p-2.5 rounded-xl outline-none focus:border-blue-500 transition-colors appearance-none">
+                    <option value="all">Any Direction</option>
+                    <option value="to_office">🏢 To Office</option>
+                    <option value="to_home">🏠 To Home</option>
                   </select>
-                  <select value={filter.timeRange} onChange={e => setFilter({...filter, timeRange: e.target.value})} className="bg-white/5 border border-white/5 text-white/60 p-2.5 rounded-xl outline-none">
+                  <select value={filter.timeRange} onChange={e => setFilter({...filter, timeRange: e.target.value})} className="bg-[#0f172a] border border-white/10 text-white p-2.5 rounded-xl outline-none focus:border-blue-500 transition-colors appearance-none">
                     <option value="all">Any Time</option>
                     <option value="morning">Morning (6-10AM)</option>
                     <option value="midday">Mid-day (10-3PM)</option>
@@ -320,6 +377,12 @@ function RidesContent() {
                     <option value="night">Night (9PM+)</option>
                   </select>
                 </div>
+                <select value={filter.corridor} onChange={e => setFilter({...filter, corridor: e.target.value})} className="w-full bg-[#0f172a] border border-white/10 text-white p-2.5 rounded-xl outline-none focus:border-blue-500 transition-colors appearance-none mt-1">
+                  <option value="">All Corridors</option>
+                  {corridors.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
              </div>
           </div>
 

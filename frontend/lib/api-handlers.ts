@@ -88,10 +88,23 @@ export async function handleLogin(pool: Pool, body: unknown) {
 }
 
 export async function handleProfile(pool: Pool, auth: Auth) {
+  // Heartbeat: Update last_seen
+  await pool.query(`UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = $1`, [auth.userId])
+  
   const r = await pool.query(
-    `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, created_at, updated_at
+    `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, last_seen, created_at, updated_at
      FROM users WHERE id = $1`,
     [auth.userId]
+  )
+  if (r.rows.length === 0) return errResponse('User not found', 404)
+  return jsonResponse(r.rows[0])
+}
+
+export async function handleGetUserProfile(pool: Pool, id: number) {
+  const r = await pool.query(
+    `SELECT id, name, city, role, carbon_credits, avatar_url, last_seen, created_at
+     FROM users WHERE id = $1`,
+    [id]
   )
   if (r.rows.length === 0) return errResponse('User not found', 404)
   return jsonResponse(r.rows[0])
@@ -129,6 +142,11 @@ export async function handleStats(pool: Pool) {
     [today]
   )
   
+  // Live Users (active in last 5 minutes)
+  const liveUsers = await pool.query(
+    `SELECT COUNT(*)::int FROM users WHERE last_seen > NOW() - interval '5 minutes'`
+  )
+  
   // Calculate Savings (Heuristic based on completed rides or total history)
   // 1 ride = ~5kg CO2 saved (average carpooling factor)
   // 1 ride = ~₹150 saved (fuel + maintenance)
@@ -142,6 +160,7 @@ export async function handleStats(pool: Pool) {
 
   return jsonResponse({
     rides_today: ridesToday.rows[0].count,
+    live_users: liveUsers.rows[0].count,
     carbon_saved: `${carbonVal} Tons`,
     money_saved: `₹${moneyVal}`,
     time_saved: `${timeVal} Hours`

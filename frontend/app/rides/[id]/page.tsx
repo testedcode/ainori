@@ -321,6 +321,11 @@ export default function RideDetailPage() {
   }
 
   const isOwner = user?.id === ride.user_id
+  const isAdmin = user?.role === 'admin'
+  const myRequest = requests.find((r: any) => r.user_id === user?.id)
+  const isAcceptedRider = myRequest?.status === 'accepted'
+  const canSeePassengers = isOwner || isAdmin || isAcceptedRider
+
   const initials = ride.user_name?.split(' ').map((n: string) => n[0]).join('').toUpperCase()
   const pickupList = ride.pickup_points || []
 
@@ -481,9 +486,9 @@ export default function RideDetailPage() {
                    <a href="tel:+91" className="flex-1 bg-white/5 border border-white/5 hover:bg-white/10 py-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black transition-all">
                       <Phone className="w-4 h-4" /> AUDIO CALL
                    </a>
-                   <button className="flex-1 bg-white/5 border border-white/5 hover:bg-white/10 py-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black transition-all">
+                   <Link href={`/profiles/${ride.user_id}`} className="flex-1 bg-white/5 border border-white/5 hover:bg-white/10 py-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black transition-all">
                       <Shield className="w-4 h-4" /> PROFILE
-                   </button>
+                   </Link>
                 </div>
             </div>
 
@@ -744,60 +749,109 @@ export default function RideDetailPage() {
                        </div>
                      )}
                      <div className="absolute inset-0 border-4 border-slate-100/50 pointer-events-none rounded-2xl" />
-                     <p className="absolute bottom-4 text-slate-300 text-[8px] font-black uppercase tracking-[0.2em]">Scan to Pay ₹{ride.price_per_seat}</p>
-                  </div>
-
-                  {!isOwner ? (
+                     <p className="absolute bottom-4 text-slate-300 text-[8px] font-black uppercase tracking-[0.2em]">Scan to Pay ₹{ride.price_per_sea                   {!isOwner ? (
                     (() => {
                       const myPay = payments.find(p => p.rider_id === user?.id)
                       const isDone = myPay?.rider_status === 'done'
                       return (
-                        <button 
-                          onClick={() => handleUpdatePayment(user.id, 'done', 'rider_status')}
-                          disabled={isDone}
-                          className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg ${
-                            isDone 
-                              ? 'bg-green-500/20 text-green-400 border border-green-500/20' 
-                              : 'bg-green-600 hover:bg-green-700 text-white shadow-green-600/20'
-                          }`}
-                        >
-                          {isDone ? 'PAID CONFIRMED' : 'MARK AS PAID'}
-                        </button>
+                        <div className="space-y-4">
+                           <button 
+                             onClick={() => handleUpdatePayment(user.id, 'done', 'rider_status')}
+                             disabled={isDone || !isAcceptedRider}
+                             className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg ${
+                               isDone 
+                                 ? 'bg-green-500/20 text-green-400 border border-green-500/20' 
+                                 : !isAcceptedRider
+                                 ? 'bg-white/5 text-white/20 border border-white/5'
+                                 : 'bg-green-600 hover:bg-green-700 text-white shadow-green-600/20 active:scale-95'
+                             }`}
+                           >
+                             {isDone ? 'PAID CONFIRMED' : 'MARK AS PAID'}
+                           </button>
+                           {isDone && myPay?.giver_status !== 'received' && (
+                             <p className="text-[10px] text-center font-bold text-blue-400 uppercase tracking-widest animate-pulse">
+                               Waiting for Captain to confirm receipt...
+                             </p>
+                           )}
+                        </div>
                       )
                     })()
                   ) : (
                     <div className="space-y-3">
-                       <p className="text-[10px] font-black text-white/40 uppercase tracking-widest text-center">Rider Settlements</p>
+                       <p className="text-[10px] font-black text-white/40 uppercase tracking-widest text-center mb-2">Confirmed Passenger Settlements</p>
                        {payments.map(p => (
-                         <div key={p.id} className="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
-                            <span className="text-xs font-bold">{(p as any).rider_name || 'Rider'}</span>
-                            <div className="flex gap-2">
-                               <span className={`text-[8px] font-black px-2 py-1 rounded-md ${p.rider_status === 'done' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/10 text-yellow-500'}`}>
-                                  {p.rider_status === 'done' ? 'SENT' : 'PENDING'}
-                               </span>
+                         <div key={p.id} className="flex flex-col gap-2 bg-white/5 p-4 rounded-2xl border border-white/5">
+                            <div className="flex items-center justify-between">
+                               <span className="text-sm font-black text-white">{(p as any).rider_name || 'Accepted Rider'}</span>
+                               <span className="text-[10px] font-black text-white/40">₹{ride.price_per_seat}</span>
+                            </div>
+                            <div className="flex gap-2 mt-2">
+                               <div className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase ${p.rider_status === 'done' ? 'bg-green-500/10 text-green-400' : 'bg-yellow-500/10 text-yellow-500'}`}>
+                                  {p.rider_status === 'done' ? <Check className="w-3 h-3"/> : <Clock className="w-3 h-3"/>}
+                                  {p.rider_status === 'done' ? 'PAID' : 'PENDING'}
+                               </div>
                                <button 
                                  onClick={() => handleUpdatePayment(p.rider_id, 'received', 'giver_status')}
-                                 disabled={p.giver_status === 'received'}
-                                 className={`text-[8px] font-black px-2 py-1 rounded-md transition-all ${p.giver_status === 'received' ? 'bg-blue-500/20 text-blue-400' : 'bg-white text-black hover:bg-blue-600 hover:text-white'}`}
+                                 disabled={p.giver_status === 'received' || p.rider_status !== 'done'}
+                                 className={`flex-1 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${
+                                   p.giver_status === 'received' 
+                                     ? 'bg-blue-500/20 text-blue-400' 
+                                     : p.rider_status === 'done'
+                                     ? 'bg-white text-black hover:bg-blue-600 hover:text-white'
+                                     : 'bg-white/5 text-white/20'
+                                 }`}
                                >
-                                  {p.giver_status === 'received' ? 'RECEIVED' : 'MARK RECEIVED'}
-                               </button>
+                                  {p.giver_status === 'received' ? 'RECEIVED' : 'CONFIRM RECEIPT'}
+                                </button>
                             </div>
                          </div>
                        ))}
-                       {payments.length === 0 && <p className="text-[10px] text-center text-white/20 italic">No confirmed riders yet</p>}
+                       {payments.length === 0 && <p className="text-[10px] text-center text-white/20 italic">No settlements in progress</p>}
                     </div>
                   )}
                </div>
             </div>
           )}
 
+          {/* Passenger List (Privacy Enhanced) */}
+          {requests.some(r => r.status === 'accepted') && (
+            <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8">
+               <div className="flex items-center justify-between mb-8">
+                  <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Co-Commuters</p>
+                  <Users className="w-4 h-4 text-white/20" />
+               </div>
+               <div className="space-y-4">
+                  {requests.filter(r => r.status === 'accepted').map((r, i) => (
+                    <div key={i} className="flex items-center justify-between p-4 bg-[#0f172a] rounded-2xl border border-white/5">
+                       <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-[10px] font-black">
+                            {canSeePassengers ? r.rider_name[0] : '#'}
+                          </div>
+                          <div>
+                             <p className="text-sm font-bold text-white">
+                                {canSeePassengers ? r.rider_name : `Colleague #${i+1}`}
+                             </p>
+                             <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Verified Identity</p>
+                          </div>
+                       </div>
+                       {canSeePassengers && (
+                          <div className="flex items-center gap-2">
+                             <div className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[8px] font-black rounded uppercase">Active</div>
+                          </div>
+                       )}
+                    </div>
+                  ))}
+               </div>
+            </div>
+          )}
+
           {/* Manager Controls / Requests */}
-          {isOwner && (
+          {(isOwner || isAdmin) && (
             <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
                <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 blur-3xl -z-10 rounded-full" />
                <h3 className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-8 flex items-center gap-2">
-                  <Shield className="w-3 h-3" /> MANAGER CONSOLE
+                  <Shield className="w-3 h-3" /> {isAdmin ? 'ADMIN OVERRIDE' : 'MANAGER CONSOLE'}
+               </h3>ame="w-3 h-3" /> MANAGER CONSOLE
                </h3>
                
                {requests.length === 0 ? (

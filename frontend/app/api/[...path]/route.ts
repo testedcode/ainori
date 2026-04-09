@@ -211,6 +211,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if ('error' in r) return r.error
     return h.handleGetCorridor(pool as any, parseInt(path[1], 10))
   }
+  if (path.length === 2 && path[0] === 'users' && /^\d+$/.test(path[1])) {
+    const r = await requireAuth(request)
+    if ('error' in r) return r.error
+    return h.handleGetUserProfile(pool as any, parseInt(path[1], 10))
+  }
   return Response.json({ error: 'Not found' }, { status: 404 })
 }
 
@@ -230,11 +235,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (pathStr === 'auth/login') return h.handleLogin(pool, body)
 
   const r = await requireAuth(request)
-  if ('error' in r) return r.error
+  if ('error' in r) {
+    if (pathStr === 'rides') console.warn('[DEBUG] 403/401 Check on /rides POST. Path:', pathStr, 'Auth Error:', r.error)
+    return r.error
+  }
   const { auth } = r
 
   if (pathStr === 'vehicles') return h.handleCreateVehicle(pool, body, auth)
-  if (pathStr === 'rides') return h.handleCreateRide(pool, body, auth)
+  if (pathStr === 'rides') {
+    try {
+      return await h.handleCreateRide(pool, body, auth)
+    } catch (e: any) {
+      console.error('[CRITICAL] Ride creation failed at handler level:', e.message)
+      return Response.json({ error: 'Server Error: ' + e.message }, { status: 500 })
+    }
+  }
   if (pathStr === 'user/corridors') {
     const adminErr = requireAdmin(auth)
     if (adminErr) return adminErr

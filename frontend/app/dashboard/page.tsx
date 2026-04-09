@@ -78,7 +78,8 @@ export default function DashboardPage() {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [corridors, setCorridors] = useState<Corridor[]>([])
-  const [myRides, setMyRides] = useState<Ride[]>(DEMO_MY_RIDES)
+  const [myRides, setMyRides] = useState<Ride[]>([])
+  const [stats, setStats] = useState({ rides_today: 0, live_users: 0, carbon_saved: '0', money_saved: '0', time_saved: '0' })
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -111,6 +112,11 @@ export default function DashboardPage() {
         if (Array.isArray(corridorsRes)) {
           setCorridors(corridorsRes as unknown as Corridor[])
         }
+      } catch {}
+
+      try {
+        const s = await api.get('/stats') as any
+        if (s) setStats(s)
       } catch {}
       
       try {
@@ -193,11 +199,11 @@ export default function DashboardPage() {
           <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl p-6 shadow-2xl shadow-blue-600/20 flex flex-col justify-between relative overflow-hidden group">
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500" />
             <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm relative z-10">
-              <Sparkles className="w-6 h-6 text-white" />
+              <Users className="w-6 h-6 text-white" />
             </div>
             <div className="relative z-10">
-              <p className="text-white/70 text-[10px] font-black uppercase tracking-[0.2em] mb-1">JOOL AI Rating</p>
-              <h3 className="text-3xl font-black text-white capitalize">9.8/10</h3>
+              <p className="text-white/70 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Live Network</p>
+              <h3 className="text-3xl font-black text-white capitalize">{stats.live_users} Online</h3>
             </div>
           </div>
         </div>
@@ -245,30 +251,40 @@ export default function DashboardPage() {
                   <Link href="/rides" className="text-blue-400 text-xs font-bold mt-2 inline-block uppercase tracking-wider">Find a ride →</Link>
                 </div>
               ) : (
-                bookedRides.map(ride => (
-                  <Link key={ride.id} href={`/rides/${ride.id}`} className="block bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-all border-l-4 border-l-blue-500">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h4 className="font-bold text-lg text-white">{ride.corridor_name}</h4>
-                        <div className="flex items-center gap-2 mt-1 text-slate-400 text-xs">
-                          <User className="w-3 h-3 text-blue-400" />
-                          Host: {ride.driver_name}
+                bookedRides.map(ride => {
+                  const h = parseInt(ride.ride_time.split(':')[0])
+                  const isMorning = h >= 6 && h < 10
+                  const isToOffice = OFFICE_KEYWORDS.some(k => ride.corridor_name.toLowerCase().includes(k))
+                  const isMorningPeak = isMorning && isToOffice
+                  
+                  return (
+                    <Link key={ride.id} href={`/rides/${ride.id}`} className={`block bg-white/5 border rounded-3xl p-6 hover:bg-white/10 transition-all border-l-4 ${isMorningPeak ? 'border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.05)]' : 'border-white/10 border-l-blue-500'}`}>
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <div className="flex items-center gap-2">
+                             <h4 className="font-bold text-lg text-white">{ride.corridor_name}</h4>
+                             {isMorningPeak && <Zap className="w-3 h-3 text-amber-500 animate-pulse" />}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 text-slate-400 text-xs">
+                            <User className="w-3 h-3 text-blue-400" />
+                            Host: {ride.driver_name}
+                          </div>
+                        </div>
+                        <div className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                          CONFIRMED
                         </div>
                       </div>
-                      <div className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
-                        CONFIRMED
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex items-center gap-2 text-slate-300 text-sm">
+                          <Calendar className="w-4 h-4 text-white/20" /> {ride.ride_date}
+                        </div>
+                        <div className="flex items-center gap-2 text-slate-300 text-sm">
+                          <Timer className="w-4 h-4 text-white/20" /> {ride.ride_time}
+                        </div>
                       </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center gap-2 text-slate-300 text-sm">
-                        <Calendar className="w-4 h-4 text-white/20" /> {ride.ride_date}
-                      </div>
-                      <div className="flex items-center gap-2 text-slate-300 text-sm">
-                        <Timer className="w-4 h-4 text-white/20" /> {ride.ride_time}
-                      </div>
-                    </div>
-                  </Link>
-                ))
+                    </Link>
+                  )
+                })
               )}
             </div>
 
@@ -320,6 +336,9 @@ export default function DashboardPage() {
                 <h2 className="text-xl font-black text-white">Past Trips & Settlements</h2>
                 <p className="text-white/40 text-xs mt-1">Review history and finalize pending payments</p>
               </div>
+              <Link href="/history" className="text-xs font-black text-blue-400 uppercase tracking-widest hover:underline">
+                View Full Log →
+              </Link>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -71,7 +71,7 @@ export default function OfferRidePage() {
     
     // Fetch Data
     Promise.all([
-      api.get('/corridors'), 
+      api.get('/corridors?active=true'), 
       api.get('/vehicles'),
       api.get('/user/rides') // To fetch last ride for pre-fill
     ]).then(([c, v, ur]) => {
