@@ -37,6 +37,7 @@ export default function OfferRidePage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [pickupPoints, setPickupPoints] = useState<string[]>([])
   const [newPickup, setNewPickup] = useState('')
+  const [postRoundTrip, setPostRoundTrip] = useState(false)
   
   const [form, setForm] = useState({
     corridor_id: '',
@@ -69,22 +70,40 @@ export default function OfferRidePage() {
     }
     
     // Fetch Data
-    Promise.all([api.get('/corridors'), api.get('/vehicles')]).then(([c, v]) => {
+    Promise.all([
+      api.get('/corridors'), 
+      api.get('/vehicles'),
+      api.get('/user/rides') // To fetch last ride for pre-fill
+    ]).then(([c, v, ur]) => {
       if (Array.isArray(c) && c.length > 0) setCorridors(c as Corridor[])
+      
+      // Pre-fill from last ride if no draft exists
+      if (!localStorage.getItem(DRAFT_KEY) && Array.isArray(ur) && ur.length > 0) {
+        const lastRide = ur[0] // handleGetUserRides returns sorted by date DESC
+        setForm(p => ({
+          ...p,
+          corridor_id: String(lastRide.corridor_id),
+          price_per_seat: String(lastRide.price_per_seat),
+          pickup_point: lastRide.pickup_point,
+          drop_point: lastRide.drop_point,
+          total_seats: String(lastRide.total_seats),
+          available_seats: String(lastRide.available_seats)
+        }))
+        toast.success('Pre-filled from your previous trip', { icon: '✨' })
+      }
+
       if (Array.isArray(v) && v.length > 0) {
         const vehicleList = v as Vehicle[]
         setVehicles(vehicleList)
-        // Pre-select first vehicle if not already set by draft
-        if (!form.vehicle_id) {
-          setForm(p => ({ 
-            ...p, 
-            vehicle_id: String(vehicleList[0].id), 
-            total_seats: String(vehicleList[0].total_seats),
-            available_seats: String(Math.max(1, vehicleList[0].total_seats - 1))
-          }))
-        }
+        // Pre-select first vehicle if not already set by draft/pre-fill
+        setForm(p => ({ 
+          ...p, 
+          vehicle_id: p.vehicle_id || String(vehicleList[0].id)
+        }))
       }
-    }).catch(() => {})
+    }).catch((e) => {
+      console.error('Fetch error:', e)
+    })
   }, [router])
 
   // 2. Continuous Draft Sync
@@ -120,7 +139,8 @@ export default function OfferRidePage() {
 
     setLoading(true)
     try {
-      await api.post('/rides', {
+      // 1. Post Primary Ride
+      const res = await api.post('/rides', {
         ...form,
         corridor_id: parseInt(form.corridor_id),
         vehicle_id: parseInt(form.vehicle_id),
@@ -128,15 +148,39 @@ export default function OfferRidePage() {
         available_seats: parseInt(form.available_seats),
         total_seats: parseInt(form.total_seats),
         pickup_points: pickupPoints,
-      })
+      }) as { id: number }
       
-      localStorage.removeItem(DRAFT_KEY) // Clear draft on success
-      toast.success('🎉 Ride successfully published!', { duration: 4000 })
+      // 2. Post Return Ride if requested
+      if (postRoundTrip) {
+        const [h, m] = form.ride_time.split(':').map(Number)
+        let returnH = (h + 10) % 24
+        const returnTime = `${String(returnH).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+        
+        // Find return corridor (swapped locations)
+        const returnCorridor = corridors.find(c => 
+          c.location_from.toLowerCase() === form.drop_point.toLowerCase() ||
+          c.name.toLowerCase().includes('return') ||
+          c.name.toLowerCase().includes('↔')
+        )
+
+        await api.post('/rides', {
+          ...form,
+          corridor_id: returnCorridor?.id || parseInt(form.corridor_id),
+          ride_time: returnTime,
+          pickup_point: form.drop_point,
+          drop_point: form.pickup_point,
+          price_per_seat: parseFloat(form.price_per_seat),
+          available_seats: parseInt(form.available_seats),
+          total_seats: parseInt(form.total_seats),
+        })
+      }
+
+      localStorage.removeItem(DRAFT_KEY) 
+      toast.success(postRoundTrip ? '🎉 Round trip published!' : '🎉 Ride successfully published!', { duration: 4000 })
       router.push('/dashboard')
     } catch (e: any) {
       const msg = e?.response?.data?.error || 'System sync failed'
       toast.error(msg)
-      console.error('Ride post error:', e)
     } finally { setLoading(false) }
   }
 
@@ -152,8 +196,8 @@ export default function OfferRidePage() {
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-4">
               <Sparkles className="w-3 h-3" /> DIRECT PUBLISH
             </div>
-            <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-white">Create Commute</h1>
-            <p className="text-white/40 text-xl mt-2 font-medium">Configure your corridor and invite colleagues instantly.</p>
+            <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-white">Create Commute</h1>
+            <p className="text-white/40 text-lg mt-1 font-medium">Configure your corridor and invite colleagues instantly.</p>
           </div>
           
           <div className="hidden md:flex items-center gap-4 bg-white/5 border border-white/5 rounded-2xl px-6 py-4">
@@ -360,15 +404,30 @@ export default function OfferRidePage() {
                </div>
             </div>
 
-            {/* PUBLISH TRIGGER */}
-            <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-4">
+            {/* ROUND TRIP & PUBLISH */}
+            <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-6 space-y-6">
+              <button 
+                onClick={() => setPostRoundTrip(!postRoundTrip)}
+                className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${postRoundTrip ? 'bg-blue-600/10 border-blue-500 text-blue-400' : 'bg-white/5 border-white/5 text-white/40'}`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${postRoundTrip ? 'bg-blue-500' : 'bg-white/10'}`}>
+                    {postRoundTrip ? <Check className="w-5 h-5 text-white" /> : <div className="w-3 h-3 border-2 border-white/20 rounded-sm" />}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-black uppercase tracking-tight">Post Return Trip</p>
+                    <p className="text-[10px] font-bold opacity-60">Automatic +10hr return ride</p>
+                  </div>
+                </div>
+              </button>
+
               <button onClick={handleSubmit} disabled={loading}
-                className="w-full bg-white text-black hover:bg-blue-600 hover:text-white py-6 rounded-[2rem] font-black text-xl transition-all active:scale-[0.97] shadow-xl group flex items-center justify-center gap-4 disabled:opacity-30 disabled:grayscale">
+                className="w-full bg-white text-black hover:bg-blue-600 hover:text-white py-5 rounded-[2rem] font-black text-lg transition-all active:scale-[0.97] shadow-xl group flex items-center justify-center gap-4 disabled:opacity-30 disabled:grayscale">
                 {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
                   <>PUBLISH COMMUTE <ChevronRight className="w-6 h-6 group-hover:translate-x-1.5 transition-transform" /></>
                 )}
               </button>
-              <div className="flex items-center justify-center gap-2 mt-4 px-4 py-2 bg-white/5 rounded-xl">
+              <div className="flex items-center justify-center gap-2 px-4 py-2 bg-white/5 rounded-xl">
                  <Save className="w-3.5 h-3.5 text-white/20" />
                  <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Draft saved automatically</p>
               </div>

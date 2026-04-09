@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
     good_vibes INTEGER DEFAULT 0,
     carbon_credits INTEGER DEFAULT 0,
     upi_id VARCHAR(255),
+    is_beta BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -83,7 +84,10 @@ CREATE TABLE IF NOT EXISTS rides (
     price_per_seat DECIMAL(10, 2) NOT NULL,
     available_seats INTEGER NOT NULL,
     total_seats INTEGER NOT NULL,
-    status VARCHAR(20) DEFAULT 'open' CHECK (status IN ('open', 'partially_filled', 'full', 'completed', 'cancelled')),
+    status VARCHAR(20) DEFAULT 'open' CHECK (status IN ('open', 'partially_filled', 'full', 'completed', 'cancelled', 'starting', 'at_pickup', 'at_dropoff')),
+    started_at TIMESTAMP,
+    arrived_at_loc1 TIMESTAMP,
+    arrived_at_loc2 TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

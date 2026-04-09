@@ -192,24 +192,46 @@ export default function RideDetailPage() {
   const fetchMessages = async () => {
     try {
       const data = await api.get(`/rides/${rideId}/messages`)
-      if (Array.isArray(data) && data.length > 0) setMessages(data as Message[])
+      if (Array.isArray(data)) {
+        // Only update if message count changed to avoid flickering
+        setMessages(prev => prev.length !== data.length ? data as Message[] : prev)
+      }
     } catch {}
   }
 
   const sendMessage = async () => {
     if (!newMessage.trim()) return
+    const txt = newMessage.trim()
     setSendingMsg(true)
-    const optimistic: Message = {
-      id: Date.now(), user_name: user?.name || 'You',
-      user_id: user?.id, message: newMessage,
-      created_at: new Date().toISOString()
-    }
-    setMessages(prev => [...prev, optimistic])
     setNewMessage('')
     try {
-      await api.post(`/rides/${rideId}/messages`, { message: optimistic.message })
-    } catch { /* optimistically shown */ }
-    setSendingMsg(false)
+      await api.post(`/rides/${rideId}/messages`, { message: txt })
+      fetchMessages() // Get latest state
+    } catch {
+      toast.error('Failed to send message')
+    } finally {
+      setSendingMsg(false)
+    }
+  }
+
+  const updateRideStatus = async (newStatus: string) => {
+    try {
+      await api.put(`/rides/${rideId}`, { status: newStatus })
+      toast.success(`Trip status updated to: ${newStatus.toUpperCase()}`)
+      fetchAll()
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || 'Failed to update status')
+    }
+  }
+
+  const handleRiderCheckIn = async (requestId: number) => {
+    try {
+      // We'll use a chat message for now to notify host since we don't have a specific check-in endpoint yet
+      await api.post(`/rides/${rideId}/messages`, { message: "📢 PASSENGER ALERT: I have arrived at the pickup location!" })
+      toast.success('Host notified of your arrival!')
+    } catch {
+      toast.error('Failed to notify host')
+    }
   }
 
   const handleRequest = async () => {
@@ -321,11 +343,11 @@ export default function RideDetailPage() {
                   ? 'bg-green-500/10 border-green-500/20 text-green-400' 
                   : 'bg-slate-500/10 border-slate-500/20 text-slate-400'
               }`}>
-                {ride.status}
+                {ride.status.replace('_', ' ')}
               </div>
-              <span className="text-white/20 font-bold text-xs">JOOL COMMUTE ID: #{ride.id}</span>
+              <span className="text-white/20 font-bold text-xs uppercase tracking-tighter">ID: #{ride.id}</span>
             </div>
-            <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-white max-w-2xl">{ride.corridor_name}</h1>
+            <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-white max-w-2xl">{ride.corridor_name}</h1>
           </div>
 
           <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-xl flex flex-col items-center min-w-[240px] shadow-2xl relative overflow-hidden">
@@ -382,6 +404,55 @@ export default function RideDetailPage() {
                </div>
              )}
           </div>
+          
+          {/* Trip Lifecycle Controls */}
+          {isOwner && (
+             <div className="bg-blue-600/10 border border-blue-500/20 rounded-3xl p-6 shadow-xl space-y-4">
+                <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-4">Trip Lifecycle Management</p>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                   <button 
+                     onClick={() => updateRideStatus('starting')}
+                     disabled={ride.status !== 'open' && ride.status !== 'partially_filled' && ride.status !== 'full'}
+                     className={`py-3 rounded-xl font-black text-[10px] tracking-tight uppercase transition-all border ${ride.status === 'starting' ? 'bg-blue-600 border-blue-500' : 'bg-white/5 border-white/5 opacity-50'}`}
+                   >
+                     🚀 Start Trip
+                   </button>
+                   <button 
+                     onClick={() => updateRideStatus('at_pickup')}
+                     disabled={ride.status !== 'starting'}
+                     className={`py-3 rounded-xl font-black text-[10px] tracking-tight uppercase transition-all border ${ride.status === 'at_pickup' ? 'bg-orange-600 border-orange-500' : 'bg-white/5 border-white/5 opacity-50'}`}
+                   >
+                     📍 At Pickup
+                   </button>
+                   <button 
+                     onClick={() => updateRideStatus('at_dropoff')}
+                     disabled={ride.status !== 'at_pickup'}
+                     className={`py-3 rounded-xl font-black text-[10px] tracking-tight uppercase transition-all border ${ride.status === 'at_dropoff' ? 'bg-indigo-600 border-indigo-500' : 'bg-white/5 border-white/5 opacity-50'}`}
+                   >
+                     🏁 At Dest.
+                   </button>
+                   <button 
+                     onClick={() => updateRideStatus('completed')}
+                     disabled={ride.status !== 'at_dropoff'}
+                     className={`py-3 rounded-xl font-black text-[10px] tracking-tight uppercase transition-all border ${ride.status === 'completed' ? 'bg-green-600 border-green-500' : 'bg-white/5 border-white/5 opacity-50'}`}
+                   >
+                     ✔️ Finish
+                   </button>
+                </div>
+             </div>
+          )}
+
+          {!isOwner && requests.find(r => (r as any).user_id === user?.id && r.status === 'accepted') && (
+             <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
+                <button 
+                  onClick={() => handleRiderCheckIn(requests.find(r => (r as any).user_id === user?.id)!.id)}
+                  className="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl flex items-center justify-center gap-3"
+                >
+                  <MapPin className="w-5 h-5" /> I AM AT THE LOCATION
+                </button>
+                <p className="text-[10px] text-center text-white/40 mt-3 font-bold uppercase tracking-tighter">This notifies the driver you are ready for pickup</p>
+             </div>
+          )}
         </div>
       </div>
 

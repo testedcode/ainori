@@ -37,11 +37,11 @@
   }
 
   .btn-primary {
-    @apply bg-blue-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:bg-blue-700 hover:shadow-lg active:scale-95 text-center;
+    @apply bg-blue-600 text-white px-5 py-2 rounded-full font-semibold transition-all duration-300 hover:bg-blue-700 hover:shadow-lg active:scale-95 text-center text-sm;
   }
 
   .btn-secondary {
-    @apply bg-gray-100 text-gray-900 px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:bg-gray-200 active:scale-95 text-center;
+    @apply bg-gray-100 text-gray-900 px-5 py-2 rounded-full font-semibold transition-all duration-300 hover:bg-gray-200 active:scale-95 text-center text-sm;
   }
 
   .gradient-text {

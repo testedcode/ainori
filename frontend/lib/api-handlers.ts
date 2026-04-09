@@ -227,13 +227,20 @@ export async function handleCreateVehicle(pool: Pool, body: unknown, auth: Auth)
   const b = body as { vehicle_type?: string; make?: string; model?: string; color?: string; vehicle_number?: string; total_seats?: number; default_available_seats?: number }
   if (!b?.vehicle_type || !b?.make || !b?.model || !b?.vehicle_number || b.total_seats == null || b.default_available_seats == null)
     return errResponse('vehicle_type, make, model, vehicle_number, total_seats, default_available_seats required', 400)
-  if (b.vehicle_type !== 'car' && b.vehicle_type !== 'bike') return errResponse('vehicle_type must be car or bike', 400)
+  
+  // Accept specific types from frontend and map if necessary, or just allow common ones
+  const vType = b.vehicle_type.toLowerCase()
+  if (!['car', 'bike', 'sedan', 'suv', 'hatchback', 'muv'].includes(vType)) 
+    return errResponse('Invalid vehicle type', 400)
+  
+  const dbType = ['bike', 'motorcycle'].includes(vType) ? 'bike' : 'car'
+  
   if (b.default_available_seats > b.total_seats) return errResponse('Available seats cannot exceed total seats', 400)
   try {
     const r = await pool.query(
       `INSERT INTO vehicles (user_id, vehicle_type, make, model, color, vehicle_number, total_seats, default_available_seats)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
-      [auth.userId, b.vehicle_type, b.make, b.model, b.color || null, b.vehicle_number, b.total_seats, b.default_available_seats]
+      [auth.userId, dbType, b.make, b.model, b.color || null, b.vehicle_number, b.total_seats, b.default_available_seats]
     )
     return jsonResponse({ id: r.rows[0].id, message: 'Vehicle created' }, 201)
   } catch (e: unknown) {
@@ -371,8 +378,8 @@ export async function handleCreateRide(pool: Pool, body: unknown, auth: Auth) {
   const totalSeats = v.rows[0].total_seats
   if (b.available_seats > totalSeats) return errResponse('Available seats cannot exceed vehicle capacity', 400)
 
-  const access = await pool.query(`SELECT 1 FROM user_corridors WHERE user_id = $1 AND corridor_id = $2`, [auth.userId, b.corridor_id])
-  if (access.rows.length === 0) return errResponse("You don't have access to this corridor", 403)
+  const access = await pool.query(`SELECT 1 FROM corridors WHERE id = $1 AND is_active = true`, [b.corridor_id])
+  if (access.rows.length === 0) return errResponse("Corridor not found or inactive", 404)
 
   const r = await pool.query(
     `INSERT INTO rides (user_id, corridor_id, vehicle_id, ride_date, ride_time, pickup_point, drop_point, route_description, price_per_seat, available_seats, total_seats, status)
@@ -389,6 +396,15 @@ export async function handleUpdateRide(pool: Pool, id: number, body: unknown, au
   let i = 1
   for (const key of ['ride_time', 'pickup_point', 'drop_point', 'route_description', 'price_per_seat', 'available_seats', 'status']) {
     if (b[key] !== undefined) {
+      if (key === 'status') {
+        if (b[key] === 'starting') {
+          updates.push(`started_at = CURRENT_TIMESTAMP`)
+        } else if (b[key] === 'at_pickup') {
+          updates.push(`arrived_at_loc1 = CURRENT_TIMESTAMP`)
+        } else if (b[key] === 'at_dropoff') {
+          updates.push(`arrived_at_loc2 = CURRENT_TIMESTAMP`)
+        }
+      }
       updates.push(`${key} = $${i++}`)
       args.push(b[key])
     }
@@ -609,10 +625,12 @@ export async function handleToggleFeature(pool: Pool, name: string, body: unknow
 export async function handleCreateCorridor(pool: Pool, body: unknown, _auth: Auth) {
   const b = body as { city_id?: number; name?: string; location_from?: string; location_to?: string; description?: string; pickup_points?: string; terms_conditions?: string; is_active?: boolean; map_enabled?: boolean }
   if (!b?.city_id || !b?.name || !b?.location_from || !b?.location_to) return errResponse('city_id, name, location_from, location_to required', 400)
+  
+  const cleanName = b.name.replace(/\?/g, '').trim()
   const r = await pool.query(
     `INSERT INTO corridors (city_id, name, location_from, location_to, description, pickup_points, terms_conditions, is_active, map_enabled)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
-    [b.city_id, b.name, b.location_from, b.location_to, b.description || null, b.pickup_points || null, b.terms_conditions || null, b.is_active ?? true, b.map_enabled ?? false]
+    [b.city_id, cleanName, b.location_from, b.location_to, b.description || null, b.pickup_points || null, b.terms_conditions || null, b.is_active ?? true, b.map_enabled ?? false]
   )
   return jsonResponse({ id: r.rows[0].id, message: 'Corridor created' }, 201)
 }
@@ -624,8 +642,10 @@ export async function handleUpdateCorridor(pool: Pool, id: number, body: unknown
   let i = 1
   for (const key of ['name', 'location_from', 'location_to', 'description', 'pickup_points', 'terms_conditions', 'is_active', 'map_enabled']) {
     if (b[key] !== undefined) {
+      let val = b[key]
+      if (key === 'name' && typeof val === 'string') val = val.replace(/\?/g, '').trim()
       updates.push(`${key} = $${i++}`)
-      args.push(b[key])
+      args.push(val)
     }
   }
   if (updates.length === 0) return errResponse('No fields to update', 400)
@@ -645,4 +665,42 @@ export async function handleAssignCorridor(pool: Pool, body: unknown) {
   if (!b?.user_id || !b?.corridor_id) return errResponse('user_id and corridor_id required', 400)
   await pool.query(`INSERT INTO user_corridors (user_id, corridor_id) VALUES ($1, $2) ON CONFLICT (user_id, corridor_id) DO NOTHING`, [b.user_id, b.corridor_id])
   return jsonResponse({ message: 'Corridor assigned' }, 201)
+}
+
+export async function handleFlushData(pool: Pool, auth: Auth) {
+  if (auth.role !== 'admin') return errResponse('Admin access required', 403)
+  
+  // 1. Delete all ride requests associated with non-admin/non-beta users
+  await pool.query(`
+    DELETE FROM ride_requests 
+    WHERE user_id IN (SELECT id FROM users WHERE role != 'admin' AND is_beta = false)
+    OR ride_id IN (SELECT id FROM rides WHERE user_id IN (SELECT id FROM users WHERE role != 'admin' AND is_beta = false))
+  `)
+  
+  // 2. Delete all rides associated with non-admin/non-beta users
+  await pool.query(`
+    DELETE FROM rides 
+    WHERE user_id IN (SELECT id FROM users WHERE role != 'admin' AND is_beta = false)
+  `)
+  
+  // 3. Delete all messages for those rides
+  await pool.query(`
+    DELETE FROM messages 
+    WHERE ride_id NOT IN (SELECT id FROM rides)
+  `)
+  
+  // 4. Delete payments
+  await pool.query(`
+    DELETE FROM payments 
+    WHERE ride_id NOT IN (SELECT id FROM rides)
+  `)
+  
+  // 5. Delete users (except admins and beta)
+  const r = await pool.query(`
+    DELETE FROM users 
+    WHERE role != 'admin' AND is_beta = false
+    RETURNING id
+  `)
+  
+  return jsonResponse({ message: `Flushed ${r.rowCount} users and associated records.`, count: r.rowCount })
 }

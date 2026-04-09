@@ -130,18 +130,17 @@ export default function DashboardPage() {
     fetchData()
   }, [router])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-white/60 font-medium">Entering JOOL Ecosystem...</p>
-        </div>
-      </div>
-    )
-  }
-
   const todayStr = new Date().toISOString().split('T')[0]
+  const currentHour = new Date().getHours()
+  const isMorning = currentHour >= 5 && currentHour < 14
+  
+  // Sort corridors based on time of day (Heuristic: To Office in morning, To Home in evening)
+  const sortedCorridors = [...corridors].sort((a, b) => {
+    const aToOffice = a.name.toLowerCase().includes('→ rcp') || a.location_to.toLowerCase() === 'rcp'
+    const bToOffice = b.name.toLowerCase().includes('→ rcp') || b.location_to.toLowerCase() === 'rcp'
+    if (isMorning) return aToOffice ? -1 : 1
+    return aToOffice ? 1 : -1
+  })
   
   const upcomingRides = myRides.filter(r => r.ride_date >= todayStr)
   const pastRides = myRides.filter(r => r.ride_date < todayStr)
@@ -161,8 +160,8 @@ export default function DashboardPage() {
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-black uppercase tracking-widest rounded-full mb-4">
             <ShieldCheck className="w-3 h-3" /> VERIFIED MEMBER
           </div>
-          <h1 className="text-5xl md:text-6xl font-black tracking-tight text-white mb-2">Welcome, {user?.name?.split(' ')[0] || 'User'}</h1>
-          <p className="text-xl text-white/40">Your premium commuting ecosystem awaits.</p>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white mb-2">Welcome, {user?.name?.split(' ')[0] || 'User'}</h1>
+          <p className="text-lg text-white/40">Your premium commuting ecosystem awaits.</p>
         </div>
 
         {/* Global Impact Dashboard Grid */}
@@ -212,9 +211,12 @@ export default function DashboardPage() {
             <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-widest rounded-md mb-4">
               <Sparkles className="w-3 h-3" /> JOOL AI INSIGHT
             </div>
-            <h3 className="text-2xl font-black text-white mb-3">Optimize your morning commute.</h3>
-            <p className="text-white/60 leading-relaxed mb-6">
-              Based on your habits, leaving at <span className="text-white font-bold">08:15 AM</span> tomorrow could save you <span className="text-green-400 font-bold">12 minutes</span> of traffic and reduce your carbon footprint by <span className="text-green-400 font-bold">15%</span>.
+            <h3 className="text-xl font-black text-white mb-2">{isMorning ? 'Optimize your morning commute.' : 'Plan your evening return.'}</h3>
+            <p className="text-white/60 leading-relaxed mb-6 text-sm">
+              {isMorning 
+                ? <>Leaving at <span className="text-white font-bold">08:15 AM</span> today could save you <span className="text-green-400 font-bold">12 minutes</span> of traffic.</>
+                : <>The 06:15 PM slot is trending. Booking now saves <span className="text-green-400 font-bold">20%</span> on trip contributions.</>
+              }
             </p>
             <button className="px-6 py-2.5 bg-white text-black rounded-xl text-sm font-black hover:bg-slate-200 transition-colors uppercase tracking-tight">
               View Smart Schedule
@@ -350,8 +352,8 @@ export default function DashboardPage() {
           <section className="mb-20">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h3 className="text-2xl font-black text-white">Explore Corridors</h3>
-                <p className="text-slate-500 text-sm mt-1">Live JOOL routes available right now</p>
+                <h3 className="text-xl font-black text-white">Explore Corridors</h3>
+                <p className="text-slate-500 text-xs mt-1">Live JOOL routes available right now</p>
               </div>
               <Link href="/rides" className="text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest flex items-center gap-1">
                 View All <ChevronRight className="w-4 h-4" />
@@ -359,7 +361,7 @@ export default function DashboardPage() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {corridors.map((c, idx) => {
+              {sortedCorridors.slice(0, 4).map((c, idx) => {
                 const matchScore = Math.floor(Math.random() * 15) + 85; 
                 return (
                   <div key={idx} className="bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-colors relative group overflow-hidden">
