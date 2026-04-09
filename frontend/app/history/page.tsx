@@ -86,7 +86,7 @@ export default function HistoryPage() {
           {(['all', 'host', 'rider'] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-tight transition-all ${activeTab === tab ? 'bg-blue-600 text-white shadow-lg' : 'text-white/40 hover:text-white'}`}>
-              {tab === 'co-commuter' ? 'Joined' : tab}
+              {tab === 'rider' ? 'Joined' : tab}
             </button>
           ))}
         </div>

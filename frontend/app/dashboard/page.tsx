@@ -6,11 +6,13 @@ import Link from 'next/link'
 import { 
   Car, Plus, Search, Settings, LogOut, User, Sparkles, 
   ChevronRight, Leaf, Clock, Banknote, ShieldCheck, 
-  Calendar, MapPin, CheckCircle2, Timer, Bookmark
+  Calendar, MapPin, CheckCircle2, Timer, Bookmark, Users, Zap
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
 import JoolNav from '../components/JoolNav'
+
+const OFFICE_KEYWORDS = ['rcp', 'reliance', 'jio', 'mbp', 'mindspace', 'tc', 'ghansoli', 'office']
 
 interface UserProfile {
   id: number
