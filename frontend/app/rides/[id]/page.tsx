@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { 
   ArrowLeft, MapPin, Clock, Users, IndianRupee, Car, Star, Shield,
   MessageSquare, Send, Check, X, CheckCheck, Loader2, Phone, Navigation,
-  Calendar, Info, AlertCircle, Sparkles, Leaf, CheckCircle2, Banknote, QrCode
+  Calendar, Info, AlertCircle, Sparkles, Leaf, CheckCircle2, Banknote, QrCode,
+  Timer, ShieldCheck
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
@@ -34,7 +35,7 @@ interface Ride {
   pickup_points?: string[]
   upi_id?: string
   phone?: string
-  vehicle_info?: { make: string; model: string; vehicle_number: string; vehicle_type: string; color?: string }
+  vehicle_info?: { make: string; model: string; vehicle_number: string; vehicle_type: string; color?: string; image_url?: string }
 }
 
 interface Payment {
@@ -326,12 +327,20 @@ export default function RideDetailPage() {
   const isAcceptedRider = myRequest?.status === 'accepted'
   const canSeePassengers = isOwner || isAdmin || isAcceptedRider
 
+  const hour = parseInt(ride.ride_time.split(':')[0])
+  const vibe = hour >= 5 && hour < 12 ? 'morning' : hour >= 17 && hour < 21 ? 'evening' : hour >= 21 || hour < 5 ? 'night' : 'afternoon'
+
+
   const initials = ride.user_name?.split(' ').map((n: string) => n[0]).join('').toUpperCase()
   const pickupList = ride.pickup_points || []
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white font-sans pb-20 overflow-x-hidden">
-      <div className="absolute top-0 left-0 w-full h-[600px] bg-blue-600/5 blur-[150px] -z-10 pointer-events-none" />
+    <div className={`min-h-screen font-sans pb-20 overflow-x-hidden transition-colors duration-1000 ${
+      vibe === 'morning' ? 'bg-[#1e293b]' : vibe === 'evening' ? 'bg-[#0f172a]' : vibe === 'night' ? 'bg-[#020617]' : 'bg-[#0f172a]'
+    }`}>
+      <div className={`absolute top-0 left-0 w-full h-[600px] blur-[150px] -z-10 pointer-events-none transition-all duration-1000 ${
+        vibe === 'morning' ? 'bg-amber-400/10' : vibe === 'evening' ? 'bg-orange-600/10' : 'bg-blue-600/10'
+      }`} />
 
       <JoolNav />
 
@@ -342,70 +351,82 @@ export default function RideDetailPage() {
              <Link href="/rides" className="inline-flex items-center gap-2 text-[10px] font-black text-white/40 hover:text-white transition-colors uppercase tracking-widest mb-6">
               <ArrowLeft className="w-3 h-3" /> BACK TO NETWORK
             </Link>
-            <div className="flex items-center gap-3 mb-4">
-              <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border tracking-tighter ${
-                ride.status === 'active' 
-                  ? 'bg-green-500/10 border-green-500/20 text-green-400' 
-                  : 'bg-slate-500/10 border-slate-500/20 text-slate-400'
-              }`}>
-                {ride.status.replace('_', ' ')}
-              </div>
-              <span className="text-white/20 font-bold text-xs uppercase tracking-tighter">ID: #{ride.id}</span>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-white max-w-2xl leading-tight">{ride.corridor_name}</h1>
+            <div className="flex items-center gap-6 mt-6">
+               <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center">
+                     <Clock className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <div>
+                     <p className="text-[32px] font-black leading-none text-white tracking-widest">{ride.ride_time?.slice(0,5)}</p>
+                     <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">Scheduled Departure</p>
+                  </div>
+               </div>
+               <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4">
+                  <Calendar className="w-6 h-6 text-slate-500" />
+                  <div>
+                     <p className="text-xl font-black text-white">{new Date(ride.ride_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</p>
+                     <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Commute Date</p>
+                  </div>
+               </div>
             </div>
-            <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-white max-w-2xl">{ride.corridor_name}</h1>
           </div>
 
-          <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-xl flex flex-col items-center min-w-[240px] shadow-2xl relative overflow-hidden">
-             <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 blur-3xl -z-10 rounded-full" />
-             <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-4">Contribution</p>
-             <div className="flex items-center gap-1 text-5xl font-black text-white mb-6">
-                <IndianRupee className="w-8 h-8 text-green-400" /> {ride.price_per_seat}
+          <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 backdrop-blur-xl flex flex-col items-center min-w-[300px] shadow-2xl relative overflow-hidden group">
+             <div className="absolute top-0 right-0 w-48 h-48 bg-green-500/5 blur-3xl -z-10 rounded-full group-hover:scale-110 transition-transform" />
+             <div className="flex items-center justify-between w-full mb-8">
+                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Premium Contribution</span>
+                <span className="bg-green-500/10 border border-green-500/20 text-green-400 text-[8px] font-black px-2 py-0.5 rounded-md uppercase">Hot Seat</span>
+             </div>
+             <div className="flex items-baseline gap-1 mb-8">
+                <span className="text-2xl font-black text-green-400 mb-2">₹</span>
+                <span className="text-7xl font-black text-white tracking-tighter">{ride.price_per_seat}</span>
+                <span className="text-white/20 font-bold text-xs">/SEAT</span>
              </div>
              {!isOwner && (
-                <div className="w-full space-y-4">
+                <div className="w-full space-y-6">
                   {ride.available_seats > 0 && !requestSent && (
-                    <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-2xl p-4">
-                       <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Select Seats</p>
-                       <div className="flex items-center gap-4">
-                          <button 
-                            onClick={() => setSeatsToBook(prev => Math.max(1, prev - 1))}
-                            className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center font-black hover:bg-white/20 transition-all text-lg"
-                          >
-                            -
-                          </button>
-                          <span className="text-xl font-black min-w-[20px] text-center">{seatsToBook}</span>
-                          <button 
-                            onClick={() => setSeatsToBook(prev => Math.min(ride.available_seats, prev + 1))}
-                            className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-black hover:bg-blue-700 transition-all text-lg"
-                          >
-                            +
-                          </button>
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                       <p className="text-[10px] font-black text-white/40 uppercase tracking-widest text-center mb-4">Reserve Your Presence</p>
+                       <div className="flex justify-center gap-4">
+                          {[1, 2, 3, 4].filter(n => n <= ride.available_seats).map(n => (
+                            <button
+                              key={n}
+                              onClick={() => setSeatsToBook(n)}
+                              className={`w-12 h-12 rounded-xl border-2 font-black transition-all ${seatsToBook === n ? 'bg-blue-600 border-blue-500 text-white scale-110 shadow-lg' : 'bg-white/5 border-white/5 text-white/30 hover:border-white/10'}`}
+                            >
+                               {n}
+                            </button>
+                          ))}
                        </div>
                     </div>
                   )}
                   <button
                     onClick={requestSent ? handleCancelRequest : handleRequest}
                     disabled={(ride.available_seats === 0 && !requestSent)}
-                    className={`w-full py-4 rounded-[2rem] font-black text-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${
+                    className={`w-full py-5 rounded-[2rem] font-black text-xl tracking-wide transition-all active:scale-95 flex items-center justify-center gap-3 ${
                       requestSent
-                        ? 'bg-white/5 border border-white/10 text-white hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20'
+                        ? 'bg-amber-500/20 border border-amber-500/20 text-amber-500'
                         : ride.available_seats === 0
                         ? 'bg-white/5 border border-white/10 text-white/20'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-600/30'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-[0_15px_40px_rgba(37,99,235,0.4)]'
                     }`}
                   >
-                    {requestSent ? <><X className="w-5 h-5" /> CANCEL REQUEST</> : ride.available_seats === 0 ? 'TRIP FULL' : 'JOIN TRIP'}
+                    {requestSent ? <><Timer className="w-6 h-6 animate-spin" /> PENDING APPROVAL</> : ride.available_seats === 0 ? 'TRIP COMPLETED' : 'REQUEST JOIN'}
                   </button>
                   {requestSent && (
-                    <p className="text-[10px] text-center font-black text-blue-400 uppercase tracking-widest animate-pulse">
-                      Waiting for host approval...
-                    </p>
+                    <div className="p-4 bg-white/5 border border-white/5 rounded-2xl flex items-center gap-3">
+                       <Info className="w-4 h-4 text-blue-400" />
+                       <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest leading-relaxed">
+                          Your request is being reviewed. The captain will reach out shortly via chat or phone.
+                       </p>
+                    </div>
                   )}
                 </div>
              )}
              {isOwner && (
-               <div className="text-xs font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
-                  <Shield className="w-4 h-4" /> MANAGING AS HOST
+               <div className="text-xs font-black text-blue-400 uppercase tracking-widest flex items-center gap-2 px-6 py-2 bg-blue-500/10 rounded-full border border-blue-500/20">
+                  <ShieldCheck className="w-4 h-4" /> TRIP MASTER CONSOLE
                </div>
              )}
           </div>
@@ -466,12 +487,11 @@ export default function RideDetailPage() {
         {/* Left Column: Details & Map */}
         <div className="lg:col-span-8 space-y-12">
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Host Profile */}
+            {/* Host Profile Profile Card stays at top */}
             <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8 flex flex-col items-center text-center">
                 <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-4xl shadow-[0_15px_30px_rgba(37,99,235,0.3)] mb-6 relative">
                   {initials}
-                  <div className="absolute -bottom-1 -right-1 bg-green-500 w-6 h-6 rounded-full border-4 border-[#0f172a] shadow-lg" />
+                  <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-4 border-[#0f172a] shadow-lg ${ride.status === 'active' ? 'bg-green-500' : 'bg-slate-500'}`} />
                 </div>
                 <h3 className="text-2xl font-black text-white">{ride.user_name}</h3>
                 <div className="flex items-center gap-2 mt-2">
@@ -483,7 +503,7 @@ export default function RideDetailPage() {
                 </div>
                 
                 <div className="flex gap-3 mt-8 w-full">
-                   <a href="tel:+91" className="flex-1 bg-white/5 border border-white/5 hover:bg-white/10 py-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black transition-all">
+                   <a href={`tel:${ride.phone || '+91'}`} className="flex-1 bg-white/5 border border-white/5 hover:bg-white/10 py-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black transition-all">
                       <Phone className="w-4 h-4" /> AUDIO CALL
                    </a>
                    <Link href={`/profiles/${ride.user_id}`} className="flex-1 bg-white/5 border border-white/5 hover:bg-white/10 py-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black transition-all">
@@ -492,108 +512,42 @@ export default function RideDetailPage() {
                 </div>
             </div>
 
-            {/* Logistics Card */}
-            <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8">
-               <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-8">Trip Logistics</p>
-               <div className="space-y-6 relative before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-px before:bg-white/10">
-                 <div className="flex items-start gap-4 relative z-10 transition-all group">
-                    <div className="w-3.5 h-3.5 rounded-full bg-blue-500 border-2 border-[#0f172a] mt-1 group-hover:scale-125 transition-transform" />
-                    <div>
-                      <p className="text-lg font-black text-white leading-none mb-1">{ride.pickup_point}</p>
-                      <p className="text-xs text-white/40 font-bold">STARTING POINT</p>
-                    </div>
-                 </div>
-                 {pickupList.map((pt, i) => (
-                   <div key={i} className="flex items-start gap-4 relative z-10 group">
-                      <div className="w-3 h-3 rounded-full bg-white/20 border-2 border-[#0f172a] mt-1 ml-[1px] group-hover:bg-blue-400 transition-colors" />
-                      <div>
-                        <p className="text-sm font-bold text-slate-300 mb-0.5">{pt}</p>
-                        <p className="text-[10px] text-white/20 font-black uppercase">WAYPOINT {i+1}</p>
-                      </div>
-                   </div>
-                 ))}
-                 <div className="flex items-start gap-4 relative z-10 group">
-                    <div className="w-3.5 h-3.5 rounded-full bg-indigo-500 border-2 border-[#0f172a] mt-1 group-hover:scale-125 transition-transform" />
-                    <div>
-                      <p className="text-lg font-black text-white leading-none mb-1">{ride.drop_point}</p>
-                      <p className="text-xs text-white/40 font-bold">FINAL DESTINATION</p>
-                    </div>
-                 </div>
+            {/* JOOL AI Commute Assistant - Strategic Overview */}
+            <div className="bg-gradient-to-br from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-[2.5rem] p-8 backdrop-blur-xl relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <Sparkles className="w-24 h-24 text-blue-400" />
                </div>
-
-               <div className="mt-10 grid grid-cols-2 gap-4">
-                  <div className="bg-[#0f172a] rounded-2xl p-4 border border-white/5">
-                     <Calendar className="w-4 h-4 text-white/20 mb-2" />
-                     <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Date</p>
-                     <p className="text-sm font-bold">{new Date(ride.ride_date).toLocaleDateString()}</p>
+               <div className="relative z-10">
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-widest rounded-md mb-6">
+                    <Sparkles className="w-3 h-3" /> JOOL AI ASSISTANT
                   </div>
-                  <div className="bg-[#0f172a] rounded-2xl p-4 border border-white/5">
-                     <Clock className="w-4 h-4 text-white/20 mb-2" />
-                     <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Time</p>
-                     <p className="text-sm font-bold">{ride.ride_time?.slice(0,5)}</p>
+                  <h3 className="text-2xl font-black text-white mb-4">Route Efficiency Report</h3>
+                  <div className="space-y-4">
+                     <div className="flex items-center justify-between text-xs">
+                        <span className="text-white/40 font-black uppercase tracking-widest">Time Efficiency</span>
+                        <span className="text-green-400 font-bold">94% Efficient</span>
+                     </div>
+                     <div className="flex items-center justify-between text-xs">
+                        <span className="text-white/40 font-black uppercase tracking-widest">Carbon Impact</span>
+                        <span className="text-green-400 font-bold">-4.2kg CO₂</span>
+                     </div>
                   </div>
                </div>
             </div>
           </div>
 
-          <div className="space-y-6">
-             <div className="flex items-center justify-between px-2">
-                <h3 className="text-2xl font-black flex items-center gap-3">
-                   <MapPin className="w-6 h-6 text-blue-500" /> ROUTE GEOMETRY
-                </h3>
-             </div>
-             <MapEmbed from={ride.pickup_point} to={ride.drop_point} />
-          </div>
-
-          {/* JOOL AI Commute Assistant */}
-          <div className="bg-gradient-to-br from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-[2.5rem] p-8 backdrop-blur-xl relative overflow-hidden group">
-             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Sparkles className="w-24 h-24 text-blue-400" />
-             </div>
-             <div className="relative z-10">
-                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-widest rounded-md mb-6">
-                  <Sparkles className="w-3 h-3" /> JOOL AI ASSISTANT
-                </div>
-                <h3 className="text-3xl font-black text-white mb-4">Commute Intelligence Report</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                   <div className="bg-[#0f172a]/80 p-5 rounded-2xl border border-white/5">
-                      <Clock className="w-5 h-5 text-blue-400 mb-2" />
-                      <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Time Efficiency</p>
-                      <p className="text-lg font-black text-white mt-1">94% Efficient</p>
-                      <p className="text-[10px] text-green-400 font-bold mt-1">Saves 15 mins vs Solo</p>
-                   </div>
-                   <div className="bg-[#0f172a]/80 p-5 rounded-2xl border border-white/5">
-                      <Leaf className="w-5 h-5 text-green-400 mb-2" />
-                      <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Carbon Impact</p>
-                      <p className="text-lg font-black text-white mt-1">-4.2kg CO₂</p>
-                      <p className="text-[10px] text-green-400 font-bold mt-1">Equivalent to 2 trees</p>
-                   </div>
-                   <div className="bg-[#0f172a]/80 p-5 rounded-2xl border border-white/5">
-                      <Users className="w-5 h-5 text-purple-400 mb-2" />
-                      <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Social Score</p>
-                      <p className="text-lg font-black text-white mt-1">Premium Match</p>
-                      <p className="text-[10px] text-blue-400 font-bold mt-1">Verified Colleagues</p>
-                   </div>
-                </div>
-                <div className="mt-8 p-4 bg-white/5 rounded-2xl border border-white/5">
-                   <p className="text-sm text-white/60 leading-relaxed italic">
-                     "Predictive analysis suggests clear traffic on NH-48. This route is optimized for your 9:00 AM meeting at RCP."
-                   </p>
-                </div>
-             </div>
-          </div>
-
-          {/* Ride Group Chat */}
-          <div className="bg-white/5 border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col h-[500px]">
+          {/* Ride Group Chat - PULLED UP */}
+          <div className="bg-white/5 border border-white/5 rounded-[2.5rem] shadow-2xl flex flex-col h-[500px] relative overflow-hidden">
+            <div className={`absolute top-0 right-0 w-64 h-64 blur-[100px] -z-10 rounded-full transition-colors duration-1000 ${vibe === 'morning' ? 'bg-blue-500/10' : 'bg-purple-500/10'}`} />
             <div className="px-8 py-6 border-b border-white/5 flex items-center gap-3 bg-white/5 backdrop-blur-md">
               <MessageSquare className="w-6 h-6 text-blue-400" />
               <div>
                 <h3 className="font-black text-lg">Group Chatroom</h3>
-                <p className="text-[10px] text-white/20 font-black uppercase tracking-widest">Only confirmed riders can participate</p>
+                <p className="text-[10px] text-white/20 font-black uppercase tracking-widest">Co-commuter coordination center</p>
               </div>
               <div className="ml-auto flex items-center gap-2">
-                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                 <span className="text-[10px] font-black text-green-400 uppercase tracking-widest">SYNC LIVE</span>
+                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,1)]" />
+                 <span className="text-[10px] font-black text-green-400 uppercase tracking-widest">LIVE SYNC</span>
               </div>
             </div>
             
@@ -601,7 +555,7 @@ export default function RideDetailPage() {
               {messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center opacity-20">
                    <MessageSquare className="w-12 h-12 mb-4" />
-                   <p className="font-black uppercase text-xs tracking-[0.2em]">Silent Channel</p>
+                   <p className="font-black uppercase text-xs tracking-[0.2em]">Secure Channel Established</p>
                 </div>
               ) : (
                 messages.map(msg => {
@@ -610,19 +564,19 @@ export default function RideDetailPage() {
                     <div key={msg.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
                       {!isMine && (
                          <div className="flex items-center gap-2 mb-2 ml-1">
-                            <div className="w-5 h-5 bg-white/10 rounded-md flex items-center justify-center text-[8px] font-black">{msg.user_name[0]}</div>
+                            <div className="w-5 h-5 bg-blue-600/20 rounded-md flex items-center justify-center text-[8px] font-black border border-blue-500/10">{msg.user_name[0]}</div>
                             <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">{msg.user_name}</span>
                          </div>
                       )}
                       <div className={`max-w-[85%] px-5 py-3 rounded-2xl text-sm font-medium leading-relaxed ${
                         isMine 
                           ? 'bg-blue-600 text-white rounded-br-sm shadow-lg shadow-blue-600/20' 
-                          : 'bg-white/5 text-white border border-white/5 rounded-bl-sm'
+                          : 'bg-white/5 text-white border border-white/10 rounded-bl-sm backdrop-blur-sm'
                       }`}>
                         {msg.message}
                       </div>
                       <div className="flex items-center gap-1.5 mt-2 transition-opacity px-1">
-                        <span className="text-[9px] font-black text-white/20 uppercase">
+                        <span className="text-[9px] font-black text-white/20 uppercase tracking-tighter">
                           {new Date(msg.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                         {isMine && <CheckCheck className="w-3 h-3 text-blue-500" />}
@@ -641,12 +595,13 @@ export default function RideDetailPage() {
                   value={newMessage}
                   onChange={e => setNewMessage(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && sendMessage()}
-                  placeholder="Communicate with the group..."
-                  className="flex-1 bg-[#0f172a] border border-white/5 rounded-2xl px-6 py-4 text-sm font-medium text-white placeholder-white/20 focus:outline-none focus:border-blue-600 transition-all shadow-inner"
+                  placeholder={requestSent || canSeePassengers ? "Post a message..." : "Join the trip to enable chat"}
+                  disabled={!requestSent && !canSeePassengers}
+                  className="flex-1 bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-sm font-medium text-white placeholder-white/20 focus:outline-none focus:border-blue-600 transition-all shadow-inner"
                 />
                 <button
                   onClick={sendMessage}
-                  disabled={!newMessage.trim() || sendingMsg}
+                  disabled={!newMessage.trim() || sendingMsg || (!requestSent && !canSeePassengers)}
                   className="bg-white text-black hover:bg-blue-600 hover:text-white px-6 py-4 rounded-2xl disabled:opacity-20 transition-all active:scale-95 shadow-xl group"
                 >
                   <Send className="w-5 h-5 group-hover:rotate-45 transition-transform" />
@@ -654,6 +609,36 @@ export default function RideDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* Logistics & Geography */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+             <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8">
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-8">Navigation Intel</p>
+                <div className="space-y-6 relative before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-px before:bg-white/10">
+                  <div className="flex items-start gap-4 relative z-10 transition-all group">
+                     <div className="w-3.5 h-3.5 rounded-full bg-blue-500 border-2 border-[#0f172a] mt-1" />
+                     <div>
+                       <p className="text-lg font-black text-white leading-none mb-1">{ride.pickup_point}</p>
+                       <p className="text-xs text-white/40 font-bold">PICKUP</p>
+                     </div>
+                  </div>
+                  <div className="flex items-start gap-4 relative z-10 group">
+                     <div className="w-3.5 h-3.5 rounded-full bg-indigo-500 border-2 border-[#0f172a] mt-1" />
+                     <div>
+                       <p className="text-lg font-black text-white leading-none mb-1">{ride.drop_point}</p>
+                       <p className="text-xs text-white/40 font-bold">DROPOFF</p>
+                     </div>
+                  </div>
+                </div>
+             </div>
+
+             <div className="space-y-6">
+                <MapEmbed from={ride.pickup_point} to={ride.drop_point} />
+             </div>
+          </div>
+
+          {/* JOOL AI Commute Assistant - STAYS LOWER */}
+          <div className="bg-gradient-to-br from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-[2.5rem] p-8 backdrop-blur-xl relative overflow-hidden group">
         </div>
 
         {/* Right Column: Fleet & Requests */}
@@ -683,9 +668,15 @@ export default function RideDetailPage() {
             <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8">
                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-8">Registered Fleet Intel</p>
                <div className="flex items-center gap-5 mb-8">
-                  <div className="w-16 h-16 bg-[#0f172a] border border-white/5 rounded-3xl flex items-center justify-center text-3xl">
-                     {ride.vehicle_type === 'Bike' ? '🏍️' : '🚗'}
-                  </div>
+                  {ride.vehicle_info?.image_url ? (
+                    <div className="w-full h-32 rounded-3xl overflow-hidden mb-6 border border-white/10">
+                       <img src={ride.vehicle_info.image_url} alt="Vehicle" className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 bg-[#0f172a] border border-white/5 rounded-3xl flex items-center justify-center text-3xl mb-6">
+                       {ride.vehicle_type === 'Bike' ? '🏍️' : '🚗'}
+                    </div>
+                  )}
                   <div>
                     <h4 className="text-xl font-black text-white leading-tight">{ride.vehicle_make || ride.vehicle_info?.make}</h4>
                     <p className="text-sm font-bold text-white/40 tracking-tight">{ride.vehicle_model || ride.vehicle_info?.model}</p>

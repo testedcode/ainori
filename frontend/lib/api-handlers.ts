@@ -224,7 +224,7 @@ export async function handleGetUserCorridors(pool: Pool, auth: Auth) {
 export async function handleGetVehicles(pool: Pool, auth: Auth) {
   const r = await pool.query(
     `SELECT id, user_id, vehicle_type, make, model, color, vehicle_number,
-            total_seats, default_available_seats, created_at, updated_at
+            total_seats, default_available_seats, image_url, created_at, updated_at
      FROM vehicles WHERE user_id = $1 ORDER BY created_at DESC`,
     [auth.userId]
   )
@@ -234,7 +234,7 @@ export async function handleGetVehicles(pool: Pool, auth: Auth) {
 export async function handleGetVehicle(pool: Pool, id: number, auth: Auth) {
   const r = await pool.query(
     `SELECT id, user_id, vehicle_type, make, model, color, vehicle_number,
-            total_seats, default_available_seats, created_at, updated_at
+            total_seats, default_available_seats, image_url, created_at, updated_at
      FROM vehicles WHERE id = $1 AND user_id = $2`,
     [id, auth.userId]
   )
@@ -257,9 +257,9 @@ export async function handleCreateVehicle(pool: Pool, body: unknown, auth: Auth)
   if (b.default_available_seats > b.total_seats) return errResponse('Available seats cannot exceed total seats', 400)
   try {
     const r = await pool.query(
-      `INSERT INTO vehicles (user_id, vehicle_type, make, model, color, vehicle_number, total_seats, default_available_seats)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
-      [auth.userId, dbType, b.make, b.model, b.color || null, b.vehicle_number, b.total_seats, b.default_available_seats]
+      `INSERT INTO vehicles (user_id, vehicle_type, make, model, color, vehicle_number, total_seats, default_available_seats, image_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+      [auth.userId, dbType, b.make, b.model, b.color || null, b.vehicle_number, b.total_seats, b.default_available_seats, (body as any).image_url || null]
     )
     return jsonResponse({ id: r.rows[0].id, message: 'Vehicle created' }, 201)
   } catch (e: unknown) {
@@ -273,7 +273,7 @@ export async function handleUpdateVehicle(pool: Pool, id: number, body: unknown,
   const updates: string[] = []
   const args: unknown[] = []
   let i = 1
-  for (const key of ['make', 'model', 'color', 'total_seats', 'default_available_seats']) {
+  for (const key of ['make', 'model', 'color', 'total_seats', 'default_available_seats', 'image_url']) {
     if (b[key] !== undefined) {
       updates.push(`${key} = $${i++}`)
       args.push(b[key])
@@ -375,7 +375,7 @@ export async function handleGetRide(pool: Pool, id: number) {
   const ride = r.rows[0]
   if (ride.vehicle_id) {
     const v = await pool.query(
-      `SELECT id, user_id, vehicle_type, make, model, color, vehicle_number, total_seats, default_available_seats FROM vehicles WHERE id = $1`,
+      `SELECT id, user_id, vehicle_type, make, model, color, vehicle_number, total_seats, default_available_seats, image_url FROM vehicles WHERE id = $1`,
       [ride.vehicle_id]
     )
     if (v.rows[0]) ride.vehicle_info = v.rows[0]

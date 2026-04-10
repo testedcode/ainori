@@ -20,6 +20,7 @@ interface Vehicle {
   vehicle_number: string
   total_seats: number
   default_available_seats: number
+  image_url?: string
 }
 
 const POPULAR_MAKES = ['Maruti', 'Honda', 'Hyundai', 'Tata', 'Toyota', 'Mahindra', 'Ford', 'Kia', 'MG', 'Renault']
@@ -31,16 +32,23 @@ const VEHICLE_TYPES = [
   { value: 'bike', label: 'Bike', emoji: '🏍️' },
 ]
 const COLORS = [
-  { name: 'White', hex: '#f8fafc' },
-  { name: 'Black', hex: '#0f172a' },
-  { name: 'Silver', hex: '#94a3b8' },
-  { name: 'Grey', hex: '#64748b' },
-  { name: 'Blue', hex: '#3b82f6' },
-  { name: 'Red', hex: '#ef4444' },
-  { name: 'Maroon', hex: '#7f1d1d' },
-  { name: 'Gold', hex: '#d97706' },
-  { name: 'Green', hex: '#22c55e' },
+  { name: 'White', hex: '#FFFFFF' },
+  { name: 'Silver', hex: '#C0C0C0' },
+  { name: 'Black', hex: '#000000' },
+  { name: 'Grey', hex: '#808080' },
+  { name: 'Blue', hex: '#2563EB' },
+  { name: 'Red', hex: '#DC2626' },
+  { name: 'Brown', hex: '#78350F' },
+  { name: 'Other', hex: '#475569' },
 ]
+
+const VEHICLE_IMAGE_PRESETS: Record<string, string> = {
+  sedan: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2070&auto=format&fit=crop',
+  suv: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop',
+  hatchback: 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=2070&auto=format&fit=crop',
+  muv: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?q=80&w=2070&auto=format&fit=crop',
+  bike: 'https://images.unsplash.com/photo-1558981403-c5f91eb9c08d?q=80&w=2070&auto=format&fit=crop',
+}
 
 const DEMO_VEHICLES: Vehicle[] = [
   { id: 1, vehicle_type: 'sedan', make: 'Honda', model: 'City', color: 'White', vehicle_number: 'MH04 AB 1234', total_seats: 4, default_available_seats: 3 },
@@ -76,6 +84,7 @@ export default function VehiclesPage() {
     vehicle_number: '',
     total_seats: '4',
     default_available_seats: '3',
+    image_url: VEHICLE_IMAGE_PRESETS.sedan
   })
 
   useEffect(() => {
@@ -103,7 +112,7 @@ export default function VehiclesPage() {
       })
       toast.success('Vehicle registered! Your garage is growing.')
       setShowForm(false)
-      setForm({ vehicle_type: 'sedan', make: '', model: '', color: 'White', vehicle_number: '', total_seats: '4', default_available_seats: '3' })
+      setForm({ vehicle_type: 'sedan', make: '', model: '', color: 'White', vehicle_number: '', total_seats: '4', default_available_seats: '3', image_url: VEHICLE_IMAGE_PRESETS.sedan })
       fetchVehicles()
     } catch (e: any) {
       toast.error(e?.response?.data?.error || 'Registration failed')
@@ -161,7 +170,7 @@ export default function VehiclesPage() {
                       key={t.value}
                       type={t}
                       selected={form.vehicle_type === t.value}
-                      onClick={() => setForm(prev => ({ ...prev, vehicle_type: t.value }))}
+                      onClick={() => setForm(prev => ({ ...prev, vehicle_type: t.value, image_url: VEHICLE_IMAGE_PRESETS[t.value] || prev.image_url }))}
                     />
                   ))}
                 </div>
@@ -256,6 +265,28 @@ export default function VehiclesPage() {
                 </div>
               </div>
 
+              {/* Image Preview / URL */}
+              <div className="bg-white/5 border border-white/5 rounded-3xl p-8">
+                 <label className="block text-[10px] font-black text-white/40 uppercase tracking-widest mb-6">Gallery Presentation</label>
+                 <div className="flex flex-col md:flex-row gap-8 items-center">
+                    <div className="w-full md:w-48 h-32 rounded-2xl overflow-hidden bg-slate-900 border border-white/10 relative group">
+                       <img src={form.image_url} alt="Preview" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-3">
+                          <span className="text-[8px] font-black text-white/50 uppercase">Live Preview</span>
+                       </div>
+                    </div>
+                    <div className="flex-1 space-y-4">
+                       <p className="text-sm font-bold text-white/60">We've auto-selected a premium image based on category. You can also provide a custom URL.</p>
+                       <input 
+                         value={form.image_url} 
+                         onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))} 
+                         placeholder="Custom Image URL (optional)"
+                         className="w-full px-4 py-2 bg-white/5 border border-white/5 rounded-xl text-xs text-white focus:outline-none focus:border-blue-600 transition-all"
+                       />
+                    </div>
+                 </div>
+              </div>
+
               <div className="flex flex-col md:flex-row gap-4 pt-6">
                 <button type="submit" disabled={submitting}
                   className="flex-1 bg-white hover:bg-blue-600 hover:text-white text-black py-5 rounded-[2rem] font-black text-xl disabled:opacity-50 transition-all active:scale-95 shadow-2xl group">
@@ -299,10 +330,18 @@ export default function VehiclesPage() {
                       <p className="text-sm font-bold text-white/40 tracking-tight">{v.model}</p>
                     </div>
                   </div>
-                  <button onClick={() => handleDelete(v.id)} className="p-3 text-white/20 hover:text-red-400 hover:bg-red-400/10 rounded-2xl transition-all">
+                  <button onClick={() => handleDelete(v.id)} className="p-3 text-white/20 hover:text-red-400 hover:bg-red-400/10 rounded-2xl transition-all relative z-10">
                     <Trash2 className="w-5 h-5" />
                   </button>
                 </div>
+
+                {/* Car Image Showroom */}
+                {v.image_url && (
+                  <div className="h-40 -mx-8 -mt-8 mb-8 overflow-hidden relative">
+                    <img src={v.image_url} alt={v.model} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#151c2d] to-transparent" />
+                  </div>
+                )}
 
                 {/* Plate */}
                 <div className="bg-yellow-400/5 border border-yellow-400/20 rounded-2xl px-6 py-3 font-mono text-yellow-500 font-black tracking-[0.2em] text-center mb-8 text-xl shadow-inner">

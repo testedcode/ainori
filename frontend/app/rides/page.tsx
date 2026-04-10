@@ -6,11 +6,47 @@ import Link from 'next/link'
 import { 
   Car, Search, Users, IndianRupee, Sun, Sunset, Moon, Zap, 
   LayoutGrid, List, AlignJustify, Star, Shield, ChevronRight,
-  Filter, RefreshCw, MapPin, Clock, ChevronLeft, Eye, EyeOff
+  Filter, ArrowLeft, MapPin, Clock, MessageSquare, Send, Check, X, 
+  CheckCheck, Loader2, Phone, Navigation, Calendar, Info, AlertCircle, 
+  Sparkles, Leaf, CheckCircle2, Banknote, QrCode, Timer, ShieldCheck,
+  ChevronLeft, Eye, EyeOff, ArrowRight, RefreshCw
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
 import JoolNav from '../components/JoolNav'
+
+// ─── VIBE ENGINE ────────────────────────────────────────────────────────────
+function BirdAnimation() {
+  return (
+    <div className="absolute top-20 left-[-10%] w-full h-40 pointer-events-none z-0 overflow-hidden">
+      <svg className="animate-[wing_2s_infinite_ease-in-out] w-8 h-8 text-white/10" viewBox="0 0 24 24" style={{ animation: 'fly 15s linear infinite' }}>
+        <path fill="currentColor" d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" />
+      </svg>
+      <style jsx global>{`
+        @keyframes fly {
+          0% { transform: translate(0, 0) rotate(90deg); }
+          100% { transform: translate(120vw, -20px) rotate(90deg); }
+        }
+        @keyframes wing {
+          0%, 100% { transform: scaleY(1); }
+          50% { transform: scaleY(0.5); }
+        }
+      `}</style>
+    </div>
+  )
+}
+
+function TreeShade({ vibe }: { vibe: string }) {
+  if (vibe !== 'morning') return null
+  return (
+    <div className="absolute top-0 right-0 w-1/3 h-full pointer-events-none z-0 opacity-20">
+      <svg viewBox="0 0 200 200" className="w-full h-full text-green-900/40">
+        <path fill="currentColor" d="M40,190 Q50,140 30,100 T50,40 T80,80 T60,140 T70,190" />
+        <path fill="currentColor" d="M120,190 Q130,130 110,90 T130,30 T160,70 T140,130 T150,190" />
+      </svg>
+    </div>
+  )
+}
 
 interface Ride {
   id: number
@@ -107,10 +143,13 @@ function CardView({ ride, onRequest }: { ride: Ride; onRequest: (id: number) => 
           <div className="flex items-center gap-3">
              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-sm flex-shrink-0 relative ${isMorningPeak ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-blue-600 to-indigo-600'}`}>
                 {initials}
-                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0f172a]" />
+                <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0f172a] ${ride.status === 'active' ? 'bg-green-500 animate-pulse' : 'bg-slate-500'}`} title="Host is Online" />
              </div>
              <div className="flex-1 min-w-0">
-               <p className="font-bold text-white text-sm truncate">{ride.user_name}</p>
+               <div className="flex items-center gap-2">
+                 <p className="font-bold text-white text-sm truncate">{ride.user_name}</p>
+                 {ride.status === 'active' && <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,1)]" />}
+               </div>
                <div className="flex items-center gap-1.5">
                  <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                  <span className="text-[10px] text-slate-500">4.9</span>
@@ -153,13 +192,16 @@ function CardView({ ride, onRequest }: { ride: Ride; onRequest: (id: number) => 
         <div className="flex gap-2 mt-3">
           <Link href={`/rides/${ride.id}`} className="flex-1 text-center py-2 rounded-xl text-xs font-bold bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">Details</Link>
           {ride.available_seats > 0 && (
-            <button onClick={() => onRequest(ride.id)} className="flex-1 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 transition-colors">Request</button>
+             <button onClick={() => onRequest(ride.id)} className="flex-2 py-2 rounded-xl text-xs font-black bg-blue-600 hover:bg-blue-500 transition-all active:scale-95 shadow-lg shadow-blue-600/20">
+               {ride.available_seats === 1 ? 'Join Last Seat' : 'Request Seat'}
+             </button>
           )}
         </div>
       </div>
     </div>
   )
 }
+
 
 // ─── LIST VIEW ───────────────────────────────────────────────────────────────
 function ListView({ ride, onRequest }: { ride: Ride; onRequest: (id: number) => void }) {
@@ -232,8 +274,11 @@ function RidesContent() {
     corridor: corridorParam || '',
     date: new Date().toISOString().split('T')[0],
     timeRange: 'all', // all, morning, midday, evening, night
-    direction: 'all' // all, to_office, to_home
+    direction: (new Date().getHours() < 12) ? 'to_office' : 'to_home'
   })
+  
+  const hour = new Date().getHours()
+  const vibe = hour >= 5 && hour < 12 ? 'morning' : hour >= 17 && hour < 21 ? 'evening' : hour >= 21 || hour < 5 ? 'night' : 'afternoon'
   const [corridors, setCorridors] = useState<Corridor[]>([])
 
   useEffect(() => {
@@ -306,8 +351,17 @@ function RidesContent() {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white font-sans pb-20">
-      <div className="absolute top-0 left-0 w-full h-96 bg-blue-600/8 blur-[120px] -z-10 pointer-events-none" />
+    <div className={`min-h-screen text-white font-sans pb-20 transition-colors duration-1000 ${
+      vibe === 'morning' ? 'bg-[#1e293b]' : vibe === 'evening' ? 'bg-[#0f172a]' : vibe === 'night' ? 'bg-[#020617]' : 'bg-[#0f172a]'
+    }`}>
+      {/* Dynamic Vibe Background */}
+      <div className={`absolute top-0 left-0 w-full h-[600px] blur-[150px] -z-10 pointer-events-none transition-all duration-1000 ${
+        vibe === 'morning' ? 'bg-amber-400/10' : vibe === 'evening' ? 'bg-orange-600/10' : 'bg-blue-600/10'
+      }`} />
+      
+      {vibe === 'morning' && <BirdAnimation />}
+      <TreeShade vibe={vibe} />
+      
       <JoolNav />
 
       <main className="max-w-7xl mx-auto px-6 md:px-12 pt-8">
@@ -386,13 +440,13 @@ function RidesContent() {
              </div>
           </div>
 
-          <div className="bg-blue-600/5 border border-blue-500/10 rounded-3xl p-5 flex items-center justify-between">
-             <div>
-               <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Status</p>
-               <p className="text-sm font-bold text-white">{showFilled ? 'Showing All' : 'Hiding Full Rides'}</p>
+          <div className="bg-white/5 border border-white/5 rounded-2xl px-4 py-2 flex items-center justify-between">
+             <div className="flex items-center gap-3">
+               <EyeOff className="w-4 h-4 text-slate-500" />
+               <p className="text-[10px] font-black text-white/40 uppercase tracking-widest leading-none">Compact Status</p>
              </div>
-             <button onClick={() => setShowFilled(!showFilled)} className={`w-12 h-6 rounded-full p-1 transition-colors ${showFilled ? 'bg-blue-600' : 'bg-white/10'}`}>
-                <div className={`w-4 h-4 bg-white rounded-full transition-transform ${showFilled ? 'translate-x-6' : 'translate-x-0'}`} />
+             <button onClick={() => setShowFilled(!showFilled)} className={`w-8 h-4 rounded-full p-0.5 transition-colors ${showFilled ? 'bg-blue-600' : 'bg-white/10'}`}>
+                <div className={`w-3 h-3 bg-white rounded-full transition-transform ${showFilled ? 'translate-x-4' : 'translate-x-0'}`} />
              </button>
           </div>
         </div>
