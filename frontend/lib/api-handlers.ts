@@ -184,7 +184,7 @@ export async function handleGetCorridors(pool: Pool, searchParams: URLSearchPara
   const activeOnly = searchParams.get('active') === 'true'
   let query = `
     SELECT c.id, c.city_id, ci.name as city_name, c.name, c.location_from, c.location_to,
-           c.pickup_points, c.terms_conditions, c.description, c.is_active, c.map_enabled, c.created_at, c.updated_at
+           c.pickup_points, c.terms_conditions, c.description, c.is_active, c.map_enabled, c.image_url, c.created_at, c.updated_at
     FROM corridors c JOIN cities ci ON c.city_id = ci.id WHERE 1=1
   `
   const args: unknown[] = []
@@ -202,7 +202,7 @@ export async function handleGetCorridors(pool: Pool, searchParams: URLSearchPara
 export async function handleGetCorridor(pool: Pool, id: number) {
   const r = await pool.query(
     `SELECT c.id, c.city_id, ci.name as city_name, c.name, c.location_from, c.location_to,
-            c.pickup_points, c.terms_conditions, c.description, c.is_active, c.map_enabled, c.created_at, c.updated_at
+            c.pickup_points, c.terms_conditions, c.description, c.is_active, c.map_enabled, c.image_url, c.created_at, c.updated_at
      FROM corridors c JOIN cities ci ON c.city_id = ci.id WHERE c.id = $1`,
     [id]
   )
@@ -213,7 +213,7 @@ export async function handleGetCorridor(pool: Pool, id: number) {
 export async function handleGetUserCorridors(pool: Pool, auth: Auth) {
   const r = await pool.query(
     `SELECT c.id, c.city_id, ci.name as city_name, c.name, c.location_from, c.location_to,
-            c.pickup_points, c.terms_conditions, c.description, c.is_active, c.map_enabled, c.created_at, c.updated_at
+            c.pickup_points, c.terms_conditions, c.description, c.is_active, c.map_enabled, c.image_url, c.created_at, c.updated_at
      FROM user_corridors uc JOIN corridors c ON uc.corridor_id = c.id JOIN cities ci ON c.city_id = ci.id
      WHERE uc.user_id = $1 AND c.is_active = true ORDER BY c.name`,
     [auth.userId]
@@ -307,7 +307,7 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
   let query = `
     SELECT r.id, r.user_id, u.name as user_name, r.corridor_id, c.name as corridor_name,
            r.vehicle_id, r.ride_date, r.ride_time, r.pickup_point, r.drop_point,
-           r.route_description, r.price_per_seat, r.available_seats, r.total_seats,
+           r.route_description, c.description as corridor_description, r.price_per_seat, r.available_seats, r.total_seats,
            r.status, r.created_at, r.updated_at
     FROM rides r JOIN users u ON r.user_id = u.id JOIN corridors c ON r.corridor_id = c.id WHERE 1=1
   `
@@ -342,6 +342,7 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
 export async function handleGetUserRides(pool: Pool, auth: Auth) {
   const query = `
     SELECT DISTINCT r.id, r.user_id, u.name as user_name, u.avatar_url, r.corridor_id, c.name as corridor_name,
+           c.description as corridor_description,
            r.ride_date, r.ride_time, r.pickup_point, r.drop_point,
            r.price_per_seat, r.available_seats, r.total_seats, r.status,
            CASE WHEN r.user_id = $1 THEN 'host' ELSE 'co-commuter' END as role
@@ -365,6 +366,7 @@ export async function handleGetUserRides(pool: Pool, auth: Auth) {
 export async function handleGetRide(pool: Pool, id: number) {
   const r = await pool.query(
     `SELECT r.id, r.user_id, u.name as user_name, u.upi_id as upi_id, u.phone as phone, r.corridor_id, c.name as corridor_name,
+            c.description as corridor_description,
             r.vehicle_id, r.ride_date, r.ride_time, r.pickup_point, r.drop_point,
             r.route_description, r.price_per_seat, r.available_seats, r.total_seats,
             r.status, r.created_at, r.updated_at
@@ -451,6 +453,19 @@ export async function handleCancelRide(pool: Pool, id: number, auth: Auth) {
   return jsonResponse({ message: 'Ride cancelled' })
 }
 
+export async function handleGetUserRequests(pool: Pool, auth: Auth) {
+  const r = await pool.query(
+    `SELECT rr.id, rr.ride_id, rr.user_id, rr.seats_requested, rr.comment, rr.status,
+            r.ride_date, r.ride_time, r.pickup_point, r.drop_point, c.name as corridor_name
+     FROM ride_requests rr
+     JOIN rides r ON rr.ride_id = r.id
+     JOIN corridors c ON r.corridor_id = c.id
+     WHERE rr.user_id = $1 ORDER BY r.ride_date DESC`,
+    [auth.userId]
+  )
+  return jsonResponse(r.rows)
+}
+
 export async function handleGetRideRequests(pool: Pool, rideId: number) {
   const r = await pool.query(
     `SELECT rr.id, rr.ride_id, rr.user_id, u.name as user_name, rr.seats_requested, rr.comment, rr.status, rr.created_at, rr.updated_at
@@ -471,6 +486,16 @@ export async function handleCreateRideRequest(pool: Pool, rideId: number, body: 
   const existing = await pool.query(`SELECT status FROM ride_requests WHERE ride_id = $1 AND user_id = $2`, [rideId, auth.userId])
   if (existing.rows.length > 0 && (existing.rows[0].status === 'pending' || existing.rows[0].status === 'accepted'))
     return errResponse('You already have a request for this ride', 409)
+
+  // Guardrail: Multi-booking prevention on same corridor/day
+  const sameDay = await pool.query(`
+    SELECT rr.status FROM ride_requests rr 
+    JOIN rides r ON rr.ride_id = r.id 
+    WHERE rr.user_id = $1 AND r.corridor_id = (SELECT corridor_id FROM rides WHERE id = $2) 
+    AND r.ride_date = (SELECT ride_date FROM rides WHERE id = $2)
+    AND rr.status = 'accepted'
+  `, [auth.userId, rideId])
+  if (sameDay.rows.length > 0) return errResponse('You already have an accepted ride for this corridor today', 400)
   const r = await pool.query(
     `INSERT INTO ride_requests (ride_id, user_id, seats_requested, comment, status) VALUES ($1, $2, $3, $4, 'pending') RETURNING id`,
     [rideId, auth.userId, b.seats_requested, b.comment || null]
@@ -497,6 +522,15 @@ export async function handleUpdateRideRequest(pool: Pool, rideId: number, reques
       `INSERT INTO payments (ride_id, rider_id, ride_giver_id, amount, rider_status, giver_status) VALUES ($1, $2, $3, $4, 'pending', 'pending') ON CONFLICT (ride_id, rider_id) DO NOTHING`,
       [rideId, rider.rows[0].user_id, auth.userId, amount]
     )
+
+    // Auto-Deny Logic
+    const finalSeats = await pool.query(`SELECT available_seats FROM rides WHERE id = $1`, [rideId])
+    if (finalSeats.rows[0].available_seats === 0) {
+      await pool.query(`
+        UPDATE ride_requests SET status = 'rejected', comment = 'Ride is now full', updated_at = CURRENT_TIMESTAMP 
+        WHERE ride_id = $1 AND status = 'pending'
+      `, [rideId])
+    }
   } else if (b.status === 'rejected' && currentStatus === 'accepted') {
     await pool.query(`UPDATE rides SET available_seats = available_seats + $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`, [seats_requested, rideId])
   }
@@ -642,14 +676,14 @@ export async function handleToggleFeature(pool: Pool, name: string, body: unknow
 }
 
 export async function handleCreateCorridor(pool: Pool, body: unknown, _auth: Auth) {
-  const b = body as { city_id?: number; name?: string; location_from?: string; location_to?: string; description?: string; pickup_points?: string; terms_conditions?: string; is_active?: boolean; map_enabled?: boolean }
+  const b = body as { city_id?: number; name?: string; location_from?: string; location_to?: string; description?: string; pickup_points?: string; terms_conditions?: string; is_active?: boolean; map_enabled?: boolean; image_url?: string }
   if (!b?.city_id || !b?.name || !b?.location_from || !b?.location_to) return errResponse('city_id, name, location_from, location_to required', 400)
   
   const cleanName = b.name.replace(/\?/g, '').trim()
   const r = await pool.query(
-    `INSERT INTO corridors (city_id, name, location_from, location_to, description, pickup_points, terms_conditions, is_active, map_enabled)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
-    [b.city_id, cleanName, b.location_from, b.location_to, b.description || null, b.pickup_points || null, b.terms_conditions || null, b.is_active ?? true, b.map_enabled ?? false]
+    `INSERT INTO corridors (city_id, name, location_from, location_to, description, pickup_points, terms_conditions, is_active, map_enabled, image_url)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+    [b.city_id, cleanName, b.location_from, b.location_to, b.description || null, b.pickup_points || null, b.terms_conditions || null, b.is_active ?? true, b.map_enabled ?? false, b.image_url || null]
   )
   return jsonResponse({ id: r.rows[0].id, message: 'Corridor created' }, 201)
 }
@@ -659,7 +693,7 @@ export async function handleUpdateCorridor(pool: Pool, id: number, body: unknown
   const updates: string[] = []
   const args: unknown[] = []
   let i = 1
-  for (const key of ['name', 'location_from', 'location_to', 'description', 'pickup_points', 'terms_conditions', 'is_active', 'map_enabled']) {
+  for (const key of ['name', 'location_from', 'location_to', 'description', 'pickup_points', 'terms_conditions', 'is_active', 'map_enabled', 'image_url']) {
     if (b[key] !== undefined) {
       let val = b[key]
       if (key === 'name' && typeof val === 'string') val = val.replace(/\?/g, '').trim()

@@ -7,18 +7,19 @@ import {
   ArrowLeft, Users, MapPin, Car, BarChart3, Lock, Unlock, 
   CheckCircle, XCircle, Shield, Search, Plus, AlertTriangle,
   ChevronRight, Activity, Leaf, Ban, UserCheck, Clock,
-  TrendingUp, Globe, Database, Pencil
+  TrendingUp, Globe, Database, Pencil, Camera, Loader2
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
 import JoolNav from '../components/JoolNav'
+import { createClient } from '@/utils/supabase/client'
 
 interface User {
   id: number; name: string; email: string; role: string
   city?: string; carbon_credits: number; created_at: string
   approved?: boolean; blocked?: boolean
 }
-interface Corridor { id: number; city_id?: number; name: string; city_name?: string; location_from: string; location_to: string; description?: string; is_active: boolean }
+interface Corridor { id: number; city_id?: number; name: string; city_name?: string; location_from: string; location_to: string; description?: string; is_active: boolean; image_url?: string }
 interface City { id: number; name: string; status: string }
 interface Analytics { total_users: number; total_rides: number; active_corridors: number; completed_rides: number; total_revenue: number; total_credits: number }
 interface RideRequest { id: number; rider_name: string; driver_name: string; pickup_point: string; seats_requested: number; corridor_name: string; ride_date: string; ride_time: string; status: string }
@@ -75,9 +76,12 @@ export default function AdminPage() {
   const [searchUser, setSearchUser] = useState('')
   const [showAddCorridor, setShowAddCorridor] = useState(false)
   const [editCorridorMode, setEditCorridorMode] = useState<number | null>(null)
-  const [newCorridor, setNewCorridor] = useState({ city_id: 1, name: '', location_from: '', location_to: '', description: '' })
+  const [newCorridor, setNewCorridor] = useState({ city_id: 1, name: '', location_from: '', location_to: '', description: '', image_url: '' })
   const [showAddCity, setShowAddCity] = useState(false)
   const [newCity, setNewCity] = useState('')
+
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const supabase = createClient()
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -90,6 +94,29 @@ export default function AdminPage() {
     }
     fetchAll()
   }, [router])
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploadingImage(true)
+      if (!e.target.files || e.target.files.length === 0) return
+      
+      const file = e.target.files[0]
+      const fileExt = file.name.split('.').pop()
+      const filePath = `corridor-${Math.random()}.${fileExt}`
+
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file)
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath)
+      
+      setNewCorridor(prev => ({ ...prev, image_url: publicUrl }))
+      toast.success('Corridor image uploaded!')
+    } catch (e: any) {
+      toast.error(e.message || 'Error uploading image')
+    } finally {
+      setUploadingImage(false)
+    }
+  }
 
   const fetchAll = async () => {
     try {
@@ -140,7 +167,7 @@ export default function AdminPage() {
       toast.error(e.message || 'Failed to create corridor (City missing?)')
       fetchAll() // refresh to revert fake
     }
-    setNewCorridor({ city_id: 1, name: '', location_from: '', location_to: '', description: '' })
+    setNewCorridor({ city_id: 1, name: '', location_from: '', location_to: '', description: '', image_url: '' })
     setShowAddCorridor(false)
   }
 
@@ -158,7 +185,7 @@ export default function AdminPage() {
       toast.error(e.message || 'Error updating corridor')
       fetchAll() 
     }
-    setNewCorridor({ city_id: 1, name: '', location_from: '', location_to: '', description: '' })
+    setNewCorridor({ city_id: 1, name: '', location_from: '', location_to: '', description: '', image_url: '' })
     setEditCorridorMode(null)
   }
   const addCity = async () => {
@@ -334,7 +361,7 @@ export default function AdminPage() {
                  <p className="text-white/40 font-bold">Configuring commute geometry and active zones.</p>
                </div>
                <button onClick={() => {
-                 setNewCorridor({ city_id: 1, name: '', location_from: '', location_to: '', description: '' });
+                 setNewCorridor({ city_id: 1, name: '', location_from: '', location_to: '', description: '', image_url: '' });
                  setEditCorridorMode(null);
                  setShowAddCorridor(!showAddCorridor);
                }} className="bg-white text-black hover:bg-blue-600 hover:text-white px-10 py-5 rounded-[2rem] font-black text-lg transition-all active:scale-95 shadow-2xl">
@@ -361,10 +388,28 @@ export default function AdminPage() {
                     <input value={newCorridor.location_to} onChange={e => setNewCorridor(p => ({ ...p, location_to: e.target.value }))}
                       placeholder="Ending Sector" className="w-full px-6 py-4 bg-[#0f172a] border border-white/5 rounded-2xl text-white font-bold placeholder-white/20 focus:outline-none focus:border-blue-600 transition-all" />
                   </div>
-                  <div className="space-y-3 col-span-1 md:col-span-3">
+                  <div className="space-y-3 col-span-1 md:col-span-2">
                     <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Detailed Route Description</label>
                     <textarea value={newCorridor.description} onChange={e => setNewCorridor(p => ({ ...p, description: e.target.value }))}
                       rows={2} placeholder="Type exact locations, minimum ride charges, and context for users." className="w-full px-6 py-4 bg-[#0f172a] border border-white/5 rounded-2xl text-white font-bold placeholder-white/20 focus:outline-none focus:border-blue-600 transition-all resize-none" />
+                  </div>
+                  <div className="space-y-3 col-span-1 md:col-span-2">
+                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Special Header Image</label>
+                    <div className="flex gap-4">
+                      <input value={newCorridor.image_url} onChange={e => setNewCorridor(p => ({ ...p, image_url: e.target.value }))}
+                        placeholder="Image URL or upload..." className="flex-1 px-6 py-4 bg-[#0f172a] border border-white/5 rounded-2xl text-white font-bold placeholder-white/20 focus:outline-none focus:border-blue-600 transition-all" />
+                      
+                      <label className="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-2 cursor-pointer hover:bg-white/10 transition-all">
+                        {uploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
+                        <span className="text-[10px] font-black">UPLOAD</span>
+                        <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploadingImage} className="hidden" />
+                      </label>
+                    </div>
+                    {newCorridor.image_url && (
+                      <div className="mt-4 w-full h-32 rounded-2xl overflow-hidden border border-white/10">
+                         <img src={newCorridor.image_url} alt="Preview" className="w-full h-full object-cover" />
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-4">
@@ -390,7 +435,7 @@ export default function AdminPage() {
                       <div className="flex items-center gap-2">
                         <button onClick={() => {
                           setEditCorridorMode(c.id);
-                          setNewCorridor({ city_id: c.city_id || 1, name: c.name, location_from: c.location_from, location_to: c.location_to, description: c.description || '' });
+                          setNewCorridor({ city_id: c.city_id || 1, name: c.name, location_from: c.location_from, location_to: c.location_to, description: c.description || '', image_url: c.image_url || '' });
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }} className="p-4 rounded-2xl bg-blue-600/10 text-blue-500 hover:bg-blue-600 hover:text-white transition-all">
                            <Pencil className="w-5 h-5" />

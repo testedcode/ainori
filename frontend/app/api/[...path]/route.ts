@@ -152,6 +152,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if ('error' in r) return r.error
     return h.handleGetUserCorridors(pool as any, r.auth)
   }
+  if (pathStr === 'user/requests') {
+    const r = await requireAuth(request)
+    if ('error' in r) return r.error
+    return h.handleGetUserRequests(pool as any, r.auth)
+  }
   if (pathStr === 'vehicles') {
     const r = await requireAuth(request)
     if ('error' in r) return r.error

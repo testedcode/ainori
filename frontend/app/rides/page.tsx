@@ -1,300 +1,188 @@
 'use client'
 
-import { useEffect, useState, useCallback, Suspense } from 'react'
+import { useEffect, useState, useCallback, Suspense, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { 
-  Car, Search, Users, IndianRupee, Sun, Sunset, Moon, Zap, 
-  LayoutGrid, List, AlignJustify, Star, Shield, ChevronRight,
-  Filter, ArrowLeft, MapPin, Clock, MessageSquare, Send, Check, X, 
-  CheckCheck, Loader2, Phone, Navigation, Calendar, Info, AlertCircle, 
-  Sparkles, Leaf, CheckCircle2, Banknote, QrCode, Timer, ShieldCheck,
-  ChevronLeft, Eye, EyeOff, ArrowRight, RefreshCw
+  Car, Search, IndianRupee, Zap, 
+  LayoutGrid, List, AlignJustify, Star, 
+  ChevronRight, MapPin, Clock, RefreshCw,
+  EyeOff, ChevronLeft, Info, Calendar,
+  ArrowRight, Check, X, ShieldCheck
 } from 'lucide-react'
 import { api } from '@/lib/api'
+import { getVibe, VIBE_THEMES, VibeState } from '@/lib/vibe-utils'
 import toast from 'react-hot-toast'
 import JoolNav from '../components/JoolNav'
+import VibeCanvas from '../components/VibeCanvas'
 
-// ─── VIBE ENGINE ────────────────────────────────────────────────────────────
-function BirdAnimation() {
-  return (
-    <div className="absolute top-20 left-[-10%] w-full h-40 pointer-events-none z-0 overflow-hidden">
-      <svg className="animate-[wing_2s_infinite_ease-in-out] w-8 h-8 text-white/10" viewBox="0 0 24 24" style={{ animation: 'fly 15s linear infinite' }}>
-        <path fill="currentColor" d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" />
-      </svg>
-      <style jsx global>{`
-        @keyframes fly {
-          0% { transform: translate(0, 0) rotate(90deg); }
-          100% { transform: translate(120vw, -20px) rotate(90deg); }
-        }
-        @keyframes wing {
-          0%, 100% { transform: scaleY(1); }
-          50% { transform: scaleY(0.5); }
-        }
-      `}</style>
-    </div>
-  )
-}
-
-function TreeShade({ vibe }: { vibe: string }) {
-  if (vibe !== 'morning') return null
-  return (
-    <div className="absolute top-0 right-0 w-1/3 h-full pointer-events-none z-0 opacity-20">
-      <svg viewBox="0 0 200 200" className="w-full h-full text-green-900/40">
-        <path fill="currentColor" d="M40,190 Q50,140 30,100 T50,40 T80,80 T60,140 T70,190" />
-        <path fill="currentColor" d="M120,190 Q130,130 110,90 T130,30 T160,70 T140,130 T150,190" />
-      </svg>
-    </div>
-  )
-}
-
+// ─── TYPES ───────────────────────────────────────────────────────────────────
 interface Ride {
-  id: number
-  user_id: number
-  user_name: string
-  corridor_name: string
-  corridor_id: number
-  ride_date: string
-  ride_time: string
-  pickup_point: string
-  drop_point: string
-  price_per_seat: number
-  available_seats: number
-  total_seats: number
-  status: string
-  vehicle_make?: string
-  vehicle_model?: string
-  vehicle_color?: string
-  vehicle_type?: string
-  vehicle_number?: string
-  pickup_points?: string[]
+  id: number; user_id: number; user_name: string; corridor_name: string; corridor_id: number;
+  corridor_description?: string; ride_date: string; ride_time: string; pickup_point: string;
+  drop_point: string; price_per_seat: number; available_seats: number; total_seats: number;
+  status: string; vehicle_make?: string; vehicle_model?: string; vehicle_color?: string;
+  vehicle_type?: string; vehicle_number?: string;
 }
 
-interface Corridor {
-  id: number
-  name: string
-}
+interface Corridor { id: number; name: string; image_url?: string }
+type ViewMode = 'grid' | 'list' | 'compact'
 
-const PAGE_SIZE = 12
-
-function getTimeSlot(time: string) {
-  if (!time) return 'other'
-  const h = parseInt(time.split(':')[0])
-  if (h >= 6 && h < 10) return 'morning'
-  if (h >= 17 && h < 21) return 'evening'
-  if (h >= 21) return 'night'
-  return 'other'
-}
-
-function SeatDots({ available, total }: { available: number; total: number }) {
-  return (
-    <div className="flex gap-1">
-      {Array.from({ length: total }).map((_, i) => (
-        <div key={i} className={`h-1.5 rounded-full transition-colors ${i < (total - available) ? 'bg-slate-700 w-3' : 'bg-blue-400 w-3'}`} />
-      ))}
-    </div>
-  )
-}
-
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
 const OFFICE_KEYWORDS = ['rcp', 'reliance', 'corporate park', 'office']
 
-function getTripType(pickup: string, drop: string) {
-  const isToOffice = OFFICE_KEYWORDS.some(k => drop.toLowerCase().includes(k))
-  const isToHome = OFFICE_KEYWORDS.some(k => pickup.toLowerCase().includes(k))
-  if (isToOffice) return { label: 'To Office', icon: '🏢', color: 'text-blue-400', isToOffice: true }
-  if (isToHome) return { label: 'To Home', icon: '🏠', color: 'text-orange-400', isToOffice: false }
-  return { label: 'General', icon: '📍', color: 'text-slate-400', isToOffice: false }
-}
-
 // ─── CARD VIEW ───────────────────────────────────────────────────────────────
-function CardView({ ride, onRequest }: { ride: Ride; onRequest: (id: number) => void }) {
+function CardView({ 
+  ride, 
+  onBook, 
+  onRetract, 
+  isRequested, 
+  isSelected, 
+  onSelect 
+}: { 
+  ride: Ride; 
+  onBook: (id: number, seats: number) => void;
+  onRetract: (id: number) => void;
+  isRequested: boolean;
+  isSelected: number | null;
+  onSelect: (seats: number | null) => void;
+}) {
   const initials = ride.user_name?.split(' ').map(n => n[0]).join('').toUpperCase()
-  const slot = getTimeSlot(ride.ride_time)
-  const isEvening = slot === 'evening'
-  const isMorning = slot === 'morning'
-  const type = getTripType(ride.pickup_point, ride.drop_point)
-  const isMorningPeak = isMorning && type.isToOffice
+  const isMorning = parseInt(ride.ride_time.split(':')[0]) < 12
 
   return (
-    <div className={`relative bg-white/5 border rounded-3xl overflow-hidden hover:bg-white/[0.07] transition-all group flex flex-col ${
-      isMorningPeak ? 'border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.1)]' : 'border-white/10 hover:border-white/20'
+    <div className={`relative bg-white/5 border backdrop-blur-md rounded-[2.5rem] overflow-hidden transition-all duration-500 group flex flex-col ${
+      isSelected ? 'border-green-500/50 scale-[1.02] shadow-[0_20px_50px_rgba(34,197,94,0.1)]' : isRequested ? 'border-blue-500/50' : 'border-white/10'
     }`}>
-      {isMorningPeak && (
-        <div className="absolute top-3 right-3 z-10">
-          <div className="bg-amber-500 text-[8px] font-black text-black px-2 py-0.5 rounded-full uppercase tracking-tighter flex items-center gap-1">
-            <Zap className="w-2 h-2 fill-black" /> Morning Peak
+      {/* Dynamic Header Glow */}
+      <div className={`h-1.5 w-full transition-colors duration-1000 ${isSelected ? 'bg-green-500' : isMorning ? 'bg-amber-400' : 'bg-blue-600'}`} />
+      
+      <div className="p-6 flex flex-col flex-1">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col">
+             <span className="text-[36px] font-black text-white leading-none tracking-tighter">
+               {ride.ride_time?.slice(0, 5)}
+             </span>
+             <span className="text-[10px] font-black text-white/30 uppercase tracking-widest mt-1">Departure Point</span>
           </div>
-        </div>
-      )}
-      <div className={`h-1 w-full ${isEvening ? 'bg-gradient-to-r from-orange-500 to-pink-500' : isMorningPeak ? 'bg-gradient-to-r from-amber-400 to-orange-400' : 'bg-gradient-to-r from-blue-500 to-indigo-500'}`} />
-      <div className="p-5 flex flex-col flex-1">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border border-white/5 bg-white/5 ${type.color}`}>
-              {type.icon} {type.label}
-            </span>
-          </div>
-          <span className={`text-[10px] font-black px-2 py-1 rounded-lg border ${isEvening ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-blue-500/10 border-blue-500/20 text-blue-400'}`}>
-            {ride.ride_time?.slice(0, 5)}
-          </span>
-        </div>
-        
-        <div className="flex items-center justify-between mb-4 mt-2">
-          <div className="flex items-center gap-3">
-             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-sm flex-shrink-0 relative ${isMorningPeak ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-blue-600 to-indigo-600'}`}>
-                {initials}
-                <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0f172a] ${ride.status === 'active' ? 'bg-green-500 animate-pulse' : 'bg-slate-500'}`} title="Host is Online" />
+          <div className="flex flex-col items-end">
+             <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 border border-white/10 rounded-full">
+                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                <span className="text-[10px] text-white font-black">4.9</span>
              </div>
-             <div className="flex-1 min-w-0">
-               <div className="flex items-center gap-2">
-                 <p className="font-bold text-white text-sm truncate">{ride.user_name}</p>
-                 {ride.status === 'active' && <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,1)]" />}
-               </div>
-               <div className="flex items-center gap-1.5">
-                 <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                 <span className="text-[10px] text-slate-500">4.9</span>
-                 <Shield className="w-3 h-3 text-blue-400" />
-               </div>
-             </div>
-          </div>
-          <span className={`text-[10px] font-black px-2 py-1 rounded-lg border ${isEvening ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-blue-500/10 border-blue-500/20 text-blue-400'}`}>
-            {ride.ride_time?.slice(0, 5)}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 mb-3 text-sm">
-          <div className="flex flex-col items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-blue-500" />
-            <div className="w-px h-4 bg-white/10" />
-            <div className="w-2 h-2 rounded-full bg-indigo-500" />
-          </div>
-          <div className="flex flex-col gap-1 flex-1 min-w-0">
-            <span className="text-slate-300 font-medium truncate text-xs">{ride.pickup_point}</span>
-            <span className="text-slate-400 truncate text-xs">{ride.drop_point}</span>
+             <p className="text-[10px] font-black text-green-400 mt-2 uppercase tracking-tight">₹{ride.price_per_seat} Seat</p>
           </div>
         </div>
 
-        {ride.vehicle_make && (
-           <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/5 rounded-xl mb-3">
-             <Car className="w-3 h-3 text-slate-500" />
-             <span className="text-[10px] font-medium text-slate-400 truncate">{ride.vehicle_color} {ride.vehicle_make} {ride.vehicle_model}</span>
+        <div className="flex items-center gap-3 mb-6 bg-white/5 p-3 rounded-2xl border border-white/5">
+           <div className={`w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-lg`}>
+              {initials}
            </div>
-        )}
-
-        <div className="mt-auto">
-          <SeatDots available={ride.available_seats} total={ride.total_seats} />
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-[10px] text-slate-500">{ride.available_seats}/{ride.total_seats} seats</span>
-            <span className="text-sm font-black text-green-400">₹{ride.price_per_seat}</span>
-          </div>
+           <div className="flex-1 min-w-0">
+              <p className="font-black text-white text-sm truncate leading-none mb-1">{ride.user_name}</p>
+              <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest truncate">{ride.corridor_name}</p>
+           </div>
         </div>
 
-        <div className="flex gap-2 mt-3">
-          <Link href={`/rides/${ride.id}`} className="flex-1 text-center py-2 rounded-xl text-xs font-bold bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">Details</Link>
-          {ride.available_seats > 0 && (
-             <button onClick={() => onRequest(ride.id)} className="flex-2 py-2 rounded-xl text-xs font-black bg-blue-600 hover:bg-blue-500 transition-all active:scale-95 shadow-lg shadow-blue-600/20">
-               {ride.available_seats === 1 ? 'Join Last Seat' : 'Request Seat'}
+        <div className="space-y-3 mb-8">
+           <div className="flex items-start gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+              <p className="text-white font-bold text-xs truncate flex-1">{ride.pickup_point}</p>
+           </div>
+           <div className="flex items-start gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-white/10 mt-1.5" />
+              <p className="text-white/40 font-medium text-[11px] truncate flex-1">{ride.drop_point}</p>
+           </div>
+        </div>
+
+        {/* Action Zone */}
+        <div className="mt-auto pt-6 border-t border-white/5">
+           {!isRequested ? (
+             <>
+               <div className="flex items-center justify-between mb-4 px-1">
+                  <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Select Capacity</p>
+                  <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">{ride.available_seats} Available</p>
+               </div>
+               <div className="flex gap-2 mb-6">
+                  {[1, 2, 3, 4].map(n => {
+                    const available = n <= ride.available_seats
+                    return (
+                      <button
+                        key={n}
+                        disabled={!available}
+                        onClick={() => onSelect(isSelected === n ? null : n)}
+                        className={`flex-1 py-3 rounded-xl text-[11px] font-black transition-all border ${
+                          isSelected === n 
+                            ? 'bg-green-600 border-green-400 text-white shadow-lg' 
+                            : available 
+                            ? 'bg-white/5 text-white/40 border-white/5 hover:border-white/20' 
+                            : 'bg-white/5 text-white/10 border-transparent opacity-20 cursor-not-allowed'
+                        }`}
+                      >
+                        {n}
+                      </button>
+                    )
+                  })}
+               </div>
+               <button 
+                 onClick={() => isSelected && onBook(ride.id, isSelected)}
+                 disabled={!isSelected}
+                 className={`w-full py-4 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 ${
+                   isSelected 
+                    ? 'bg-green-600 hover:bg-green-500 text-white shadow-[0_15px_30px_rgba(34,197,94,0.3)]' 
+                    : 'bg-white/5 text-white/20 cursor-not-allowed'
+                 }`}
+               >
+                 {isSelected ? <>LETS GO <ArrowRight className="w-4 h-4" /></> : 'CHOOSE SEATS'}
+               </button>
+             </>
+           ) : (
+             <button 
+               onClick={() => onRetract(ride.id)}
+               className="w-full py-4 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] bg-blue-600/10 border border-blue-500/30 text-blue-400 hover:bg-blue-600 hover:text-white transition-all group flex items-center justify-center gap-3"
+             >
+               <span className="group-hover:hidden flex items-center gap-2"><Check className="w-4 h-4" /> REQUESTED</span>
+               <span className="hidden group-hover:flex items-center gap-2 text-white"><X className="w-4 h-4" /> NOT YET</span>
              </button>
-          )}
+           )}
+           <Link href={`/rides/${ride.id}`} className="block w-full text-center mt-4 text-[9px] font-black text-white/20 hover:text-white uppercase tracking-widest transition-colors">
+              VIEW RIDE DETAILS
+           </Link>
         </div>
       </div>
     </div>
   )
 }
 
-
-// ─── LIST VIEW ───────────────────────────────────────────────────────────────
-function ListView({ ride, onRequest }: { ride: Ride; onRequest: (id: number) => void }) {
-  const initials = ride.user_name?.split(' ').map(n => n[0]).join('').toUpperCase()
-  return (
-    <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-4 flex items-center gap-4 hover:bg-white/[0.07] hover:border-white/20 transition-all">
-      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm flex-shrink-0">{initials}</div>
-      <div className="flex-1 min-w-0 grid grid-cols-2 md:grid-cols-4 gap-2">
-        <div>
-          <p className="font-bold text-white text-sm truncate">{ride.user_name}</p>
-          <p className="text-[10px] text-slate-500">{ride.corridor_name}</p>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs text-slate-400">
-          <Clock className="w-3.5 h-3.5 text-slate-500" />
-          {ride.ride_time?.slice(0, 5)} · {new Date(ride.ride_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-        </div>
-        <div className="flex flex-col gap-0.5">
-          <SeatDots available={ride.available_seats} total={ride.total_seats} />
-          <span className="text-[10px] text-slate-500">{ride.available_seats} left</span>
-        </div>
-        <div className="flex items-center gap-1 text-green-400 font-black">
-          <IndianRupee className="w-3.5 h-3.5" />{ride.price_per_seat}
-        </div>
-      </div>
-      <div className="flex gap-2 flex-shrink-0">
-        <Link href={`/rides/${ride.id}`} className="px-3 py-2 rounded-xl text-xs font-bold bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">View</Link>
-        {ride.available_seats > 0 && (
-          <button onClick={() => onRequest(ride.id)} className="px-3 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 transition-colors">Request</button>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ─── COMPACT VIEW ────────────────────────────────────────────────────────────
-function CompactView({ ride, onRequest }: { ride: Ride; onRequest: (id: number) => void }) {
-  return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5 hover:bg-white/5 transition-colors group">
-      <div className={`w-1.5 h-8 rounded-full flex-shrink-0 ${ride.available_seats === 0 ? 'bg-slate-700' : getTimeSlot(ride.ride_time) === 'evening' ? 'bg-orange-500' : 'bg-blue-500'}`} />
-      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-[10px] font-black text-white flex-shrink-0">
-        {ride.user_name?.split(' ').map(n => n[0]).join('').toUpperCase()}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-white truncate">{ride.user_name} <span className="text-slate-500 font-normal text-xs">· {ride.pickup_point}</span></p>
-        <p className="text-[10px] text-slate-600">{ride.corridor_name} · {ride.ride_time?.slice(0, 5)}</p>
-      </div>
-      <div className="flex items-center gap-3 flex-shrink-0">
-        <span className={`text-xs font-black ${ride.available_seats > 1 ? 'text-green-400' : ride.available_seats === 1 ? 'text-yellow-400' : 'text-red-400'}`}>
-          {ride.available_seats} seats
-        </span>
-        <span className="text-xs font-black text-white">₹{ride.price_per_seat}</span>
-        <Link href={`/rides/${ride.id}`} className="opacity-0 group-hover:opacity-100 transition-opacity">
-          <ChevronRight className="w-4 h-4 text-slate-400" />
-        </Link>
-      </div>
-    </div>
-  )
-}
-
+// ─── MAIN CONTENT ────────────────────────────────────────────────────────────
 function RidesContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const corridorParam = searchParams.get('corridor')
 
   const [rides, setRides] = useState<Ride[]>([])
+  const [corridors, setCorridors] = useState<Corridor[]>([])
+  const [requests, setRequests] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [view, setView] = useState<ViewMode>('grid')
-  const [filter, setFilter] = useState({
-    city: '',
-    corridor: corridorParam || '',
-    date: new Date().toISOString().split('T')[0],
-    timeRange: 'all', // all, morning, midday, evening, night
-    direction: (new Date().getHours() < 12) ? 'to_office' : 'to_home'
-  })
+  const [selectedRideSeats, setSelectedRideSeats] = useState<Record<number, number | null>>({})
   
   const hour = new Date().getHours()
-  const vibe = hour >= 5 && hour < 12 ? 'morning' : hour >= 17 && hour < 21 ? 'evening' : hour >= 21 || hour < 5 ? 'night' : 'afternoon'
-  const [corridors, setCorridors] = useState<Corridor[]>([])
+  const vibe = getVibe(hour)
+  const theme = VIBE_THEMES[vibe]
+
+  const [showFilled, setShowFilled] = useState(false)
+  const [filter, setFilter] = useState({
+    corridor: corridorParam || 'all',
+    date: new Date().toISOString().split('T')[0],
+    timeRange: vibe as string, 
+    direction: theme.defaultDirection as string
+  })
 
   useEffect(() => {
-    const fetchCorridors = async () => {
-      try {
-        const res = await api.get('/corridors?active=true') as unknown as Corridor[]
-        if (Array.isArray(res)) setCorridors(res)
-      } catch (err) {
-        console.error('Failed to fetch corridors')
-      }
-    }
     fetchCorridors()
+    fetchUserRequests()
   }, [])
-  const [showFilled, setShowFilled] = useState(false)
-  const [search, setSearch] = useState('')
-  const [page, setPage] = useState(1)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -302,39 +190,56 @@ function RidesContent() {
     fetchRides()
   }, [filter.date])
 
+  const fetchCorridors = async () => {
+     try {
+       const res = await api.get('/corridors?active=true') as unknown as Corridor[]
+       if (Array.isArray(res)) setCorridors(res)
+     } catch {}
+  }
+
+  const fetchUserRequests = async () => {
+    try {
+      const res = await api.get('/user/requests') as unknown as any[]
+      if (Array.isArray(res)) setRequests(res)
+    } catch {}
+  }
+
   const fetchRides = useCallback(async () => {
     setLoading(true)
     try {
       const data = await api.get(`/rides?date=${filter.date}`)
       if (Array.isArray(data)) setRides(data as Ride[])
-    } catch { toast.error('Check network or login status') }
+    } catch { toast.error('Check network status') }
     finally { setLoading(false) }
   }, [filter.date])
 
-  const handleRequest = async (rideId: number) => {
+  const handleBook = async (rideId: number, seats: number) => {
     try {
-      await api.post(`/rides/${rideId}/requests`, { seats_requested: 1 })
-      toast.success('Seat request sent!')
-    } catch { toast.error('Could not send request') }
+      await api.post(`/rides/${rideId}/requests`, { seats_requested: seats })
+      toast.success('Lets Go! Request broadcasted.', { icon: '🚀' })
+      setSelectedRideSeats(prev => ({ ...prev, [rideId]: null }))
+      fetchUserRequests()
+    } catch { toast.error('Launch failed') }
   }
 
-  // Frontend filtering logic
+  const handleRetract = async (rideId: number) => {
+    try {
+      const req = requests.find(r => r.ride_id === rideId && r.status === 'pending')
+      if (req) {
+         await api.delete(`/rides/${rideId}/requests/${req.id}`)
+         toast.success('Retracted. Not yet.', { icon: '🛑' })
+         fetchUserRequests()
+      }
+    } catch { toast.error('Retraction failed') }
+  }
+
   const filtered = rides.filter(r => {
     if (!showFilled && r.available_seats === 0) return false
-    if (filter.corridor && r.corridor_id !== parseInt(filter.corridor)) return false
+    if (filter.corridor !== 'all' && r.corridor_id !== parseInt(filter.corridor)) return false
     
-    if (filter.timeRange !== 'all') {
-      const h = parseInt(r.ride_time.split(':')[0])
-      if (filter.timeRange === 'morning' && (h < 6 || h >= 10)) return false
-      if (filter.timeRange === 'midday' && (h < 10 || h >= 15)) return false
-      if (filter.timeRange === 'evening' && (h < 15 || h >= 21)) return false
-      if (filter.timeRange === 'night' && h < 21 && h >= 6) return false
-    }
-
-    if (search) {
-      const s = search.toLowerCase()
-      if (!(r.user_name.toLowerCase().includes(s) || r.pickup_point.toLowerCase().includes(s) || r.corridor_name.toLowerCase().includes(s))) return false
-    }
+    const h = parseInt(r.ride_time.split(':')[0])
+    const rideVibe = getVibe(h)
+    if (filter.timeRange !== 'all' && filter.timeRange !== rideVibe) return false
 
     if (filter.direction !== 'all') {
       const isToOffice = OFFICE_KEYWORDS.some(k => r.drop_point.toLowerCase().includes(k))
@@ -342,154 +247,207 @@ function RidesContent() {
       if (filter.direction === 'to_office' && !isToOffice) return false
       if (filter.direction === 'to_home' && !isToHome) return false
     }
-
     return true
   })
 
-  // Pagination
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-
   return (
-    <div className={`min-h-screen text-white font-sans pb-20 transition-colors duration-1000 ${
-      vibe === 'morning' ? 'bg-[#1e293b]' : vibe === 'evening' ? 'bg-[#0f172a]' : vibe === 'night' ? 'bg-[#020617]' : 'bg-[#0f172a]'
-    }`}>
-      {/* Dynamic Vibe Background */}
-      <div className={`absolute top-0 left-0 w-full h-[600px] blur-[150px] -z-10 pointer-events-none transition-all duration-1000 ${
-        vibe === 'morning' ? 'bg-amber-400/10' : vibe === 'evening' ? 'bg-orange-600/10' : 'bg-blue-600/10'
-      }`} />
-      
-      {vibe === 'morning' && <BirdAnimation />}
-      <TreeShade vibe={vibe} />
-      
+    <div className={`min-h-screen text-white font-sans pb-32 transition-all duration-1000`}>
+      <VibeCanvas vibe={vibe} />
       <JoolNav />
 
-      <main className="max-w-7xl mx-auto px-6 md:px-12 pt-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-          <div>
-            <h1 className="text-3xl font-black text-white tracking-tight">Active Commutes</h1>
-            <p className="text-white/40 text-sm mt-1 font-medium">Found {filtered.length} premium routes for your selection.</p>
-          </div>
+      {/* ROUTE HUB - CIRCULAR ORBS */}
+      <div className="w-full py-8 overflow-x-auto scrollbar-hide">
+         <div className="flex items-center justify-center gap-10 px-12 min-w-max">
+            <button 
+              onClick={() => setFilter({ ...filter, corridor: 'all' })}
+              className="group flex flex-col items-center gap-4 transition-all"
+            >
+               <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${filter.corridor === 'all' ? 'bg-white border-white scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]' : 'bg-white/5 border-white/10 hover:border-white/30'}`}>
+                  <Zap className={`w-8 h-8 ${filter.corridor === 'all' ? 'text-black' : 'text-white/40 group-hover:text-white'}`} />
+               </div>
+               <span className={`text-[10px] font-black uppercase tracking-widest ${filter.corridor === 'all' ? 'text-white' : 'text-white/20 group-hover:text-white/40'}`}>All Routes</span>
+            </button>
 
-          <div className="flex items-center gap-3">
-             <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-2xl px-4 py-2.5">
-               <Search className="w-4 h-4 text-slate-500" />
-               <input value={search} onChange={e => setSearch(e.target.value)}
-                 placeholder="Search host or point..." className="bg-transparent text-sm text-white placeholder-slate-600 focus:outline-none w-32 md:w-48" />
-             </div>
-             <button onClick={fetchRides} className="p-2.5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors">
-               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-             </button>
-             <div className="flex items-center bg-white/5 border border-white/5 rounded-2xl p-1">
-               {([['grid', LayoutGrid], ['list', List], ['compact', AlignJustify]] as [ViewMode, any][]).map(([v, Icon]) => (
-                 <button key={v} onClick={() => setView(v)}
-                   className={`p-1.5 rounded-xl transition-all ${view === v ? 'bg-white/15 text-white' : 'text-slate-500 hover:text-slate-300'}`}>
-                   <Icon className="w-4 h-4" />
+            {corridors.map(c => {
+               const active = filter.corridor === String(c.id)
+               const initials = c.name.split(' ').map(n => n[0]).join('').toUpperCase()
+               return (
+                 <button 
+                   key={c.id}
+                   onClick={() => setFilter({ ...filter, corridor: String(c.id) })}
+                   className="group flex flex-col items-center gap-4 transition-all"
+                 >
+                    <div className={`w-20 h-20 rounded-full overflow-hidden transition-all duration-500 border-2 relative ${active ? 'border-white scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]' : 'border-white/10 hover:border-white/30'}`}>
+                       {c.image_url ? (
+                         <img src={c.image_url} alt={c.name} className={`w-full h-full object-cover transition-transform duration-700 ${active ? 'scale-110' : 'group-hover:scale-110 opacity-60 group-hover:opacity-100'}`} />
+                       ) : (
+                         <div className={`w-full h-full flex items-center justify-center text-2xl font-black bg-gradient-to-br from-slate-800 to-slate-950 ${active ? 'text-white' : 'text-white/20'}`}>
+                            {initials}
+                         </div>
+                       )}
+                       {active && <div className="absolute inset-0 bg-white/10 pointer-events-none" />}
+                    </div>
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${active ? 'text-white' : 'text-white/20 group-hover:text-white/40'}`}>{c.name}</span>
                  </button>
-               ))}
-             </div>
-          </div>
-        </div>
+               )
+            })}
+         </div>
+      </div>
 
-        {/* Filters Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-          <div className="bg-white/5 border border-white/5 rounded-3xl p-5 space-y-4">
-             <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest px-1">Date Focus</label>
-                <div className="flex gap-2">
-                  {[
-                    { label: 'Today', date: new Date().toISOString().split('T')[0] },
-                    { label: 'Tomorrow', date: new Date(Date.now() + 86400000).toISOString().split('T')[0] },
-                  ].map((d) => (
-                    <button
-                      key={d.label}
-                      onClick={() => setFilter({ ...filter, date: d.date })}
-                      className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${filter.date === d.date ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-white/5 text-white/40 hover:bg-white/10'}`}
-                    >
-                      {d.label}
-                    </button>
-                  ))}
-                  <input type="date" value={filter.date} onChange={e => setFilter({...filter, date: e.target.value})} className="flex-1 bg-white/5 border border-white/5 text-xs text-white p-2 rounded-xl" />
-                </div>
-             </div>
+      <main className="max-w-7xl mx-auto px-6 md:px-12 pt-12">
+        <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-8 mb-16">
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+               <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-blue-600/20">
+                  <Search className="w-6 h-6" />
+               </div>
+               <div>
+                 <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-none">Find Ride</h1>
+                 <p className="text-white/30 text-[10px] mt-1 font-black uppercase tracking-widest">{filtered.length} Active Ride{filtered.length !== 1 ? 's' : ''} detected</p>
+               </div>
+            </div>
           </div>
 
-          <div className="bg-white/5 border border-white/5 rounded-3xl p-5 space-y-4 text-xs font-black">
-             <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest px-1">Route & Time</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <select value={filter.direction} onChange={e => setFilter({...filter, direction: e.target.value})} className="bg-[#0f172a] border border-white/10 text-white p-2.5 rounded-xl outline-none focus:border-blue-500 transition-colors appearance-none">
-                    <option value="all">Any Direction</option>
-                    <option value="to_office">🏢 To Office</option>
-                    <option value="to_home">🏠 To Home</option>
-                  </select>
-                  <select value={filter.timeRange} onChange={e => setFilter({...filter, timeRange: e.target.value})} className="bg-[#0f172a] border border-white/10 text-white p-2.5 rounded-xl outline-none focus:border-blue-500 transition-colors appearance-none">
-                    <option value="all">Any Time</option>
-                    <option value="morning">Morning (6-10AM)</option>
-                    <option value="midday">Mid-day (10-3PM)</option>
-                    <option value="evening">Evening (3-9PM)</option>
-                    <option value="night">Night (9PM+)</option>
-                  </select>
-                </div>
-                <select value={filter.corridor} onChange={e => setFilter({...filter, corridor: e.target.value})} className="w-full bg-[#0f172a] border border-white/10 text-white p-2.5 rounded-xl outline-none focus:border-blue-500 transition-colors appearance-none mt-1">
-                  <option value="">All Corridors</option>
-                  {corridors.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+          {/* COOL TOGGLES */}
+          <div className="flex flex-wrap items-center gap-4">
+             {/* Mission Direction */}
+             <div className="bg-white/5 border border-white/10 p-1.5 rounded-2xl flex gap-1">
+                {[
+                  { id: 'to_office', label: 'Office', icon: '🏢' },
+                  { id: 'to_home', label: 'Home', icon: '🏠' }
+                ].map(d => (
+                  <button
+                    key={d.id}
+                    onClick={() => setFilter({ ...filter, direction: d.id })}
+                    className={`px-5 py-2 rounded-xl text-[10px] font-black transition-all flex items-center gap-2 ${filter.direction === d.id ? 'bg-blue-600 text-white shadow-lg' : 'text-white/30 hover:text-white'}`}
+                  >
+                    {d.icon} {d.label}
+                  </button>
+                ))}
              </div>
-          </div>
 
-          <div className="bg-white/5 border border-white/5 rounded-2xl px-4 py-2 flex items-center justify-between">
-             <div className="flex items-center gap-3">
-               <EyeOff className="w-4 h-4 text-slate-500" />
-               <p className="text-[10px] font-black text-white/40 uppercase tracking-widest leading-none">Compact Status</p>
+             {/* Temporal Node (Date) */}
+             <div className="bg-white/5 border border-white/10 p-1.5 rounded-2xl flex gap-1">
+                {[
+                  { label: 'Today', date: new Date().toISOString().split('T')[0] },
+                  { label: 'Tomorrow', date: new Date(Date.now() + 86400000).toISOString().split('T')[0] }
+                ].map(dt => (
+                  <button
+                   key={dt.label}
+                   onClick={() => setFilter({ ...filter, date: dt.date })}
+                   className={`px-5 py-2 rounded-xl text-[10px] font-black transition-all ${filter.date === dt.date ? 'bg-amber-400 text-black shadow-lg' : 'text-white/30 hover:text-white'}`}
+                  >
+                    {dt.label}
+                  </button>
+                ))}
              </div>
-             <button onClick={() => setShowFilled(!showFilled)} className={`w-8 h-4 rounded-full p-0.5 transition-colors ${showFilled ? 'bg-blue-600' : 'bg-white/10'}`}>
-                <div className={`w-3 h-3 bg-white rounded-full transition-transform ${showFilled ? 'translate-x-4' : 'translate-x-0'}`} />
+
+             <div className="bg-white/5 border border-white/10 p-1.5 rounded-2xl flex gap-1 ml-auto md:ml-0">
+                <button onClick={() => setView('grid')} className={`p-2 rounded-xl transition-all ${view === 'grid' ? 'bg-white text-black' : 'text-white/20 hover:text-white'}`}>
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+                <button onClick={() => setView('list')} className={`p-2 rounded-xl transition-all ${view === 'list' ? 'bg-white text-black' : 'text-white/20 hover:text-white'}`}>
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
+
+             <button 
+                onClick={() => setShowFilled(!showFilled)} 
+                className={`p-3 border rounded-2xl transition-all ${showFilled ? 'bg-white text-black border-white' : 'bg-white/5 text-white/30 border-white/10 hover:border-white/30'}`}
+                title={showFilled ? "Hide Full Rides" : "Show Full Rides"}
+              >
+                 {showFilled ? <EyeOff className="w-4 h-4" /> : <AlignJustify className="w-4 h-4" />}
+             </button>
+
+             <button onClick={fetchRides} className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors">
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
              </button>
           </div>
         </div>
 
-        {paginated.length === 0 ? (
-          <div className="text-center py-20 bg-white/5 border border-white/10 rounded-[3rem]">
-            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">🚗</div>
-            <h3 className="text-xl font-black text-white mb-2">No matches found for this setup.</h3>
-            <p className="text-slate-500 text-sm mb-8 px-10">Adjust your filters or be the first to post a new route on this date.</p>
-            <Link href="/offer-ride" className="bg-white text-black px-8 py-3 rounded-2xl font-black hover:bg-slate-200 transition-all">Publish Commute</Link>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-32 opacity-20">
+             <div className="w-12 h-12 border-2 border-white border-t-transparent rounded-full animate-spin mb-4" />
+             <p className="text-[10px] font-black uppercase tracking-[0.5em]">Syncing_Grid...</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-32 bg-white/5 border border-white/5 rounded-[3rem] backdrop-blur-xl">
+            <h3 className="text-2xl font-black text-white mb-2 uppercase italic tracking-tighter">Negative Signal</h3>
+            <p className="text-white/20 text-[10px] font-black uppercase tracking-widest leading-relaxed">Adjust your ride coordinates<br/>or publish a new route</p>
+          </div>
+        ) : view === 'grid' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filtered.map(ride => (
+              <CardView 
+                key={ride.id} 
+                ride={ride} 
+                onBook={handleBook}
+                onRetract={handleRetract}
+                isRequested={requests.some(r => r.ride_id === ride.id && r.status === 'pending')}
+                isSelected={selectedRideSeats[ride.id] || null}
+                onSelect={(seats) => setSelectedRideSeats(prev => ({ ...prev, [ride.id]: seats }))}
+              />
+            ))}
           </div>
         ) : (
-          <>
-            {view === 'compact' && (
-              <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-white/5 grid grid-cols-4 text-[10px] font-black text-slate-600 uppercase tracking-widest bg-white/[0.02]">
-                  <span>Host & Route</span><span>Corridor</span><span>Seats</span><span>Price</span>
+          <div className="space-y-4">
+            {filtered.map(ride => (
+              <div key={ride.id} className="bg-white/5 border border-white/5 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 hover:bg-white/10 transition-all">
+                <div className="flex items-center gap-6 flex-1">
+                   <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+                      <Car className="w-8 h-8 text-white/20" />
+                   </div>
+                   <div>
+                      <h4 className="text-xl font-black tracking-tight">{ride.corridor_name}</h4>
+                      <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Driver: {ride.driver_name}</p>
+                   </div>
+                   <div className="hidden md:block h-8 w-px bg-white/10 mx-4" />
+                   <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Departure</span>
+                      <span className="font-black flex items-center gap-2"><Clock className="w-3 h-3 text-amber-400" /> {ride.ride_time}</span>
+                   </div>
                 </div>
-                {paginated.map(ride => <CompactView key={ride.id} ride={ride} onRequest={handleRequest} />)}
+                
+                <div className="flex items-center gap-8">
+                   <div className="text-right">
+                      <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Fare</span>
+                      <p className="text-xl font-black text-green-400">₹{ride.price_per_seat}</p>
+                   </div>
+                   
+                   <div className="flex items-center gap-3">
+                      <Link href={`/rides/${ride.id}`} className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Details</Link>
+                      {requests.some(r => r.ride_id === ride.id && r.status === 'pending') ? (
+                        <button onClick={() => handleRetract(ride.id)} className="px-6 py-3 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg">Requested</button>
+                      ) : (
+                        <button 
+                          disabled={ride.available_seats === 0}
+                          onClick={() => handleBook(ride.id, 1)} 
+                          className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${ride.available_seats === 0 ? 'bg-white/5 text-white/10' : 'bg-white text-black hover:bg-amber-400'}`}
+                        >
+                           {ride.available_seats === 0 ? 'Full' : 'Reserve'}
+                        </button>
+                      )}
+                   </div>
+                </div>
               </div>
-            )}
-            {view === 'list' && <div className="space-y-3">{paginated.map(ride => <ListView key={ride.id} ride={ride} onRequest={handleRequest} />)}</div>}
-            {view === 'grid' && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">{paginated.map(ride => <CardView key={ride.id} ride={ride} onRequest={handleRequest} />)}</div>}
-
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-3 mt-12">
-                <button onClick={() => setPage(p => Math.max(1, p - 1))} className="p-3 bg-white/5 border border-white/5 rounded-2xl disabled:opacity-30 hover:bg-white/10 transition-all"><ChevronLeft className="w-5 h-5" /></button>
-                <div className="flex gap-2 text-sm font-black text-white/20">Page <span className="text-white">{page}</span> of {totalPages}</div>
-                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} className="p-3 bg-white/5 border border-white/5 rounded-2xl disabled:opacity-30 hover:bg-white/10 transition-all"><ChevronRight className="w-5 h-5" /></button>
-              </div>
-            )}
-          </>
+            ))}
+          </div>
         )}
       </main>
+
+      <style jsx global>{`
+        @keyframes marquee {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+      `}</style>
     </div>
   )
 }
 
-type ViewMode = 'grid' | 'list' | 'compact'
-
 export default function RidesPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-white/20 font-black animate-pulse">LOADING JOOL GRID...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#020617] flex items-center justify-center text-[10px] font-black uppercase tracking-[0.5em] text-white/20 animate-pulse">Initializing_Jool_Core...</div>}>
       <RidesContent />
     </Suspense>
   )

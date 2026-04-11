@@ -7,122 +7,31 @@ import {
   ArrowLeft, MapPin, Clock, Users, IndianRupee, Car, Star, Shield,
   MessageSquare, Send, Check, X, CheckCheck, Loader2, Phone, Navigation,
   Calendar, Info, AlertCircle, Sparkles, Leaf, CheckCircle2, Banknote, QrCode,
-  Timer, ShieldCheck
+  Timer, ShieldCheck, ArrowRight
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
 import JoolNav from '../../components/JoolNav'
+import { getVibe, VIBE_THEMES } from '@/lib/vibe-utils'
+import VibeCanvas from '../../components/VibeCanvas'
 
+// ─── TYPES ───────────────────────────────────────────────────────────────────
 interface Ride {
-  id: number
-  user_id: number
-  user_name: string
-  corridor_name: string
-  ride_date: string
-  ride_time: string
-  pickup_point: string
-  drop_point: string
-  route_description?: string
-  price_per_seat: number
-  available_seats: number
-  total_seats: number
-  status: string
-  vehicle_make?: string
-  vehicle_model?: string
-  vehicle_color?: string
-  vehicle_type?: string
-  vehicle_number?: string
-  pickup_points?: string[]
-  upi_id?: string
-  phone?: string
-  vehicle_info?: { make: string; model: string; vehicle_number: string; vehicle_type: string; color?: string; image_url?: string }
+  id: number; user_id: number; user_name: string; corridor_name: string; ride_date: string;
+  ride_time: string; pickup_point: string; drop_point: string; route_description?: string;
+  price_per_seat: number; available_seats: number; total_seats: number; status: string;
+  corridor_description?: string; vehicle_make?: string; vehicle_model?: string;
+  vehicle_number?: string; phone?: string; upi_id?: string;
 }
 
-interface Payment {
-  id: number
-  rider_id: number
-  amount: number
-  rider_status: string
-  giver_status: string
-}
+interface Message { id: number; user_id?: number; user_name: string; message: string; created_at: string }
+interface RideRequest { id: number; user_id: number; rider_name: string; status: string; seats_requested: number }
 
-interface RideRequest {
-  id: number
-  rider_id: number
-  rider_name: string
-  pickup_point: string
-  seats_requested: number
-  status: string
-  created_at: string
-}
-
-interface Message {
-  id: number
-  user_id?: number
-  user_name: string
-  message: string
-  created_at: string
-}
-
-// Demo data
-const DEMO_RIDE: Ride = {
-  id: 1, user_id: 2, user_name: 'Aayushi Singh', corridor_name: 'Casa Rio → RCP',
-  ride_date: new Date().toISOString().split('T')[0], ride_time: '08:30:00',
-  pickup_point: 'Casa Rio Gate 1', drop_point: 'Reliance Corporate Park (RCP)',
-  price_per_seat: 120, available_seats: 2, total_seats: 4, status: 'active',
-  vehicle_make: 'Honda', vehicle_model: 'City', vehicle_color: 'White',
-  vehicle_type: 'Sedan', vehicle_number: 'MH04 AB 1234',
-  pickup_points: ['Casa Rio Gate 2', 'Lodha Splendora'],
-  route_description: 'Route via Eastern Expressway, NH-48',
-}
-
-const DEMO_MESSAGES: Message[] = [
-  { id: 1, user_id: 2, user_name: 'Aayushi Singh', message: 'Hey! Starting on time. Please be ready 5 min early.', created_at: new Date(Date.now() - 3600000).toISOString() },
-  { id: 2, user_id: 3, user_name: 'Rajiv', message: 'Got it! I will be at Gate 1.', created_at: new Date(Date.now() - 1800000).toISOString() },
-]
-
-const DEMO_REQUESTS: RideRequest[] = [
-  { id: 1, rider_id: 5, rider_name: 'Priya Nair', pickup_point: 'Casa Rio Gate 2', seats_requested: 1, status: 'pending', created_at: new Date().toISOString() },
-  { id: 2, rider_id: 6, rider_name: 'Rahul Verma', pickup_point: 'Lodha Splendora', seats_requested: 2, status: 'accepted', created_at: new Date().toISOString() },
-]
-
-function SeatBar({ available, total }: { available: number; total: number }) {
+// ─── COMPONENTS ──────────────────────────────────────────────────────────────
+function GlassPanel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className="flex gap-1.5 w-full">
-      {Array.from({ length: total }).map((_, i) => (
-        <div
-          key={i}
-          className={`h-2 flex-1 rounded-full transition-all duration-500 ${
-            i < (total - available) ? 'bg-white/10' : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)]'
-          }`}
-        />
-      ))}
-    </div>
-  )
-}
-
-function MapEmbed({ from, to }: { from: string; to: string }) {
-  const query = encodeURIComponent(`${from} to ${to}, Mumbai`)
-  return (
-    <div className="relative w-full h-80 rounded-[2rem] overflow-hidden bg-slate-900 border border-white/5 shadow-2xl">
-      <iframe
-        src={`https://maps.google.com/maps?q=${query}&output=embed&z=12`}
-        className="absolute inset-0 w-full h-full grayscale opacity-70"
-        loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
-        title="Route Map"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-transparent pointer-events-none" />
-      <div className="absolute top-6 right-6 flex gap-2">
-        <a
-          href={`https://maps.google.com/maps/dir/${encodeURIComponent(from)}/${encodeURIComponent(to)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black px-5 py-2.5 rounded-2xl shadow-xl transition-all active:scale-95"
-        >
-          <Navigation className="w-4 h-4" /> OPEN IN GOOGLE MAPS
-        </a>
-      </div>
+    <div className={`bg-white/5 border border-white/5 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden ${className}`}>
+      {children}
     </div>
   )
 }
@@ -133,15 +42,13 @@ export default function RideDetailPage() {
   const rideId = params.id as string
 
   const [ride, setRide] = useState<Ride | null>(null)
-  const [messages, setMessages] = useState<Message[]>(DEMO_MESSAGES)
-  const [requests, setRequests] = useState<RideRequest[]>(DEMO_REQUESTS)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [requests, setRequests] = useState<RideRequest[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [sendingMsg, setSendingMsg] = useState(false)
   const [user, setUser] = useState<any>(null)
-  const [requestSent, setRequestSent] = useState(false)
   const [seatsToBook, setSeatsToBook] = useState(1)
-  const [payments, setPayments] = useState<Payment[]>([])
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -150,7 +57,6 @@ export default function RideDetailPage() {
     const usr = localStorage.getItem('user')
     if (usr) setUser(JSON.parse(usr))
     fetchAll()
-
     const interval = setInterval(fetchMessages, 10000)
     return () => clearInterval(interval)
   }, [rideId])
@@ -161,736 +67,233 @@ export default function RideDetailPage() {
 
   const fetchAll = async () => {
     try {
-      const data = await api.get(`/rides/${rideId}`) as unknown as Ride
-      setRide(data)
-    } catch {
-      setRide(DEMO_RIDE)
-    }
-    
-    try {
-      const data = await api.get(`/rides/${rideId}/messages`) as unknown as Message[]
-      if (Array.isArray(data)) setMessages(data)
-    } catch {}
-
-    try {
-      const data = await api.get(`/rides/${rideId}/requests`) as unknown as RideRequest[]
-      if (Array.isArray(data)) {
-        setRequests(data)
-        const myUserId = user?.id || JSON.parse(localStorage.getItem('user') || '{}').id
-        const myReq = data.find((r: any) => r.user_id === myUserId && (r.status === 'pending' || r.status === 'accepted'))
-        if (myReq) setRequestSent(true)
-      }
-    } catch {}
-
-    try {
-      const data = await api.get(`/rides/${rideId}/payments`) as unknown as Payment[]
-      if (Array.isArray(data)) setPayments(data)
-    } catch {}
-
-    setLoading(false)
+      const [r, m, req] = await Promise.all([
+        api.get(`/rides/${rideId}`) as unknown as Promise<Ride>,
+        api.get(`/rides/${rideId}/messages`) as unknown as Promise<Message[]>,
+        api.get(`/rides/${rideId}/requests`) as unknown as Promise<RideRequest[]>
+      ])
+      setRide(r); setMessages(m); setRequests(req)
+    } catch { toast.error('Check mission link') }
+    finally { setLoading(false) }
   }
 
   const fetchMessages = async () => {
     try {
       const data = await api.get(`/rides/${rideId}/messages`)
-      if (Array.isArray(data)) {
-        // Only update if message count changed to avoid flickering
-        setMessages(prev => prev.length !== data.length ? data as Message[] : prev)
-      }
+      if (Array.isArray(data)) setMessages(data)
     } catch {}
   }
 
   const sendMessage = async () => {
     if (!newMessage.trim()) return
-    const txt = newMessage.trim()
-    setSendingMsg(true)
-    setNewMessage('')
+    const txt = newMessage.trim(); setSendingMsg(true); setNewMessage('')
     try {
       await api.post(`/rides/${rideId}/messages`, { message: txt })
-      fetchMessages() // Get latest state
-    } catch {
-      toast.error('Failed to send message')
-    } finally {
-      setSendingMsg(false)
-    }
-  }
-
-  const updateRideStatus = async (newStatus: string) => {
-    try {
-      await api.put(`/rides/${rideId}`, { status: newStatus })
-      toast.success(`Trip status updated to: ${newStatus.toUpperCase()}`)
-      fetchAll()
-    } catch (e: any) {
-      toast.error(e?.response?.data?.error || 'Failed to update status')
-    }
-  }
-
-  const handleRiderCheckIn = async (requestId: number) => {
-    try {
-      // We'll use a chat message for now to notify host since we don't have a specific check-in endpoint yet
-      await api.post(`/rides/${rideId}/messages`, { message: "📢 PASSENGER ALERT: I have arrived at the pickup location!" })
-      toast.success('Host notified of your arrival!')
-    } catch {
-      toast.error('Failed to notify host')
-    }
+      fetchMessages()
+    } catch { toast.error('Failed to sync message') }
+    finally { setSendingMsg(false) }
   }
 
   const handleRequest = async () => {
     try {
       await api.post(`/rides/${rideId}/requests`, { seats_requested: seatsToBook })
-      setRequestSent(true)
-      toast.success(`🚀 Your request for ${seatsToBook} seat(s) has been broadcasted!`)
-      fetchAll() // Refresh to get the actual request ID
-    } catch (e: any) {
-      toast.error(e?.response?.data?.error || 'Request failed')
-    }
+      toast.success('Lets Go! Request broadcasted.', { icon: '🚀' })
+      fetchAll()
+    } catch { toast.error('Launch failed') }
   }
 
   const handleCancelRequest = async () => {
     try {
-      const myUserId = user?.id
-      const myReq = requests.find(r => (r as any).user_id === myUserId && r.status === 'pending')
-      if (!myReq) return
-      
-      await api.delete(`/rides/${rideId}/requests/${myReq.id}`)
-      setRequestSent(false)
-      toast.success('Request retracted successfully.')
-      fetchAll()
-    } catch (e: any) {
-      toast.error(e?.response?.data?.error || 'Failed to cancel request')
-    }
+      const myReq = requests.find(r => r.user_id === user?.id && r.status === 'pending')
+      if (myReq) {
+        await api.delete(`/rides/${rideId}/requests/${myReq.id}`)
+        toast.success('Retracted. Not yet.', { icon: '🛑' })
+        fetchAll()
+      }
+    } catch { toast.error('Retraction failed') }
   }
 
-  const handleAccept = async (requestId: number) => {
-    try {
-      await api.put(`/rides/${rideId}/requests/${requestId}`, { status: 'accepted' })
-      setRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: 'accepted' } : r))
-      toast.success('Passenger accepted into trip!')
-    } catch {
-      // Demo mode
-      setRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: 'accepted' } : r))
-      toast.success('Passenger accepted!')
-    }
-  }
-
-  const handleReject = async (requestId: number) => {
-    try {
-      await api.put(`/rides/${rideId}/requests/${requestId}`, { status: 'rejected' })
-      setRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: 'rejected' } : r))
-      toast.success('Request declined.')
-    } catch {
-      setRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: 'rejected' } : r))
-    }
-  }
-
-  const handleUpdatePayment = async (userId: number, status: string, side: 'rider_status' | 'giver_status') => {
-    try {
-      await api.put(`/rides/${rideId}/payments/${userId}`, { [side]: status })
-      toast.success('Payment status synchronized!')
-      fetchAll()
-    } catch (e: any) {
-      toast.error(e?.response?.data?.error || 'Failed to update payment status')
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-white/40 font-bold tracking-widest text-[10px] uppercase">Retrieving Ride Intelligence...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!ride) {
-    return (
-      <div className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center gap-6 text-white p-6">
-        <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
-          <AlertCircle className="w-12 h-12 text-white/20" />
-        </div>
-        <div className="text-center">
-          <h2 className="text-3xl font-black mb-2">Ride Unavailable</h2>
-          <p className="text-white/40">This commute link has expired or been removed.</p>
-        </div>
-        <Link href="/rides" className="bg-blue-600 px-10 py-4 rounded-[2rem] font-black text-lg shadow-xl shadow-blue-600/20 active:scale-95 transition-all">
-          EXPLORE OTHER RIDES
-        </Link>
-      </div>
-    )
-  }
+  if (loading) return <div className="min-h-screen bg-[#020617] flex items-center justify-center text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Syncing_Details...</div>
+  if (!ride) return <div className="min-h-screen bg-[#020617] flex items-center justify-center text-white font-black">Link_Corrupted</div>
 
   const isOwner = user?.id === ride.user_id
-  const isAdmin = user?.role === 'admin'
-  const myRequest = requests.find((r: any) => r.user_id === user?.id)
-  const isAcceptedRider = myRequest?.status === 'accepted'
-  const canSeePassengers = isOwner || isAdmin || isAcceptedRider
-
-  const hour = parseInt(ride.ride_time.split(':')[0])
-  const vibe = hour >= 5 && hour < 12 ? 'morning' : hour >= 17 && hour < 21 ? 'evening' : hour >= 21 || hour < 5 ? 'night' : 'afternoon'
-
-
-  const initials = ride.user_name?.split(' ').map((n: string) => n[0]).join('').toUpperCase()
-  const pickupList = ride.pickup_points || []
+  const myRequest = requests.find(r => r.user_id === user?.id)
+  const isAccepted = myRequest?.status === 'accepted'
+  const isPending = myRequest?.status === 'pending'
+  const vibe = getVibe(parseInt(ride.ride_time.split(':')[0]))
 
   return (
-    <div className={`min-h-screen font-sans pb-20 overflow-x-hidden transition-colors duration-1000 ${
-      vibe === 'morning' ? 'bg-[#1e293b]' : vibe === 'evening' ? 'bg-[#0f172a]' : vibe === 'night' ? 'bg-[#020617]' : 'bg-[#0f172a]'
-    }`}>
-      <div className={`absolute top-0 left-0 w-full h-[600px] blur-[150px] -z-10 pointer-events-none transition-all duration-1000 ${
-        vibe === 'morning' ? 'bg-amber-400/10' : vibe === 'evening' ? 'bg-orange-600/10' : 'bg-blue-600/10'
-      }`} />
-
+    <div className={`min-h-screen font-sans pb-32 transition-all duration-1000 ${VIBE_THEMES[vibe].bg}`}>
+      <VibeCanvas vibe={vibe} />
       <JoolNav />
 
-      {/* Hero Header */}
-      <div className="bg-[#0f172a]/40 border-b border-white/5 pt-12 pb-16 px-6 md:px-12 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-8 relative z-10">
-          <div className="flex-1">
-             <Link href="/rides" className="inline-flex items-center gap-2 text-[10px] font-black text-white/40 hover:text-white transition-colors uppercase tracking-widest mb-6">
-              <ArrowLeft className="w-3 h-3" /> BACK TO NETWORK
-            </Link>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-white max-w-2xl leading-tight">{ride.corridor_name}</h1>
-            <div className="flex items-center gap-6 mt-6">
-               <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center">
-                     <Clock className="w-6 h-6 text-blue-400" />
-                  </div>
-                  <div>
-                     <p className="text-[32px] font-black leading-none text-white tracking-widest">{ride.ride_time?.slice(0,5)}</p>
-                     <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">Scheduled Departure</p>
-                  </div>
-               </div>
-               <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-4">
-                  <Calendar className="w-6 h-6 text-slate-500" />
-                  <div>
-                     <p className="text-xl font-black text-white">{new Date(ride.ride_date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</p>
-                     <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Commute Date</p>
-                  </div>
-               </div>
-            </div>
-          </div>
-
-          <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 backdrop-blur-xl flex flex-col items-center min-w-[300px] shadow-2xl relative overflow-hidden group">
-             <div className="absolute top-0 right-0 w-48 h-48 bg-green-500/5 blur-3xl -z-10 rounded-full group-hover:scale-110 transition-transform" />
-             <div className="flex items-center justify-between w-full mb-8">
-                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Premium Contribution</span>
-                <span className="bg-green-500/10 border border-green-500/20 text-green-400 text-[8px] font-black px-2 py-0.5 rounded-md uppercase">Hot Seat</span>
-             </div>
-             <div className="flex items-baseline gap-1 mb-8">
-                <span className="text-2xl font-black text-green-400 mb-2">₹</span>
-                <span className="text-7xl font-black text-white tracking-tighter">{ride.price_per_seat}</span>
-                <span className="text-white/20 font-bold text-xs">/SEAT</span>
-             </div>
-             {!isOwner && (
-                <div className="w-full space-y-6">
-                  {ride.available_seats > 0 && !requestSent && (
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                       <p className="text-[10px] font-black text-white/40 uppercase tracking-widest text-center mb-4">Reserve Your Presence</p>
-                       <div className="flex justify-center gap-4">
-                          {[1, 2, 3, 4].filter(n => n <= ride.available_seats).map(n => (
-                            <button
-                              key={n}
-                              onClick={() => setSeatsToBook(n)}
-                              className={`w-12 h-12 rounded-xl border-2 font-black transition-all ${seatsToBook === n ? 'bg-blue-600 border-blue-500 text-white scale-110 shadow-lg' : 'bg-white/5 border-white/5 text-white/30 hover:border-white/10'}`}
-                            >
-                               {n}
-                            </button>
-                          ))}
-                       </div>
-                    </div>
-                  )}
-                  <button
-                    onClick={requestSent ? handleCancelRequest : handleRequest}
-                    disabled={(ride.available_seats === 0 && !requestSent)}
-                    className={`w-full py-5 rounded-[2rem] font-black text-xl tracking-wide transition-all active:scale-95 flex items-center justify-center gap-3 ${
-                      requestSent
-                        ? 'bg-amber-500/20 border border-amber-500/20 text-amber-500'
-                        : ride.available_seats === 0
-                        ? 'bg-white/5 border border-white/10 text-white/20'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-[0_15px_40px_rgba(37,99,235,0.4)]'
-                    }`}
-                  >
-                    {requestSent ? <><Timer className="w-6 h-6 animate-spin" /> PENDING APPROVAL</> : ride.available_seats === 0 ? 'TRIP COMPLETED' : 'REQUEST JOIN'}
-                  </button>
-                  {requestSent && (
-                    <div className="p-4 bg-white/5 border border-white/5 rounded-2xl flex items-center gap-3">
-                       <Info className="w-4 h-4 text-blue-400" />
-                       <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest leading-relaxed">
-                          Your request is being reviewed. The captain will reach out shortly via chat or phone.
-                       </p>
-                    </div>
-                  )}
-                </div>
-             )}
-             {isOwner && (
-               <div className="text-xs font-black text-blue-400 uppercase tracking-widest flex items-center gap-2 px-6 py-2 bg-blue-500/10 rounded-full border border-blue-500/20">
-                  <ShieldCheck className="w-4 h-4" /> TRIP MASTER CONSOLE
-               </div>
-             )}
-          </div>
-          
-          {/* Trip Lifecycle Controls */}
-          {isOwner && (
-             <div className="bg-blue-600/10 border border-blue-500/20 rounded-3xl p-6 shadow-xl space-y-4">
-                <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-4">Trip Lifecycle Management</p>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                   <button 
-                     onClick={() => updateRideStatus('starting')}
-                     disabled={ride.status !== 'open' && ride.status !== 'partially_filled' && ride.status !== 'full'}
-                     className={`py-3 rounded-xl font-black text-[10px] tracking-tight uppercase transition-all border ${ride.status === 'starting' ? 'bg-blue-600 border-blue-500' : 'bg-white/5 border-white/5 opacity-50'}`}
-                   >
-                     🚀 Start Trip
-                   </button>
-                   <button 
-                     onClick={() => updateRideStatus('at_pickup')}
-                     disabled={ride.status !== 'starting'}
-                     className={`py-3 rounded-xl font-black text-[10px] tracking-tight uppercase transition-all border ${ride.status === 'at_pickup' ? 'bg-orange-600 border-orange-500' : 'bg-white/5 border-white/5 opacity-50'}`}
-                   >
-                     📍 At Pickup
-                   </button>
-                   <button 
-                     onClick={() => updateRideStatus('at_dropoff')}
-                     disabled={ride.status !== 'at_pickup'}
-                     className={`py-3 rounded-xl font-black text-[10px] tracking-tight uppercase transition-all border ${ride.status === 'at_dropoff' ? 'bg-indigo-600 border-indigo-500' : 'bg-white/5 border-white/5 opacity-50'}`}
-                   >
-                     🏁 At Dest.
-                   </button>
-                   <button 
-                     onClick={() => updateRideStatus('completed')}
-                     disabled={ride.status !== 'at_dropoff'}
-                     className={`py-3 rounded-xl font-black text-[10px] tracking-tight uppercase transition-all border ${ride.status === 'completed' ? 'bg-green-600 border-green-500' : 'bg-white/5 border-white/5 opacity-50'}`}
-                   >
-                     ✔️ Finish
-                   </button>
-                </div>
-             </div>
-          )}
-
-          {!isOwner && requests.find(r => (r as any).user_id === user?.id && r.status === 'accepted') && (
-             <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
-                <button 
-                  onClick={() => handleRiderCheckIn(requests.find(r => (r as any).user_id === user?.id)!.id)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl flex items-center justify-center gap-3"
-                >
-                  <MapPin className="w-5 h-5" /> I AM AT THE LOCATION
-                </button>
-                <p className="text-[10px] text-center text-white/40 mt-3 font-bold uppercase tracking-tighter">This notifies the driver you are ready for pickup</p>
-             </div>
-          )}
+      <main className="max-w-4xl mx-auto px-6 mt-12 space-y-6">
+        {/* PANEL 1: MISSION CORE */}
+        <div className="flex items-center gap-4 mb-8">
+           <Link href="/rides" className="p-3 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-all active:scale-95">
+              <ArrowLeft className="w-5 h-5 text-white/40" />
+           </Link>
+           <div>
+             <h1 className="text-4xl font-black tracking-tighter text-white leading-none uppercase italic">{ride.corridor_name}</h1>
+             <p className="text-white/30 text-[10px] mt-1 font-black uppercase tracking-widest leading-none">Intelligence Node #{ride.id}</p>
+           </div>
         </div>
-      </div>
 
-      <main className="max-w-7xl mx-auto px-6 md:px-12 mt-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
-        
-        {/* Left Column: Details & Map */}
-        <div className="lg:col-span-8 space-y-12">
-          
-            {/* Host Profile Profile Card stays at top */}
-            <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8 flex flex-col items-center text-center">
-                <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-4xl shadow-[0_15px_30px_rgba(37,99,235,0.3)] mb-6 relative">
-                  {initials}
-                  <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-4 border-[#0f172a] shadow-lg ${ride.status === 'active' ? 'bg-green-500' : 'bg-slate-500'}`} />
-                </div>
-                <h3 className="text-2xl font-black text-white">{ride.user_name}</h3>
-                <div className="flex items-center gap-2 mt-2">
-                   <div className="flex items-center gap-1 text-yellow-400 font-bold text-sm">
-                      <Star className="w-4 h-4 fill-yellow-400" /> 4.9
-                   </div>
-                   <div className="w-1 h-1 bg-white/10 rounded-full" />
-                   <div className="text-[10px] text-white/40 font-black uppercase tracking-widest">VERIFIED CAPTAIN</div>
-                </div>
-                
-                <div className="flex gap-3 mt-8 w-full">
-                   <a href={`tel:${ride.phone || '+91'}`} className="flex-1 bg-white/5 border border-white/5 hover:bg-white/10 py-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black transition-all">
-                      <Phone className="w-4 h-4" /> AUDIO CALL
-                   </a>
-                   <Link href={`/profiles/${ride.user_id}`} className="flex-1 bg-white/5 border border-white/5 hover:bg-white/10 py-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black transition-all">
-                      <Shield className="w-4 h-4" /> PROFILE
-                   </Link>
-                </div>
-            </div>
-
-            {/* JOOL AI Commute Assistant - Strategic Overview */}
-            <div className="bg-gradient-to-br from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-[2.5rem] p-8 backdrop-blur-xl relative overflow-hidden group">
-               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <Sparkles className="w-24 h-24 text-blue-400" />
-               </div>
-               <div className="relative z-10">
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-widest rounded-md mb-6">
-                    <Sparkles className="w-3 h-3" /> JOOL AI ASSISTANT
-                  </div>
-                  <h3 className="text-2xl font-black text-white mb-4">Route Efficiency Report</h3>
-                  <div className="space-y-4">
-                     <div className="flex items-center justify-between text-xs">
-                        <span className="text-white/40 font-black uppercase tracking-widest">Time Efficiency</span>
-                        <span className="text-green-400 font-bold">94% Efficient</span>
-                     </div>
-                     <div className="flex items-center justify-between text-xs">
-                        <span className="text-white/40 font-black uppercase tracking-widest">Carbon Impact</span>
-                        <span className="text-green-400 font-bold">-4.2kg CO₂</span>
-                     </div>
-                  </div>
-               </div>
-            </div>
-          </div>
-
-          {/* Ride Group Chat - PULLED UP */}
-          <div className="bg-white/5 border border-white/5 rounded-[2.5rem] shadow-2xl flex flex-col h-[500px] relative overflow-hidden">
-            <div className={`absolute top-0 right-0 w-64 h-64 blur-[100px] -z-10 rounded-full transition-colors duration-1000 ${vibe === 'morning' ? 'bg-blue-500/10' : 'bg-purple-500/10'}`} />
-            <div className="px-8 py-6 border-b border-white/5 flex items-center gap-3 bg-white/5 backdrop-blur-md">
-              <MessageSquare className="w-6 h-6 text-blue-400" />
+        <GlassPanel className="flex flex-col md:flex-row items-center justify-between gap-8 border-blue-500/20">
+           <div className="flex items-center gap-6">
+              <div className="w-20 h-20 bg-blue-600 rounded-[2rem] flex items-center justify-center text-3xl shadow-2xl shadow-blue-600/30">
+                 {ride.user_name[0].toUpperCase()}
+              </div>
               <div>
-                <h3 className="font-black text-lg">Group Chatroom</h3>
-                <p className="text-[10px] text-white/20 font-black uppercase tracking-widest">Co-commuter coordination center</p>
+                 <p className="text-[48px] font-black text-white leading-none tracking-tighter">{ride.ride_time.slice(0, 5)}</p>
+                 <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">Confirmed Departure</p>
               </div>
-              <div className="ml-auto flex items-center gap-2">
-                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,1)]" />
-                 <span className="text-[10px] font-black text-green-400 uppercase tracking-widest">LIVE SYNC</span>
+           </div>
+           <div className="text-center md:text-right">
+              <p className="text-sm font-black text-white/40 uppercase tracking-widest mb-1">{new Date(ride.ride_date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</p>
+              <div className="flex items-center gap-2 text-yellow-400 font-black">
+                 <Star className="w-4 h-4 fill-yellow-400" /> 4.9 <span className="text-white/20">|</span> <span className="text-white">₹{ride.price_per_seat}</span>
               </div>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-8 space-y-6 scrollbar-hide">
+           </div>
+        </GlassPanel>
+
+        {/* PANEL 2: THE ACTION (LETS GO / NOT YET) */}
+        {!isOwner && (
+          <GlassPanel className={`transition-all duration-500 ${isAccepted ? 'border-green-500/20' : isPending ? 'border-amber-500/20' : 'border-white/5'}`}>
+             <div className="flex flex-col items-center gap-6">
+                {!isPending && !isAccepted && (
+                   <div className="w-full">
+                      <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] text-center mb-6">Select Capacity</p>
+                      <div className="flex justify-center gap-4 mb-8">
+                         {[1, 2, 3, 4].filter(n => n <= ride.available_seats).map(n => (
+                           <button
+                             key={n}
+                             onClick={() => setSeatsToBook(n)}
+                             className={`w-14 h-14 rounded-3xl border-2 font-black text-lg transition-all ${seatsToBook === n ? 'bg-blue-600 border-blue-500 text-white shadow-xl scale-110' : 'bg-white/5 border-white/5 text-white/20 hover:border-white/15'}`}
+                           >
+                             {n}
+                           </button>
+                         ))}
+                      </div>
+                   </div>
+                )}
+                
+                <button
+                  onClick={isPending ? handleCancelRequest : isAccepted ? undefined : handleRequest}
+                  className={`w-full py-6 rounded-[2.5rem] font-black text-xl uppercase tracking-[0.2em] transition-all active:scale-[0.98] flex items-center justify-center gap-4 ${
+                    isAccepted ? 'bg-green-600/10 border border-green-500/20 text-green-400 cursor-default' :
+                    isPending ? 'bg-amber-500 shadow-[0_20px_40px_rgba(245,158,11,0.2)] text-white hover:bg-red-500 group' :
+                    'bg-blue-600 shadow-[0_20px_40px_rgba(37,99,235,0.3)] text-white hover:bg-blue-500'
+                  }`}
+                >
+                  {isAccepted ? <><CheckCircle2 className="w-6 h-6" /> MISSION ACCEPTED</> :
+                   isPending ? <><Timer className="w-6 h-6 group-hover:hidden" /><span className="group-hover:hidden">PENDING APPROVAL</span><X className="w-6 h-6 hidden group-hover:block" /><span className="hidden group-hover:block uppercase">NOT YET</span></> :
+                   <>LETS GO <ArrowRight className="w-6 h-6" /></>}
+                </button>
+                {isAccepted && (
+                   <p className="text-[10px] font-black text-green-400/50 uppercase tracking-widest animate-pulse">Synchronized with Captain</p>
+                )}
+             </div>
+          </GlassPanel>
+        )}
+
+        {/* PANEL 3: THE INTEL (MAP & ROUTE) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+           <GlassPanel className="flex flex-col justify-center">
+              <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-6">Navigation Hub</p>
+              <div className="space-y-6 relative before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-px before:bg-white/10">
+                 <div className="flex items-center gap-4 relative z-10">
+                    <div className="w-3.5 h-3.5 rounded-full bg-blue-600 border-2 border-black" />
+                    <p className="font-black text-white uppercase text-xs">{ride.pickup_point}</p>
+                 </div>
+                 <div className="flex items-center gap-4 relative z-10">
+                    <div className="w-3.5 h-3.5 rounded-full bg-white/10 border-2 border-black" />
+                    <p className="font-black text-white/30 uppercase text-xs">{ride.drop_point}</p>
+                 </div>
+              </div>
+           </GlassPanel>
+           
+           <div className="h-64 rounded-[2.5rem] overflow-hidden border border-white/5 relative group">
+              <iframe
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(ride.pickup_point)}+to+${encodeURIComponent(ride.drop_point)}&output=embed&z=12`}
+                className="absolute inset-0 w-full h-full grayscale opacity-40 group-hover:opacity-60 transition-opacity"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+              <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between">
+                 <div className="flex items-center gap-2">
+                    <Navigation className="w-4 h-4 text-blue-500" />
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Route Analysis Active</span>
+                 </div>
+              </div>
+           </div>
+        </div>
+
+        {/* PANEL 4: THE SOCIAL (CHAT) */}
+        <GlassPanel className="h-[500px] flex flex-col !p-0">
+           <div className="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-white/5">
+              <div className="flex items-center gap-3">
+                 <MessageSquare className="w-5 h-5 text-blue-400" />
+                 <h3 className="font-black text-sm uppercase tracking-widest">Global Coordination</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,1)]" />
+                 <span className="text-[9px] font-black text-green-400 uppercase">Secure Link</span>
+              </div>
+           </div>
+
+           <div className="flex-1 overflow-y-auto p-8 space-y-6 scrollbar-hide">
               {messages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center opacity-20">
-                   <MessageSquare className="w-12 h-12 mb-4" />
-                   <p className="font-black uppercase text-xs tracking-[0.2em]">Secure Channel Established</p>
-                </div>
+                 <div className="h-full flex flex-col items-center justify-center opacity-10">
+                    <Sparkles className="w-12 h-12 mb-4" />
+                    <p className="text-[10px] font-black uppercase tracking-[0.5em]">Establishing_Communications...</p>
+                 </div>
               ) : (
                 messages.map(msg => {
                   const isMine = msg.user_id === user?.id
                   return (
                     <div key={msg.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                      {!isMine && (
-                         <div className="flex items-center gap-2 mb-2 ml-1">
-                            <div className="w-5 h-5 bg-blue-600/20 rounded-md flex items-center justify-center text-[8px] font-black border border-blue-500/10">{msg.user_name[0]}</div>
-                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">{msg.user_name}</span>
-                         </div>
-                      )}
-                      <div className={`max-w-[85%] px-5 py-3 rounded-2xl text-sm font-medium leading-relaxed ${
-                        isMine 
-                          ? 'bg-blue-600 text-white rounded-br-sm shadow-lg shadow-blue-600/20' 
-                          : 'bg-white/5 text-white border border-white/10 rounded-bl-sm backdrop-blur-sm'
-                      }`}>
-                        {msg.message}
-                      </div>
-                      <div className="flex items-center gap-1.5 mt-2 transition-opacity px-1">
-                        <span className="text-[9px] font-black text-white/20 uppercase tracking-tighter">
-                          {new Date(msg.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                        {isMine && <CheckCheck className="w-3 h-3 text-blue-500" />}
-                      </div>
+                       {!isMine && <span className="text-[9px] font-black text-white/20 uppercase mb-1 ml-1">{msg.user_name}</span>}
+                       <div className={`px-5 py-3 rounded-2xl text-sm font-medium ${isMine ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white/5 text-white/70 border border-white/5 rounded-bl-none'}`}>
+                          {msg.message}
+                       </div>
+                       <span className="text-[9px] text-white/10 mt-1 uppercase font-black">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                   )
                 })
               )}
               <div ref={chatEndRef} />
-            </div>
+           </div>
 
-            <div className="px-8 py-6 border-t border-white/5 bg-white/5 backdrop-blur-md">
-              <div className="flex gap-4 relative">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={e => setNewMessage(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && sendMessage()}
-                  placeholder={requestSent || canSeePassengers ? "Post a message..." : "Join the trip to enable chat"}
-                  disabled={!requestSent && !canSeePassengers}
-                  className="flex-1 bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-sm font-medium text-white placeholder-white/20 focus:outline-none focus:border-blue-600 transition-all shadow-inner"
-                />
-                <button
-                  onClick={sendMessage}
-                  disabled={!newMessage.trim() || sendingMsg || (!requestSent && !canSeePassengers)}
-                  className="bg-white text-black hover:bg-blue-600 hover:text-white px-6 py-4 rounded-2xl disabled:opacity-20 transition-all active:scale-95 shadow-xl group"
-                >
-                  <Send className="w-5 h-5 group-hover:rotate-45 transition-transform" />
-                </button>
+           <div className="p-6 bg-white/5 border-t border-white/5">
+              <div className="flex gap-3">
+                 <input 
+                   value={newMessage} 
+                   onChange={e => setNewMessage(e.target.value)}
+                   onKeyDown={e => e.key === 'Enter' && sendMessage()}
+                   disabled={!isOwner && !isAccepted && !isPending}
+                   placeholder={(isOwner || isAccepted || isPending) ? "Transmitting information..." : "Join mission to enable comms"}
+                   className="flex-1 bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-sm font-medium focus:outline-none focus:border-blue-600 transition-all placeholder:text-white/10" 
+                 />
+                 <button 
+                   onClick={sendMessage}
+                   disabled={!newMessage.trim() || sendingMsg}
+                   className="bg-white text-black hover:bg-blue-600 hover:text-white px-6 py-4 rounded-2xl transition-all shadow-xl active:scale-90"
+                 >
+                    <Send className="w-5 h-5" />
+                 </button>
               </div>
-            </div>
-          </div>
+           </div>
+        </GlassPanel>
 
-          {/* Logistics & Geography */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-             <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8">
-                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-8">Navigation Intel</p>
-                <div className="space-y-6 relative before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-px before:bg-white/10">
-                  <div className="flex items-start gap-4 relative z-10 transition-all group">
-                     <div className="w-3.5 h-3.5 rounded-full bg-blue-500 border-2 border-[#0f172a] mt-1" />
-                     <div>
-                       <p className="text-lg font-black text-white leading-none mb-1">{ride.pickup_point}</p>
-                       <p className="text-xs text-white/40 font-bold">PICKUP</p>
-                     </div>
-                  </div>
-                  <div className="flex items-start gap-4 relative z-10 group">
-                     <div className="w-3.5 h-3.5 rounded-full bg-indigo-500 border-2 border-[#0f172a] mt-1" />
-                     <div>
-                       <p className="text-lg font-black text-white leading-none mb-1">{ride.drop_point}</p>
-                       <p className="text-xs text-white/40 font-bold">DROPOFF</p>
-                     </div>
-                  </div>
-                </div>
-             </div>
-
-             <div className="space-y-6">
-                <MapEmbed from={ride.pickup_point} to={ride.drop_point} />
-             </div>
-          </div>
-
-          {/* JOOL AI Commute Assistant - STAYS LOWER */}
-          <div className="bg-gradient-to-br from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-[2.5rem] p-8 backdrop-blur-xl relative overflow-hidden group">
-        </div>
-
-        {/* Right Column: Fleet & Requests */}
-        <div className="lg:col-span-4 space-y-8">
-          
-          {/* Capacity Meter */}
-          <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8 shadow-2xl">
-             <div className="flex items-center justify-between mb-8">
-                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Capacity Tracker</p>
-                <Users className="w-4 h-4 text-white/20" />
-             </div>
-             <SeatBar available={ride.available_seats} total={ride.total_seats} />
-             <div className="mt-8 flex justify-between items-end">
-                <div>
-                   <p className="text-3xl font-black text-white">{ride.available_seats}</p>
-                   <p className="text-[10px] font-black text-green-400 uppercase tracking-widest">SEATS LEFT</p>
-                </div>
-                <div className="text-right">
-                   <p className="text-3xl font-black text-white/20">{ride.total_seats}</p>
-                   <p className="text-[10px] font-black text-white/10 uppercase tracking-widest">TOTAL CAP</p>
-                </div>
-             </div>
-          </div>
-
-          {/* Vehicle Intel */}
-          {(ride.vehicle_make || ride.vehicle_info) && (
-            <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8">
-               <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-8">Registered Fleet Intel</p>
-               <div className="flex items-center gap-5 mb-8">
-                  {ride.vehicle_info?.image_url ? (
-                    <div className="w-full h-32 rounded-3xl overflow-hidden mb-6 border border-white/10">
-                       <img src={ride.vehicle_info.image_url} alt="Vehicle" className="w-full h-full object-cover" />
-                    </div>
-                  ) : (
-                    <div className="w-16 h-16 bg-[#0f172a] border border-white/5 rounded-3xl flex items-center justify-center text-3xl mb-6">
-                       {ride.vehicle_type === 'Bike' ? '🏍️' : '🚗'}
-                    </div>
-                  )}
-                  <div>
-                    <h4 className="text-xl font-black text-white leading-tight">{ride.vehicle_make || ride.vehicle_info?.make}</h4>
-                    <p className="text-sm font-bold text-white/40 tracking-tight">{ride.vehicle_model || ride.vehicle_info?.model}</p>
-                  </div>
-               </div>
-               
-               <div className="space-y-4">
-                  <div className="flex justify-between items-center pb-4 border-b border-white/5">
-                    <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Official Plate</span>
-                    <span className="text-sm font-mono font-black text-yellow-500 bg-yellow-400/5 px-3 py-1 rounded-xl border border-yellow-400/10 tracking-[0.1em]">
-                      {ride.vehicle_number || ride.vehicle_info?.vehicle_number}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Conditioning</span>
-                    <span className="text-xs font-black text-blue-400 uppercase tracking-widest">PREMIUM AIR</span>
-                  </div>
-               </div>
-            </div>
-          )}
-
-          {/* Confirmation & Payment Hub (Shown for Confirmed Riders or Owner) */}
-          {(isOwner || requests.find(r => (r as any).user_id === user?.id && r.status === 'accepted')) && (
-            <div className="bg-gradient-to-br from-green-500/10 to-emerald-600/10 border border-green-500/20 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
-               <div className="absolute -top-10 -right-10 w-40 h-40 bg-green-500/5 blur-3xl rounded-full" />
-               <div className="flex items-center justify-between mb-8">
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-green-500/20 text-green-400 text-[9px] font-black uppercase tracking-widest rounded-md">
-                    <CheckCircle2 className="w-3 h-3" /> PAYMENT HUB
-                  </div>
-                  <Banknote className="w-5 h-5 text-green-400" />
-               </div>
-
-               <h3 className="text-2xl font-black text-white mb-2">Settle Contribution</h3>
-               <p className="text-sm text-white/40 mb-8 font-medium">Please finalize payment with the captain.</p>
-
-               <div className="bg-[#0f172a]/60 backdrop-blur-md rounded-3xl p-6 border border-white/5 space-y-6">
-                  <div>
-                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">UPI ID / Phone</p>
-                    <div className="flex items-center justify-between font-mono font-black text-white">
-                       <span>{ride.upi_id || ride.phone || (isOwner ? 'YOUR_UPI_ADDRESS' : 'abhi@pay')}</span>
-                       <button 
-                         onClick={() => {
-                            const val = ride.upi_id || ride.phone || 'abhi@pay'
-                            navigator.clipboard.writeText(val)
-                            toast.success('Address copied to clipboard')
-                         }}
-                         className="text-blue-400 text-[10px] hover:underline uppercase tracking-widest"
-                       >
-                         COPY
-                       </button>
-                    </div>
-                  </div>
-                  
-                  <div className="aspect-square bg-white rounded-2xl p-4 flex items-center justify-center relative overflow-hidden group/qr">
-                     <QrCode className="w-full h-full text-slate-100 group-hover/qr:scale-105 transition-transform" />
-                     {isOwner && (
-                       <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 group-hover/qr:opacity-100 transition-opacity">
-                          <button className="px-6 py-3 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl">
-                             UPDATE QR
-                          </button>
-                       </div>
-                     )}
-                     <div className="absolute inset-0 border-4 border-slate-100/50 pointer-events-none rounded-2xl" />
-                     <p className="absolute bottom-4 text-slate-300 text-[8px] font-black uppercase tracking-[0.2em]">Scan to Pay ₹{ride.price_per_seat}</p>
-                   </div>
-                   
-                   {!isOwner ? (
-                    (() => {
-                      const myPay = payments.find(p => p.rider_id === user?.id)
-                      const isDone = myPay?.rider_status === 'done'
-                      return (
-                        <div className="space-y-4">
-                           <button 
-                             onClick={() => handleUpdatePayment(user.id, 'done', 'rider_status')}
-                             disabled={isDone || !isAcceptedRider}
-                             className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg ${
-                               isDone 
-                                 ? 'bg-green-500/20 text-green-400 border border-green-500/20' 
-                                 : !isAcceptedRider
-                                 ? 'bg-white/5 text-white/20 border border-white/5'
-                                 : 'bg-green-600 hover:bg-green-700 text-white shadow-green-600/20 active:scale-95'
-                             }`}
-                           >
-                             {isDone ? 'PAID CONFIRMED' : 'MARK AS PAID'}
-                           </button>
-                           {isDone && myPay?.giver_status !== 'received' && (
-                             <p className="text-[10px] text-center font-bold text-blue-400 uppercase tracking-widest animate-pulse">
-                               Waiting for Captain to confirm receipt...
-                             </p>
-                           )}
-                        </div>
-                      )
-                    })()
-                  ) : (
-                    <div className="space-y-3">
-                       <p className="text-[10px] font-black text-white/40 uppercase tracking-widest text-center mb-2">Confirmed Passenger Settlements</p>
-                       {payments.map(p => (
-                         <div key={p.id} className="flex flex-col gap-2 bg-white/5 p-4 rounded-2xl border border-white/5">
-                            <div className="flex items-center justify-between">
-                               <span className="text-sm font-black text-white">{(p as any).rider_name || 'Accepted Rider'}</span>
-                               <span className="text-[10px] font-black text-white/40">₹{ride.price_per_seat}</span>
-                            </div>
-                            <div className="flex gap-2 mt-2">
-                               <div className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase ${p.rider_status === 'done' ? 'bg-green-500/10 text-green-400' : 'bg-yellow-500/10 text-yellow-500'}`}>
-                                  {p.rider_status === 'done' ? <Check className="w-3 h-3"/> : <Clock className="w-3 h-3"/>}
-                                  {p.rider_status === 'done' ? 'PAID' : 'PENDING'}
-                               </div>
-                               <button 
-                                 onClick={() => handleUpdatePayment(p.rider_id, 'received', 'giver_status')}
-                                 disabled={p.giver_status === 'received' || p.rider_status !== 'done'}
-                                 className={`flex-1 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${
-                                   p.giver_status === 'received' 
-                                     ? 'bg-blue-500/20 text-blue-400' 
-                                     : p.rider_status === 'done'
-                                     ? 'bg-white text-black hover:bg-blue-600 hover:text-white'
-                                     : 'bg-white/5 text-white/20'
-                                 }`}
-                               >
-                                  {p.giver_status === 'received' ? 'RECEIVED' : 'CONFIRM RECEIPT'}
-                                </button>
-                            </div>
-                         </div>
-                       ))}
-                       {payments.length === 0 && <p className="text-[10px] text-center text-white/20 italic">No settlements in progress</p>}
-                    </div>
-                  )}
-               </div>
-            </div>
-          )}
-
-          {/* Passenger List (Privacy Enhanced) */}
-          {requests.some(r => r.status === 'accepted') && (
-            <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8">
-               <div className="flex items-center justify-between mb-8">
-                  <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Co-Commuters</p>
-                  <Users className="w-4 h-4 text-white/20" />
-               </div>
-               <div className="space-y-4">
-                  {requests.filter(r => r.status === 'accepted').map((r, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 bg-[#0f172a] rounded-2xl border border-white/5">
-                       <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-[10px] font-black">
-                            {canSeePassengers ? r.rider_name[0] : '#'}
-                          </div>
-                          <div>
-                             <p className="text-sm font-bold text-white">
-                                {canSeePassengers ? r.rider_name : `Colleague #${i+1}`}
-                             </p>
-                             <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Verified Identity</p>
-                          </div>
-                       </div>
-                       {canSeePassengers && (
-                          <div className="flex items-center gap-2">
-                             <div className="px-2 py-0.5 bg-blue-500/10 text-blue-400 text-[8px] font-black rounded uppercase">Active</div>
-                          </div>
-                       )}
-                    </div>
-                  ))}
-               </div>
-            </div>
-          )}
-
-          {/* Manager Controls / Requests */}
-          {(isOwner || isAdmin) && (
-            <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
-               <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 blur-3xl -z-10 rounded-full" />
-               <h3 className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-8 flex items-center gap-2">
-                  <Shield className="w-3 h-3" /> {isAdmin ? 'ADMIN OVERRIDE' : 'MANAGER CONSOLE'}
-               </h3>
-               
-               {requests.length === 0 ? (
-                 <div className="py-12 text-center opacity-20">
-                    <Users className="w-10 h-10 mx-auto mb-4" />
-                    <p className="font-black text-xs uppercase tracking-widest">Searching for Colleagues...</p>
-                 </div>
-               ) : (
-                 <div className="space-y-4">
-                   {requests.map(req => (
-                     <div key={req.id} className="bg-[#0f172a] border border-white/5 rounded-3xl p-5 group hover:border-white/10 transition-all">
-                       <div className="flex items-center gap-4 mb-5">
-                         <div className="w-10 h-10 bg-white/5 border border-white/5 rounded-xl flex items-center justify-center text-xs font-black group-hover:bg-blue-600 transition-colors">
-                           {req.rider_name[0]}
-                         </div>
-                         <div className="flex-1">
-                           <p className="text-sm font-black text-white">{req.rider_name}</p>
-                           <p className="text-[10px] text-white/40 font-bold uppercase tracking-tight">{req.pickup_point} · {req.seats_requested} seat(s)</p>
-                         </div>
-                       </div>
-                       
-                       {req.status === 'pending' ? (
-                         <div className="flex gap-2">
-                           <button onClick={() => handleAccept(req.id)} className="flex-1 bg-green-600 hover:bg-green-700 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-1.5">
-                             <Check className="w-3.5 h-3.5" /> CONFIRM
-                           </button>
-                           <button onClick={() => handleReject(req.id)} className="flex-1 bg-white/5 hover:bg-red-600 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-1.5">
-                             <X className="w-3.5 h-3.5" /> IGNORE
-                           </button>
-                         </div>
-                       ) : (
-                         <div className={`w-full py-2.5 rounded-xl text-center text-[10px] font-black uppercase tracking-widest ${
-                            req.status === 'accepted' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
-                         }`}>
-                            STATUS: {req.status}
-                         </div>
-                       )}
-                     </div>
-                   ))}
-                 </div>
-               )}
-            </div>
-          )}
-
-        </div>
       </main>
+      
+      <style jsx global>{`
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
     </div>
   )
 }
+
+

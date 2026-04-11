@@ -8,6 +8,7 @@ import {
   Lock, Zap, Star, Users, ShieldCheck, Gem
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { getVibe, VIBE_THEMES, VibeState } from '@/lib/vibe-utils';
 
 export default function HomePage() {
   const [stats, setStats] = useState({
@@ -37,15 +38,16 @@ export default function HomePage() {
   }, []);
 
   const hour = new Date().getHours();
-  const vibe = hour >= 5 && hour < 12 ? 'morning' : hour >= 17 && hour < 21 ? 'evening' : hour >= 21 || hour < 5 ? 'night' : 'afternoon';
+  const vibe = getVibe(hour);
+  const theme = VIBE_THEMES[vibe];
 
   return (
-    <div className={`min-h-screen text-white overflow-x-hidden font-sans selection:bg-blue-600/30 transition-colors duration-1000 ${
-      vibe === 'morning' ? 'bg-[#1e293b]' : vibe === 'evening' ? 'bg-[#0f172a]' : vibe === 'night' ? 'bg-[#020617]' : 'bg-[#060b18]'
-    }`}>
+    <div className={`min-h-screen text-white overflow-x-hidden font-sans selection:bg-blue-600/30 transition-colors duration-1000 ${theme.bg}`}>
+      {/* Dynamic Vibe Background Glow */}
+      <div className={`fixed top-0 left-1/2 -translate-x-1/2 w-full h-[800px] blur-[150px] -z-10 pointer-events-none transition-all duration-1000 ${theme.glow}`} />
       {/* Premium Navbar */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-500 px-6 md:px-12 py-4 flex justify-between items-center ${
-        scrolled ? (vibe === 'morning' ? 'bg-[#1e293b]/80' : 'bg-[#060b18]/80') + ' backdrop-blur-2xl border-b border-white/5 py-3' : 'bg-transparent'
+        scrolled ? 'bg-[#0f172a]/80 backdrop-blur-2xl border-b border-white/5 py-3' : 'bg-transparent'
       }`}>
         <div className="flex items-center gap-3 group cursor-pointer">
           <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:rotate-12 transition-transform">

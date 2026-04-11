@@ -47,10 +47,10 @@ class MockPool {
     if (t.includes('from corridors')) {
       return {
         rows: [
-          { id: 1, city_id: 1, city_name: 'Mumbai', name: 'Casa Rio', location_from: 'Casa Rio', location_to: 'RCP', description: 'Palava City Gate 1 to Reliance Corporate Park', is_active: true, pickup_points: 'Gate 1, Gate 2' },
-          { id: 2, city_id: 1, city_name: 'Mumbai', name: 'Casa Bella', location_from: 'Casa Bella', location_to: 'RCP', description: 'Casa Bella Main Gate to Reliance Corporate Park', is_active: true, pickup_points: 'Main Gate' },
-          { id: 3, city_id: 1, city_name: 'Mumbai', name: 'Lakeshore', location_from: 'Lakeshore', location_to: 'RCP', description: 'Lakeshore Greens Phase 2 to RCP', is_active: true, pickup_points: 'Phase 2' },
-          { id: 4, city_id: 1, city_name: 'Mumbai', name: 'Kharghar', location_from: 'Kharghar', location_to: 'RCP', description: 'Kharghar Sector 20 to RCP via Highway', is_active: true, pickup_points: 'Sector 20' }
+          { id: 1, city_id: 1, city_name: 'Mumbai', name: 'Casa Rio', location_from: 'Casa Rio', location_to: 'RCP', description: 'Palava City Gate 1 to Reliance Corporate Park', is_active: true, pickup_points: 'Gate 1, Gate 2', image_url: 'https://images.unsplash.com/photo-1545127398-14699f92334b?w=400' },
+          { id: 2, city_id: 1, city_name: 'Mumbai', name: 'Casa Bella', location_from: 'Casa Bella', location_to: 'RCP', description: 'Casa Bella Main Gate to Reliance Corporate Park', is_active: true, pickup_points: 'Main Gate', image_url: 'https://images.unsplash.com/photo-1590073242678-70ee3fc28e8e?w=400' },
+          { id: 3, city_id: 1, city_name: 'Mumbai', name: 'Lakeshore', location_from: 'Lakeshore', location_to: 'RCP', description: 'Lakeshore Greens Phase 2 to RCP', is_active: true, pickup_points: 'Phase 2', image_url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400' },
+          { id: 4, city_id: 1, city_name: 'Mumbai', name: 'Kharghar', location_from: 'Kharghar', location_to: 'RCP', description: 'Kharghar Sector 20 to RCP via Highway', is_active: true, pickup_points: 'Sector 20', image_url: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400' }
         ]
       };
     }
