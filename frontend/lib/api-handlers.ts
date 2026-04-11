@@ -182,6 +182,7 @@ export async function handleUpdateCityStatus(pool: Pool, id: number, body: unkno
 export async function handleGetCorridors(pool: Pool, searchParams: URLSearchParams) {
   const cityId = searchParams.get('city_id')
   const activeOnly = searchParams.get('active') === 'true'
+  let query = `
     SELECT c.id, c.city_id, ci.name as city_name, c.name, c.location_from, c.location_to, c.is_active, c.image_url
     FROM corridors c LEFT JOIN cities ci ON c.city_id = ci.id WHERE 1=1
   `
