@@ -143,8 +143,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return h.handleGetCities(pool as any)
   }
   if (pathStr === 'corridors') {
-    const r = await requireAuth(request)
-    if ('error' in r) return r.error
     return h.handleGetCorridors(pool as any, searchParams)
   }
   if (pathStr === 'user/corridors') {
