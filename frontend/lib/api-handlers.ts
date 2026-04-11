@@ -206,7 +206,22 @@ export async function handleGetCorridors(pool: Pool, searchParams: URLSearchPara
   try {
     const r = await pool.query(query, args)
     if (r.rows.length === 0) {
-      console.warn('DATABASE_EMPTY [handleGetCorridors]: Returning emergency fallback')
+      console.warn('DATABASE_EMPTY [handleGetCorridors]: Auto-seeding live DB with emergency corridors')
+      
+      // Auto-Seed Live Database natively
+      try {
+        await pool.query(`INSERT INTO cities (id, name, status) VALUES (1, 'Mumbai', 'active') ON CONFLICT DO NOTHING`)
+        for (const c of EMERGENCY_CORRIDORS) {
+          await pool.query(
+            `INSERT INTO corridors (id, city_id, name, location_from, location_to, is_active) 
+             VALUES ($1, 1, $2, $3, $4, true) ON CONFLICT DO NOTHING`,
+            [c.id, c.name, c.location_from, c.location_to]
+          ).catch(() => {})
+        }
+      } catch (seedErr) {
+        console.error('Seed error:', seedErr)
+      }
+
       return jsonResponse({
         data: EMERGENCY_CORRIDORS,
         source: 'database_empty'
@@ -439,8 +454,8 @@ export async function handleCreateRide(pool: Pool, body: unknown, auth: Auth) {
   if (v?.rows?.length === 0) {
     const autoVeh = await pool.query(
       `INSERT INTO vehicles (user_id, vehicle_type, make, model, vehicle_number, total_seats, default_available_seats) 
-       VALUES ($1, 'car', 'Ainori', 'Demo Vehicle', 'MH-AUTO', 4, 3) RETURNING id`, 
-      [auth.userId]
+       VALUES ($1, 'car', 'Ainori', 'Demo Vehicle', $2, 4, 3) RETURNING id`, 
+      [auth.userId, `MH-AUTO-${auth.userId}-${Date.now()}`]
     ).catch(() => ({ rows: [] }))
     if (autoVeh?.rows?.length > 0) actualVehicleId = autoVeh.rows[0].id
   }

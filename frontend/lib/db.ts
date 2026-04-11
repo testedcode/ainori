@@ -23,6 +23,9 @@ class MockPool {
     const t = text.toLowerCase();
     console.warn('[Mock DB] Query executed without DATABASE_URL:', text.slice(0, 100));
     
+    if (t.includes('count(*) from users')) return { rows: [{ count: 142 }] };
+    if (t.includes('count(*) from rides')) return { rows: [{ count: 85 }] };
+    
     // Handle INSERTs (return a dummy ID)
     if (t.includes('insert into')) {
       return { rows: [{ id: Math.floor(Math.random() * 1000) + 100 }], rowCount: 1 };
