@@ -179,9 +179,17 @@ export async function handleUpdateCityStatus(pool: Pool, id: number, body: unkno
   return jsonResponse({ message: 'City status updated' })
 }
 
+const EMERGENCY_CORRIDORS = [
+  { id: 1, name: 'Casa Rio', location_from: 'Casa Rio', location_to: 'RCP', is_active: true, city_name: 'Mumbai' },
+  { id: 2, name: 'Casa Bella', location_from: 'Casa Bella', location_to: 'RCP', is_active: true, city_name: 'Mumbai' },
+  { id: 3, name: 'Lakeshore', location_from: 'Lakeshore', location_to: 'RCP', is_active: true, city_name: 'Mumbai' },
+  { id: 4, name: 'Kharghar', location_from: 'Kharghar', location_to: 'RCP', is_active: true, city_name: 'Mumbai' },
+]
+
 export async function handleGetCorridors(pool: Pool, searchParams: URLSearchParams) {
   const cityId = searchParams.get('city_id')
   const activeOnly = searchParams.get('active') === 'true'
+  
   let query = `
     SELECT c.id, c.city_id, ci.name as city_name, c.name, c.location_from, c.location_to, c.is_active, c.image_url
     FROM corridors c LEFT JOIN cities ci ON c.city_id = ci.id WHERE 1=1
@@ -194,14 +202,26 @@ export async function handleGetCorridors(pool: Pool, searchParams: URLSearchPara
   }
   if (activeOnly) query += ` AND c.is_active = true`
   query += ` ORDER BY c.name`
+  
   try {
     const r = await pool.query(query, args)
     return jsonResponse(r.rows)
   } catch (e: any) {
-    console.error('DATABASE_ERROR [handleGetCorridors]:', e.message)
-    // Fallback search without image_url/city_id if still failing
-    const fallback = await pool.query('SELECT id, name, location_from, location_to FROM corridors WHERE is_active = true')
-    return jsonResponse(fallback.rows)
+    console.error('DATABASE_ERROR [handleGetCorridors - Primary]:', e.message)
+    try {
+      // Fallback 1: Simple DB list
+      const fallback = await pool.query('SELECT id, name, location_from, location_to FROM corridors WHERE is_active = true')
+      return jsonResponse(fallback.rows)
+    } catch (e2: any) {
+       console.error('DATABASE_ERROR [handleGetCorridors - Secondary]:', e2.message)
+       // Fallback 2: Hardcoded Emergency List + Error Report
+       return jsonResponse({ 
+         data: EMERGENCY_CORRIDORS, 
+         debug_error: e.message, 
+         debug_fallback_error: e2.message,
+         source: 'emergency_fallback'
+       })
+    }
   }
 }
 

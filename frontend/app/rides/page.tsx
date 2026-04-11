@@ -205,8 +205,14 @@ function RidesContent() {
 
   const fetchCorridors = async () => {
      try {
-       const res = await api.get('/corridors?active=true') as unknown as Corridor[]
-       if (Array.isArray(res)) setCorridors(res)
+       const res = await api.get('/corridors?active=true')
+       if (Array.isArray(res)) {
+         setCorridors(res)
+       } else if (res && typeof res === 'object' && (res as any).data) {
+         // Emergency fallback handle
+         setCorridors((res as any).data)
+         console.warn('API running in emergency mode:', (res as any).debug_error)
+       }
      } catch {}
   }
 
