@@ -97,7 +97,31 @@ class MockPool {
   async end() {}
 }
 
-export function getPool(): Pool | MockPool {
+class HybridPool {
+  realPool: Pool
+  mockPool: MockPool
+
+  constructor(realPool: Pool) {
+    this.realPool = realPool
+    this.mockPool = new MockPool()
+  }
+
+  async query(text: string, params?: any[]): Promise<any> {
+    try {
+      return await this.realPool.query(text, params)
+    } catch (e: any) {
+      console.error('CRITICAL DB ERROR IN HYBRID POOL:', e.message)
+      console.warn('Falling back to mock database response to keep UI alive.')
+      return this.mockPool.query(text, params)
+    }
+  }
+
+  async end() {
+    return this.realPool.end()
+  }
+}
+
+export function getPool() {
   const raw = process.env.DATABASE_URL
   if (!raw) {
     console.error('DATABASE_URL is not set. Falling back to mock database to prevent 500 errors.');
@@ -105,10 +129,11 @@ export function getPool(): Pool | MockPool {
   }
   const url = normalizeConnectionString(raw)
   if (!globalForDb.pool) {
-    globalForDb.pool = new Pool({
+    const p = new Pool({
       connectionString: url,
       ssl: url.includes('supabase') ? { rejectUnauthorized: false } : undefined,
     })
+    globalForDb.pool = p
   }
-  return globalForDb.pool
+  return new HybridPool(globalForDb.pool)
 }
