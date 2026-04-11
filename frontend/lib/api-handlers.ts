@@ -430,15 +430,15 @@ export async function handleCreateRide(pool: Pool, body: unknown, auth: Auth) {
   const rideDate = new Date(b.ride_date)
   const now = new Date()
   const daysDiff = Math.floor((rideDate.getTime() - now.getTime()) / 86400000)
-  if (daysDiff < 0 || daysDiff > 2) return errResponse('Ride date must be today or within next 2 days', 400)
+  if (daysDiff < -1 || daysDiff > 5) return errResponse('Ride date must be today or within next 5 days', 400)
 
   const v = await pool.query(`SELECT total_seats FROM vehicles WHERE id = $1 AND user_id = $2`, [b.vehicle_id, auth.userId])
-  if (v.rows.length === 0) return errResponse('Vehicle not found', 404)
+  if (v.rows.length === 0) return errResponse('You must register this vehicle in "My Garage" first before posting a ride.', 400)
   const totalSeats = v.rows[0].total_seats
   if (b.available_seats > totalSeats) return errResponse('Available seats cannot exceed vehicle capacity', 400)
 
   const access = await pool.query(`SELECT 1 FROM corridors WHERE id = $1 AND is_active = true`, [b.corridor_id])
-  if (access.rows.length === 0) return errResponse("Corridor not found or inactive", 404)
+  if (access.rows.length === 0) return errResponse("This corridor is not active or missing in the live database.", 400)
 
   const r = await pool.query(
     `INSERT INTO rides (user_id, corridor_id, vehicle_id, ride_date, ride_time, pickup_point, drop_point, route_description, price_per_seat, available_seats, total_seats, status)
