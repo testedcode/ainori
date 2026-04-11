@@ -39,7 +39,8 @@ function CardView({
   onRetract, 
   isRequested, 
   isSelected, 
-  onSelect 
+  onSelect,
+  isOwnRide
 }: { 
   ride: Ride; 
   onBook: (id: number, seats: number) => void;
@@ -47,6 +48,7 @@ function CardView({
   isRequested: boolean;
   isSelected: number | null;
   onSelect: (seats: number | null) => void;
+  isOwnRide?: boolean;
 }) {
   const initials = ride.user_name?.split(' ').map(n => n[0]).join('').toUpperCase()
   const isMorning = parseInt(ride.ride_time.split(':')[0]) < 12

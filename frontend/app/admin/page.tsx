@@ -130,7 +130,7 @@ export default function AdminPage() {
       if (error) throw error
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(data.path)
       
-      await api.patch('/user/profile', { avatar_url: publicUrl })
+      await api.put('/auth/profile', { avatar_url: publicUrl })
       setUser((prev: any) => ({ ...prev, avatar_url: publicUrl }))
       const stored = localStorage.getItem('user')
       if (stored) {
