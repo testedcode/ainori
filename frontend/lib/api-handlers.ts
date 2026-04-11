@@ -205,6 +205,13 @@ export async function handleGetCorridors(pool: Pool, searchParams: URLSearchPara
   
   try {
     const r = await pool.query(query, args)
+    if (r.rows.length === 0) {
+      console.warn('DATABASE_EMPTY [handleGetCorridors]: Returning emergency fallback')
+      return jsonResponse({
+        data: EMERGENCY_CORRIDORS,
+        source: 'database_empty'
+      })
+    }
     return jsonResponse(r.rows)
   } catch (e: any) {
     console.error('DATABASE_ERROR [handleGetCorridors - Primary]:', e.message)
