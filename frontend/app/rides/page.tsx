@@ -58,6 +58,12 @@ function CardView({
       {/* Dynamic Header Glow */}
       <div className={`h-1.5 w-full transition-colors duration-1000 ${isSelected ? 'bg-green-500' : isMorning ? 'bg-amber-400' : 'bg-blue-600'}`} />
       
+      {isOwnRide && (
+        <div className="absolute top-4 right-4 px-3 py-1 bg-amber-400 text-black text-[9px] font-black uppercase tracking-widest rounded-full shadow-lg z-10 animate-pulse">
+           Your Ride
+        </div>
+      )}
+      
       <div className="p-6 flex flex-col flex-1">
         <div className="flex items-center justify-between mb-6">
           <div className="flex flex-col">
@@ -169,8 +175,14 @@ function RidesContent() {
   const [selectedRideSeats, setSelectedRideSeats] = useState<Record<number, number | null>>({})
   
   const hour = new Date().getHours()
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const vibe = getVibe(hour)
   const theme = VIBE_THEMES[vibe]
+
+  useEffect(() => {
+    const usr = localStorage.getItem('user')
+    if (usr) setCurrentUser(JSON.parse(usr))
+  }, [])
 
   const [showFilled, setShowFilled] = useState(false)
   const [filter, setFilter] = useState({
@@ -258,9 +270,9 @@ function RidesContent() {
 
       {/* ROUTE HUB - CIRCULAR ORBS */}
       <div className="w-full py-8 overflow-x-auto scrollbar-hide">
-         <div className="flex items-center justify-center gap-10 px-12 min-w-max">
+         <div className="flex items-center justify-start gap-10 px-12 min-w-max">
             <button 
-              onClick={() => setFilter({ ...filter, corridor: 'all' })}
+              onClick={() => setFilter({ ...filter, corridor: 'all', direction: 'all' })}
               className="group flex flex-col items-center gap-4 transition-all"
             >
                <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${filter.corridor === 'all' ? `bg-white ${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'bg-white/5 border-white/10 hover:border-white/30'}`}>
@@ -270,28 +282,28 @@ function RidesContent() {
             </button>
 
             <button 
-              onClick={() => setFilter({ ...filter, direction: 'to_office', corridor: 'all' })}
+              onClick={() => setFilter({ ...filter, direction: filter.direction === 'to_office' ? 'all' : 'to_office' })}
               className="group flex flex-col items-center gap-4 transition-all"
             >
-               <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${filter.direction === 'to_office' && filter.corridor === 'all' ? `bg-white ${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'bg-white/5 border-white/10 hover:border-white/30'}`}>
-                  <Building2 className={`w-8 h-8 ${filter.direction === 'to_office' && filter.corridor === 'all' ? 'text-black' : 'text-white/40 group-hover:text-white'}`} />
+               <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${filter.direction === 'to_office' ? `bg-white ${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'bg-white/5 border-white/10 hover:border-white/30'}`}>
+                  <Building2 className={`w-8 h-8 ${filter.direction === 'to_office' ? 'text-black' : 'text-white/40 group-hover:text-white'}`} />
                </div>
-               <span className={`text-[10px] font-black uppercase tracking-widest ${filter.direction === 'to_office' && filter.corridor === 'all' ? 'text-white' : 'text-white/20 group-hover:text-white/40'}`}>To Office</span>
+               <span className={`text-[10px] font-black uppercase tracking-widest ${filter.direction === 'to_office' ? 'text-white' : 'text-white/20 group-hover:text-white/40'}`}>To Office</span>
             </button>
 
             <button 
-              onClick={() => setFilter({ ...filter, direction: 'to_home', corridor: 'all' })}
+              onClick={() => setFilter({ ...filter, direction: filter.direction === 'to_home' ? 'all' : 'to_home' })}
               className="group flex flex-col items-center gap-4 transition-all"
             >
-               <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${filter.direction === 'to_home' && filter.corridor === 'all' ? `bg-white ${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'bg-white/5 border-white/10 hover:border-white/30'}`}>
-                  <Home className={`w-8 h-8 ${filter.direction === 'to_home' && filter.corridor === 'all' ? 'text-black' : 'text-white/40 group-hover:text-white'}`} />
+               <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${filter.direction === 'to_home' ? `bg-white ${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'bg-white/5 border-white/10 hover:border-white/30'}`}>
+                  <Home className={`w-8 h-8 ${filter.direction === 'to_home' ? 'text-black' : 'text-white/40 group-hover:text-white'}`} />
                </div>
-               <span className={`text-[10px] font-black uppercase tracking-widest ${filter.direction === 'to_home' && filter.corridor === 'all' ? 'text-white' : 'text-white/20 group-hover:text-white/40'}`}>To Home</span>
+               <span className={`text-[10px] font-black uppercase tracking-widest ${filter.direction === 'to_home' ? 'text-white' : 'text-white/20 group-hover:text-white/40'}`}>To Home</span>
             </button>
 
-            {corridors.map(c => {
+            {Array.isArray(corridors) && corridors.map(c => {
                const active = filter.corridor === String(c.id)
-               const initials = c.name.split(' ').map(n => n[0]).join('').toUpperCase()
+               const initials = c.name?.split(' ').map(n => n[0]).join('').toUpperCase() || '??'
                return (
                  <button 
                    key={c.id}
@@ -348,7 +360,7 @@ function RidesContent() {
              </div>
 
              {/* Temporal Node (Date) */}
-             <div className="bg-white/5 border border-white/10 p-1.5 rounded-2xl flex gap-1">
+             <div className="bg-white/5 border border-white/10 p-1.5 rounded-2xl flex items-center gap-1">
                 {[
                   { label: 'Today', date: new Date().toISOString().split('T')[0] },
                   { label: 'Tomorrow', date: new Date(Date.now() + 86400000).toISOString().split('T')[0] }
@@ -361,6 +373,18 @@ function RidesContent() {
                     {dt.label}
                   </button>
                 ))}
+                <div className="w-[1px] h-4 bg-white/10 mx-1" />
+                <div className="relative group">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
+                  <input 
+                    type="date" 
+                    value={filter.date}
+                    min={new Date().toISOString().split('T')[0]}
+                    max={new Date(Date.now() + 5 * 86400000).toISOString().split('T')[0]}
+                    onChange={(e) => setFilter({ ...filter, date: e.target.value })}
+                    className="bg-transparent border-none text-[10px] font-black text-white px-8 py-2 rounded-xl focus:outline-none focus:bg-white/5 transition-all w-32 cursor-pointer [color-scheme:dark]"
+                  />
+                </div>
              </div>
 
              <div className="bg-white/5 border border-white/10 p-1.5 rounded-2xl flex gap-1 ml-auto md:ml-0">
@@ -374,10 +398,10 @@ function RidesContent() {
 
              <button 
                 onClick={() => setShowFilled(!showFilled)} 
-                className={`p-3 border rounded-2xl transition-all ${showFilled ? 'bg-white text-black border-white' : 'bg-white/5 text-white/30 border-white/10 hover:border-white/30'}`}
-                title={showFilled ? "Hide Full Rides" : "Show Full Rides"}
+                className={`px-6 py-2 border rounded-2xl transition-all flex items-center gap-3 ${showFilled ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.2)]' : 'bg-white/5 text-white/30 border-white/10 hover:border-white/30'}`}
               >
                  {showFilled ? <EyeOff className="w-4 h-4" /> : <AlignJustify className="w-4 h-4" />}
+                 <span className="text-[10px] font-black uppercase tracking-widest">{showFilled ? 'HIDE FULL' : 'SHOW FULL'}</span>
              </button>
 
              <button onClick={fetchRides} className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors">
@@ -404,6 +428,7 @@ function RidesContent() {
                 ride={ride} 
                 onBook={handleBook}
                 onRetract={handleRetract}
+                isOwnRide={currentUser?.id === ride.user_id}
                 isRequested={requests.some(r => r.ride_id === ride.id && r.status === 'pending')}
                 isSelected={selectedRideSeats[ride.id] || null}
                 onSelect={(seats) => setSelectedRideSeats(prev => ({ ...prev, [ride.id]: seats }))}
@@ -415,8 +440,9 @@ function RidesContent() {
             {filtered.map(ride => (
               <div key={ride.id} className="bg-white/5 border border-white/5 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 hover:bg-white/10 transition-all">
                 <div className="flex items-center gap-6 flex-1">
-                   <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+                   <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 relative">
                       <Car className="w-8 h-8 text-white/20" />
+                      {currentUser?.id === ride.user_id && <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full border-2 border-[#0f172a]" title="Your Ride" />}
                    </div>
                    <div>
                       <h4 className="text-xl font-black tracking-tight">{ride.corridor_name}</h4>

@@ -1,4 +1,5 @@
 'use client'
+// ADMIN MODULE V1.2 - REGRESSION FIX REBUILD
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -116,6 +117,29 @@ export default function AdminPage() {
     } finally {
       setUploadingImage(false)
     }
+  }
+
+  const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return
+    setUploadingImage(true)
+    try {
+      const file = e.target.files[0]
+      const fileExt = file.name.split('.').pop()
+      const fileName = `admin_${Date.now()}.${fileExt}`
+      const { data, error } = await supabase.storage.from('avatars').upload(fileName, file)
+      if (error) throw error
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(data.path)
+      
+      await api.patch('/user/profile', { avatar_url: publicUrl })
+      setUser((prev: any) => ({ ...prev, avatar_url: publicUrl }))
+      const stored = localStorage.getItem('user')
+      if (stored) {
+        const u = JSON.parse(stored)
+        localStorage.setItem('user', JSON.stringify({ ...u, avatar_url: publicUrl }))
+      }
+      toast.success('Admin profile updated')
+    } catch { toast.error('Upload failed') }
+    finally { setUploadingImage(false) }
   }
 
   const fetchAll = async () => {
@@ -270,6 +294,27 @@ export default function AdminPage() {
               <StatCard label="Active Corridors" value={analytics.active_corridors} icon={Database} color="bg-purple-600" />
               <StatCard label="Platform Revenue" value={`₹${(analytics.total_revenue / 100000).toFixed(1)}L`} sub="annual projected" icon={Activity} color="bg-orange-600" />
               <StatCard label="CO2 Mitigation" value={`${analytics.total_credits}kg`} icon={Leaf} color="bg-emerald-600" />
+            </div>
+
+            <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-10 mb-12 flex flex-col md:flex-row items-center gap-10">
+               <div className="relative group flex-shrink-0">
+                  <div className="w-32 h-32 rounded-[2.5rem] overflow-hidden border-4 border-white/10 group-hover:border-blue-500 transition-all shadow-2xl bg-slate-800 flex items-center justify-center">
+                     {user?.avatar_url ? (
+                       <img src={user.avatar_url} alt="Admin" className="w-full h-full object-cover" />
+                     ) : (
+                       <Shield className="w-12 h-12 text-white/20" />
+                     )}
+                  </div>
+                  <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center cursor-pointer hover:scale-110 transition-all shadow-xl">
+                     {uploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
+                     <input type="file" accept="image/*" onChange={handleProfileImageUpload} disabled={uploadingImage} className="hidden" />
+                  </label>
+               </div>
+               <div>
+                  <h3 className="text-3xl font-black mb-2">Admin Profile</h3>
+                  <p className="text-white/40 font-bold mb-4 italic uppercase tracking-widest text-xs">Clearance Level: SYSTEM OVERRIDE</p>
+                  <p className="text-white/60 font-medium">Configure your ecosystem presence and security credentials.</p>
+               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

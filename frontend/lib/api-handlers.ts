@@ -182,10 +182,8 @@ export async function handleUpdateCityStatus(pool: Pool, id: number, body: unkno
 export async function handleGetCorridors(pool: Pool, searchParams: URLSearchParams) {
   const cityId = searchParams.get('city_id')
   const activeOnly = searchParams.get('active') === 'true'
-  let query = `
-    SELECT c.id, c.city_id, ci.name as city_name, c.name, c.location_from, c.location_to,
-           c.pickup_points, c.terms_conditions, c.description, c.is_active, c.map_enabled, c.image_url, c.created_at, c.updated_at
-    FROM corridors c JOIN cities ci ON c.city_id = ci.id WHERE 1=1
+    SELECT c.id, c.city_id, ci.name as city_name, c.name, c.location_from, c.location_to, c.is_active, c.image_url
+    FROM corridors c LEFT JOIN cities ci ON c.city_id = ci.id WHERE 1=1
   `
   const args: unknown[] = []
   let i = 1
@@ -195,19 +193,31 @@ export async function handleGetCorridors(pool: Pool, searchParams: URLSearchPara
   }
   if (activeOnly) query += ` AND c.is_active = true`
   query += ` ORDER BY c.name`
-  const r = await pool.query(query, args)
-  return jsonResponse(r.rows)
+  try {
+    const r = await pool.query(query, args)
+    return jsonResponse(r.rows)
+  } catch (e: any) {
+    console.error('DATABASE_ERROR [handleGetCorridors]:', e.message)
+    // Fallback search without image_url/city_id if still failing
+    const fallback = await pool.query('SELECT id, name, location_from, location_to FROM corridors WHERE is_active = true')
+    return jsonResponse(fallback.rows)
+  }
 }
 
 export async function handleGetCorridor(pool: Pool, id: number) {
-  const r = await pool.query(
-    `SELECT c.id, c.city_id, ci.name as city_name, c.name, c.location_from, c.location_to,
-            c.pickup_points, c.terms_conditions, c.description, c.is_active, c.map_enabled, c.image_url, c.created_at, c.updated_at
-     FROM corridors c JOIN cities ci ON c.city_id = ci.id WHERE c.id = $1`,
-    [id]
-  )
-  if (r.rows.length === 0) return errResponse('Corridor not found', 404)
-  return jsonResponse(r.rows[0])
+  try {
+    const r = await pool.query(
+      `SELECT c.id, c.city_id, ci.name as city_name, c.name, c.location_from, c.location_to, c.is_active, c.image_url
+       FROM corridors c LEFT JOIN cities ci ON c.city_id = ci.id WHERE c.id = $1`,
+      [id]
+    )
+    if (r.rows.length === 0) return errResponse('Corridor not found', 404)
+    return jsonResponse(r.rows[0])
+  } catch (e: any) {
+    console.error('DATABASE_ERROR [handleGetCorridor]:', e.message)
+    const fallback = await pool.query('SELECT id, name, location_from, location_to FROM corridors WHERE id = $1', [id])
+    return jsonResponse(fallback.rows[0])
+  }
 }
 
 export async function handleGetUserCorridors(pool: Pool, auth: Auth) {
