@@ -8,7 +8,8 @@ import {
   LayoutGrid, List, AlignJustify, Star, 
   ChevronRight, MapPin, Clock, RefreshCw,
   EyeOff, ChevronLeft, Info, Calendar,
-  ArrowRight, Check, X, ShieldCheck
+  ArrowRight, Check, X, ShieldCheck,
+  Building2, Home
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import { getVibe, VIBE_THEMES, VibeState } from '@/lib/vibe-utils'
@@ -262,10 +263,30 @@ function RidesContent() {
               onClick={() => setFilter({ ...filter, corridor: 'all' })}
               className="group flex flex-col items-center gap-4 transition-all"
             >
-               <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${filter.corridor === 'all' ? 'bg-white border-white scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]' : 'bg-white/5 border-white/10 hover:border-white/30'}`}>
+               <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${filter.corridor === 'all' ? `bg-white ${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'bg-white/5 border-white/10 hover:border-white/30'}`}>
                   <Zap className={`w-8 h-8 ${filter.corridor === 'all' ? 'text-black' : 'text-white/40 group-hover:text-white'}`} />
                </div>
                <span className={`text-[10px] font-black uppercase tracking-widest ${filter.corridor === 'all' ? 'text-white' : 'text-white/20 group-hover:text-white/40'}`}>All Routes</span>
+            </button>
+
+            <button 
+              onClick={() => setFilter({ ...filter, direction: 'to_office', corridor: 'all' })}
+              className="group flex flex-col items-center gap-4 transition-all"
+            >
+               <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${filter.direction === 'to_office' && filter.corridor === 'all' ? `bg-white ${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'bg-white/5 border-white/10 hover:border-white/30'}`}>
+                  <Building2 className={`w-8 h-8 ${filter.direction === 'to_office' && filter.corridor === 'all' ? 'text-black' : 'text-white/40 group-hover:text-white'}`} />
+               </div>
+               <span className={`text-[10px] font-black uppercase tracking-widest ${filter.direction === 'to_office' && filter.corridor === 'all' ? 'text-white' : 'text-white/20 group-hover:text-white/40'}`}>To Office</span>
+            </button>
+
+            <button 
+              onClick={() => setFilter({ ...filter, direction: 'to_home', corridor: 'all' })}
+              className="group flex flex-col items-center gap-4 transition-all"
+            >
+               <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${filter.direction === 'to_home' && filter.corridor === 'all' ? `bg-white ${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'bg-white/5 border-white/10 hover:border-white/30'}`}>
+                  <Home className={`w-8 h-8 ${filter.direction === 'to_home' && filter.corridor === 'all' ? 'text-black' : 'text-white/40 group-hover:text-white'}`} />
+               </div>
+               <span className={`text-[10px] font-black uppercase tracking-widest ${filter.direction === 'to_home' && filter.corridor === 'all' ? 'text-white' : 'text-white/20 group-hover:text-white/40'}`}>To Home</span>
             </button>
 
             {corridors.map(c => {
@@ -277,7 +298,7 @@ function RidesContent() {
                    onClick={() => setFilter({ ...filter, corridor: String(c.id) })}
                    className="group flex flex-col items-center gap-4 transition-all"
                  >
-                    <div className={`w-20 h-20 rounded-full overflow-hidden transition-all duration-500 border-2 relative ${active ? 'border-white scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]' : 'border-white/10 hover:border-white/30'}`}>
+                    <div className={`w-20 h-20 rounded-full overflow-hidden transition-all duration-500 border-2 relative ${active ? `${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'border-white/10 hover:border-white/30'}`}>
                        {c.image_url ? (
                          <img src={c.image_url} alt={c.name} className={`w-full h-full object-cover transition-transform duration-700 ${active ? 'scale-110' : 'group-hover:scale-110 opacity-60 group-hover:opacity-100'}`} />
                        ) : (
@@ -399,7 +420,7 @@ function RidesContent() {
                    </div>
                    <div>
                       <h4 className="text-xl font-black tracking-tight">{ride.corridor_name}</h4>
-                      <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Driver: {ride.driver_name}</p>
+                      <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Driver: {ride.user_name}</p>
                    </div>
                    <div className="hidden md:block h-8 w-px bg-white/10 mx-4" />
                    <div className="flex flex-col">

@@ -108,6 +108,19 @@ export default function VibeCanvas({ vibe }: { vibe: VibeState }) {
           100% { transform: translate(120vw, -10px) scaleY(1); opacity: 0; }
         }
       `}</style>
+      
+      {/* City Silhouette */}
+      <div className="absolute bottom-0 left-0 w-full h-48 opacity-[0.03] pointer-events-none z-0">
+        <svg className="w-full h-full text-white" preserveAspectRatio="none" viewBox="0 0 1000 100">
+          <path d="M0,100 L0,80 L20,80 L20,60 L40,60 L40,85 L60,85 L60,50 L80,50 L80,90 L100,90 L100,70 L120,70 L120,40 L140,40 L140,80 L160,80 L160,95 L180,95 L180,65 L200,65 L200,100 Z" fill="currentColor" />
+          <path d="M200,100 L200,75 L220,75 L220,45 L240,45 L240,80 L260,80 L260,60 L280,60 L280,90 L300,90 L300,70 L320,70 L320,55 L340,55 L340,100 Z" fill="currentColor" />
+          <path d="M340,100 L340,85 L360,85 L360,65 L380,65 L380,40 L400,40 L400,75 L420,75 L420,55 L440,55 L440,90 L460,90 L460,70 L480,70 L480,100 Z" fill="currentColor" />
+          <path d="M480,100 L480,75 L500,75 L500,50 L520,50 L520,40 L540,40 L540,80 L560,80 L560,60 L580,60 L580,90 L600,90 L600,75 L620,75 L620,100 Z" fill="currentColor" />
+          <path d="M620,100 L620,85 L640,85 L640,60 L660,60 L660,40 L680,40 L680,70 L700,70 L700,50 L720,50 L720,90 L740,90 L740,65 L760,65 L760,100 Z" fill="currentColor" />
+          <path d="M760,100 L760,80 L780,80 L780,55 L800,55 L800,40 L820,40 L820,85 L840,85 L840,60 L860,60 L860,90 L880,90 L880,70 L900,70 L900,100 Z" fill="currentColor" />
+          <path d="M900,100 L900,85 L920,85 L920,65 L940,65 L940,45 L960,45 L960,80 L980,80 L980,60 L1000,60 L1000,100 Z" fill="currentColor" />
+        </svg>
+      </div>
     </div>
   )
 }

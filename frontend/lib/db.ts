@@ -74,13 +74,13 @@ class MockPool {
             id: 1, user_id: 2, user_name: 'Aayushi Singh', corridor_id: 1, corridor_name: 'Casa Rio', 
             vehicle_id: 101, ride_date: new Date().toISOString().split('T')[0], ride_time: '08:30:00', 
             pickup_point: 'Casa Rio Gate 1', drop_point: 'RCP', price_per_seat: 120, 
-            available_seats: 3, total_seats: 4, status: 'open' 
+            available_seats: 3, total_seats: 4, status: 'open', direction: 'to_office'
           },
           { 
             id: 2, user_id: 3, user_name: 'Rajiv Mehta', corridor_id: 2, corridor_name: 'Casa Bella', 
             vehicle_id: 102, ride_date: new Date().toISOString().split('T')[0], ride_time: '18:30:00', 
             pickup_point: 'RCP', drop_point: 'Casa Bella Main Gate', price_per_seat: 100, 
-            available_seats: 2, total_seats: 4, status: 'open' 
+            available_seats: 2, total_seats: 4, status: 'open', direction: 'to_home'
           }
         ],
         rowCount: 2
