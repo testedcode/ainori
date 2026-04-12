@@ -190,8 +190,8 @@ function RidesContent() {
   const [filter, setFilter] = useState({
     corridor: corridorParam || 'all',
     date: new Date().toISOString().split('T')[0],
-    timeRange: vibe as string, 
-    direction: theme.defaultDirection as string
+    timeRange: 'all',  // Default to 'all' so newly posted rides are always visible
+    direction: 'all'   // Default to 'all' so both directions are shown
   })
 
   useEffect(() => {
@@ -203,7 +203,7 @@ function RidesContent() {
     const token = localStorage.getItem('token')
     if (!token) { router.push('/login'); return }
     fetchRides()
-  }, [filter.date])
+  }, [filter.date, filter.corridor])
 
   const fetchCorridors = async () => {
      try {
@@ -228,11 +228,13 @@ function RidesContent() {
   const fetchRides = useCallback(async () => {
     setLoading(true)
     try {
-      const data = await api.get(`/rides?date=${filter.date}`)
+      const params = new URLSearchParams({ date: filter.date, _t: Date.now().toString() })
+      if (filter.corridor && filter.corridor !== 'all') params.set('corridor_id', filter.corridor)
+      const data = await api.get(`/rides?${params.toString()}`)
       if (Array.isArray(data)) setRides(data as Ride[])
     } catch { toast.error('Check network status') }
     finally { setLoading(false) }
-  }, [filter.date])
+  }, [filter.date, filter.corridor])
 
   const handleBook = async (rideId: number, seats: number) => {
     try {
@@ -272,7 +274,7 @@ function RidesContent() {
   })
 
   return (
-    <div className={`min-h-screen text-white font-sans pb-32 transition-all duration-1000`}>
+    <div className={`min-h-screen text-white font-sans pb-32 transition-all duration-1000 ${theme.bg}`}>
       <VibeCanvas vibe={vibe} />
       <JoolNav />
 

@@ -158,8 +158,10 @@ export default function OfferRidePage() {
 
   const carbonSaved = (parseInt(form.available_seats || '0') * 2.1).toFixed(1)
 
+  const theme = VIBE_THEMES[vibe]
+
   return (
-    <div className={`min-h-screen font-sans pb-20 transition-all duration-1000`}>
+    <div className={`min-h-screen font-sans pb-20 transition-all duration-1000 ${theme.bg}`}>
       <VibeCanvas vibe={vibe} />
       <div className="relative z-50">
         <JoolNav />

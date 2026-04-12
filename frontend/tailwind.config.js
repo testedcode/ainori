@@ -7,6 +7,19 @@ module.exports = {
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
   ],
+  safelist: [
+    // Vibe theme background classes — must not be purged in prod
+    'bg-[#1e293b]',
+    'bg-[#0f172a]',
+    'bg-[#020617]',
+    // Vibe glow classes
+    'bg-amber-400/20',
+    'bg-blue-400/15',
+    'bg-slate-400/10',
+    'bg-orange-600/20',
+    'bg-indigo-600/20',
+    'bg-blue-900/20',
+  ],
   theme: {
     container: {
       center: true,

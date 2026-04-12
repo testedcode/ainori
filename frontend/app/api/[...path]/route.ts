@@ -5,6 +5,9 @@ import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import * as h from '@/lib/api-handlers'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 async function requireAuth(request: NextRequest) {
   const pool = getPool()
   

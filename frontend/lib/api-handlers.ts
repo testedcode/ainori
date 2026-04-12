@@ -354,8 +354,11 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
   const status = searchParams.get('status')
   const userId = searchParams.get('user_id')
   const today = new Date().toISOString().slice(0, 10)
-  const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
-  const dayAfter = new Date(Date.now() + 172800000).toISOString().slice(0, 10)
+  const day1 = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
+  const day2 = new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10)
+  const day3 = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10)
+  const day4 = new Date(Date.now() + 4 * 86400000).toISOString().slice(0, 10)
+  const day5 = new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10)
 
   let query = `
     SELECT r.id, r.user_id, u.name as user_name, r.corridor_id, c.name as corridor_name,
@@ -374,8 +377,8 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
     query += ` AND r.ride_date = $${i++}`
     args.push(date)
   } else {
-    query += ` AND r.ride_date IN ($${i++}, $${i++}, $${i++})`
-    args.push(today, tomorrow, dayAfter)
+    query += ` AND r.ride_date IN ($${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++})`
+    args.push(today, day1, day2, day3, day4, day5)
   }
   if (status) {
     query += ` AND r.status = $${i++}`
@@ -389,7 +392,13 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
   }
   query += ` ORDER BY r.ride_date, r.ride_time`
   const r = await pool.query(query, args)
-  return jsonResponse(r.rows)
+  return Response.json(r.rows, {
+    status: 200,
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+      'Pragma': 'no-cache',
+    }
+  })
 }
 
 export async function handleGetUserRides(pool: Pool, auth: Auth) {
@@ -442,10 +451,16 @@ export async function handleCreateRide(pool: Pool, body: unknown, auth: Auth) {
   const b = body as { corridor_id?: number; vehicle_id?: number; ride_date?: string; ride_time?: string; pickup_point?: string; drop_point?: string; route_description?: string; price_per_seat?: number; available_seats?: number }
   if (!b?.corridor_id || !b?.vehicle_id || !b?.ride_date || !b?.ride_time || !b?.pickup_point || !b?.drop_point || b?.price_per_seat == null || b?.available_seats == null)
     return errResponse('corridor_id, vehicle_id, ride_date, ride_time, pickup_point, drop_point, price_per_seat, available_seats required', 400)
-  const rideDate = new Date(b.ride_date)
-  const now = new Date()
-  const daysDiff = Math.floor((rideDate.getTime() - now.getTime()) / 86400000)
-  if (daysDiff < -1 || daysDiff > 5) return errResponse('Ride date must be today or within next 5 days', 400)
+  const rideDate = b.ride_date  // Already a string like '2026-04-12'
+  const today = new Date().toISOString().slice(0, 10)
+  const maxDate = new Date(Date.now() + 6 * 86400000).toISOString().slice(0, 10)
+  if (rideDate < yesterday(today) || rideDate > maxDate) return errResponse('Ride date must be today or within next 5 days', 400)
+
+  function yesterday(d: string) {
+    const dt = new Date(d)
+    dt.setDate(dt.getDate() - 1)
+    return dt.toISOString().slice(0, 10)
+  }
 
   // 1) Verify or Auto-Create Vehicle to satisfy Foreign Key
   let actualVehicleId = b.vehicle_id
