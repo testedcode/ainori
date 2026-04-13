@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import {
   Leaf, MessageSquare, Ticket, ChevronDown, ChevronUp,
   Car, Search, CheckCircle2, ArrowRight, Zap,
@@ -130,7 +130,7 @@ function AccordionItem({ q, a }: { q: string; a: string }) {
 }
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
-export default function SupportPage() {
+function SupportContent() {
   const searchParams = useSearchParams()
 
   const [activeTab, setActiveTab] = useState<TabType>('how-it-works')
@@ -823,3 +823,12 @@ export default function SupportPage() {
     </div>
   )
 }
+
+export default function SupportPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#020617] flex items-center justify-center text-[10px] font-black uppercase tracking-[0.5em] text-white/20 animate-pulse">Loading...</div>}>
+      <SupportContent />
+    </Suspense>
+  )
+}
+
