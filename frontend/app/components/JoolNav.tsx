@@ -9,9 +9,8 @@ const NAV_LINKS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/rides', label: 'Find Ride', icon: Search },
   { href: '/offer-ride', label: 'Share Ride', icon: Plus },
-  { href: '/vehicles', label: 'My Garage', icon: Wrench },
+  { href: '/vehicles', label: 'Garage', icon: Wrench },
   { href: '/profile', label: 'Profile', icon: User },
-  { href: '/support', label: 'Support', icon: LifeBuoy },
 ]
 
 export default function JoolNav({ adminMode = false }: { adminMode?: boolean }) {
@@ -39,12 +38,12 @@ export default function JoolNav({ adminMode = false }: { adminMode?: boolean }) 
   return (
     <>
       <header className={`sticky top-0 z-50 transition-all duration-300 ${
-        scrolled 
-          ? 'bg-[#0a0f1e]/95 backdrop-blur-2xl shadow-2xl shadow-black/30' 
+        scrolled
+          ? 'bg-[#0a0f1e]/95 backdrop-blur-2xl shadow-2xl shadow-black/30'
           : 'bg-[#0f172a]/80 backdrop-blur-xl'
       } border-b border-white/5`}>
-        <div className="max-w-7xl mx-auto px-6 md:px-12 py-3 flex items-center gap-6">
-          
+        <div className="max-w-7xl mx-auto px-6 md:px-12 py-3 flex items-center gap-4">
+
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center gap-2 group flex-shrink-0">
             <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
@@ -54,7 +53,7 @@ export default function JoolNav({ adminMode = false }: { adminMode?: boolean }) 
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1 flex-1">
+          <nav className="hidden md:flex items-center gap-0.5 flex-1">
             {NAV_LINKS.map(link => {
               const Icon = link.icon
               const active = pathname === link.href || pathname.startsWith(link.href + '/')
@@ -62,53 +61,47 @@ export default function JoolNav({ adminMode = false }: { adminMode?: boolean }) 
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                    active 
-                      ? 'bg-white/10 text-white' 
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                    active
+                      ? 'bg-white/10 text-white'
                       : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-3.5 h-3.5" />
                   {link.label}
                 </Link>
               )
             })}
             {(user?.role === 'admin' || adminMode) && (
-              <Link href="/admin" className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+              <Link href="/admin" className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                 pathname === '/admin' ? 'bg-purple-600/20 text-purple-400' : 'text-slate-400 hover:text-purple-400 hover:bg-purple-600/10'
               }`}>
-                <Shield className="w-4 h-4" /> Admin
+                <Shield className="w-3.5 h-3.5" /> Admin
               </Link>
             )}
           </nav>
 
           {/* Right Side */}
-          <div className="flex items-center gap-3 ml-auto">
-            {/* Notifications placeholder */}
-            <button className="relative p-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors hidden md:flex">
-              <Bell className="w-4 h-4 text-slate-400" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full" />
-            </button>
-
-            {/* Carbon Credits Desktop */}
+          <div className="flex items-center gap-2 ml-auto">
+            {/* Carbon Credits */}
             {user?.carbon_credits !== undefined && (
-              <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-xl">
-                <Leaf className="w-3.5 h-3.5 text-green-400" />
+              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-xl">
+                <Leaf className="w-3 h-3 text-green-400" />
                 <span className="text-xs font-black text-green-400">{user.carbon_credits}</span>
               </div>
             )}
 
             {/* User badge */}
             <div className="hidden md:flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
-              <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-xs font-black text-white">
+              <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-[10px] font-black text-white">
                 {initials}
               </div>
-              <span className="text-sm font-semibold text-slate-300">{user?.name?.split(' ')[0] || 'User'}</span>
+              <span className="text-xs font-semibold text-slate-300 max-w-[80px] truncate">{user?.name?.split(' ')[0] || 'User'}</span>
             </div>
 
             <button
               onClick={handleLogout}
-              className="hidden md:flex items-center gap-1.5 text-slate-500 hover:text-red-400 transition-colors text-sm font-bold px-3 py-2 rounded-xl hover:bg-red-400/5"
+              className="hidden md:flex items-center text-slate-500 hover:text-red-400 transition-colors p-2 rounded-xl hover:bg-red-400/5"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -133,6 +126,10 @@ export default function JoolNav({ adminMode = false }: { adminMode?: boolean }) 
                 </Link>
               )
             })}
+            <Link href="/support" onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-blue-400 hover:bg-blue-600/10 transition-all">
+              <LifeBuoy className="w-5 h-5" /> Support
+            </Link>
             {user?.role === 'admin' && (
               <Link href="/admin" onClick={() => setMenuOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-purple-400 hover:bg-purple-600/10 transition-all">
@@ -145,6 +142,17 @@ export default function JoolNav({ adminMode = false }: { adminMode?: boolean }) 
           </div>
         )}
       </header>
+
+      {/* Floating Support Button — visible on all pages except /support */}
+      {pathname !== '/support' && (
+        <Link
+          href="/support"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black rounded-2xl shadow-2xl shadow-blue-600/40 transition-all hover:scale-105 active:scale-95"
+        >
+          <LifeBuoy className="w-4 h-4" />
+          <span className="hidden sm:inline">Help</span>
+        </Link>
+      )}
     </>
   )
 }

@@ -174,7 +174,9 @@ function RidesContent() {
   const [requests, setRequests] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [view, setView] = useState<ViewMode>('grid')
-  const [selectedRideSeats, setSelectedRideSeats] = useState<Record<number, number | null>>({})
+  // Single active selection — {rideId, seats} — selecting on one clears others
+  const [activeSelection, setActiveSelection] = useState<{ rideId: number; seats: number } | null>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
   
   const hour = new Date().getHours()
   const [currentUser, setCurrentUser] = useState<any>(null)
@@ -197,6 +199,17 @@ function RidesContent() {
   useEffect(() => {
     fetchCorridors()
     fetchUserRequests()
+  }, [])
+
+  // Click outside grid → clear selection
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (gridRef.current && !gridRef.current.contains(e.target as Node)) {
+        setActiveSelection(null)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
   }, [])
 
   useEffect(() => {
@@ -240,8 +253,9 @@ function RidesContent() {
     try {
       await api.post(`/rides/${rideId}/requests`, { seats_requested: seats })
       toast.success('Lets Go! Request broadcasted.', { icon: '🚀' })
-      setSelectedRideSeats(prev => ({ ...prev, [rideId]: null }))
+      setActiveSelection(null)
       fetchUserRequests()
+      fetchRides()
     } catch { toast.error('Launch failed') }
   }
 
@@ -252,6 +266,7 @@ function RidesContent() {
          await api.delete(`/rides/${rideId}/requests/${req.id}`)
          toast.success('Retracted. Not yet.', { icon: '🛑' })
          fetchUserRequests()
+         fetchRides()
       }
     } catch { toast.error('Retraction failed') }
   }
@@ -431,17 +446,17 @@ function RidesContent() {
             <p className="text-white/20 text-[10px] font-black uppercase tracking-widest leading-relaxed">Adjust your ride coordinates<br/>or publish a new route</p>
           </div>
         ) : view === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filtered.map(ride => (
-              <CardView 
-                key={ride.id} 
-                ride={ride} 
+              <CardView
+                key={ride.id}
+                ride={ride}
                 onBook={handleBook}
                 onRetract={handleRetract}
                 isOwnRide={currentUser?.id === ride.user_id}
                 isRequested={requests.some(r => r.ride_id === ride.id && r.status === 'pending')}
-                isSelected={selectedRideSeats[ride.id] || null}
-                onSelect={(seats) => setSelectedRideSeats(prev => ({ ...prev, [ride.id]: seats }))}
+                isSelected={activeSelection?.rideId === ride.id ? activeSelection.seats : null}
+                onSelect={(seats) => setActiveSelection(seats === null ? null : { rideId: ride.id, seats })}
               />
             ))}
           </div>

@@ -222,6 +222,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if ('error' in r) return r.error
     return h.handleGetUserProfile(pool as any, parseInt(path[1], 10))
   }
+  // User's own requests (rides they've requested to join)
+  if (pathStr === 'user/requests') {
+    const r = await requireAuth(request)
+    if ('error' in r) return r.error
+    return h.handleGetUserRequests(pool as any, r.auth)
+  }
   // Support tickets
   if (pathStr === 'admin/tickets') {
     const r = await requireAuth(request)

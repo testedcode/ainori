@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { 
   Car, Plus, Search, Settings, LogOut, User, Sparkles, 
   ChevronRight, Leaf, Clock, Banknote, ShieldCheck, 
-  Calendar, MapPin, CheckCircle2, Timer, Bookmark, Users, Zap
+  Calendar, MapPin, CheckCircle2, Timer, Bookmark, Users, Zap, AlertCircle
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
@@ -81,6 +81,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [corridors, setCorridors] = useState<Corridor[]>([])
   const [myRides, setMyRides] = useState<Ride[]>([])
+  const [myRequests, setMyRequests] = useState<any[]>([])
   const [stats, setStats] = useState({ rides_today: 0, live_users: 0, carbon_saved: '0', money_saved: '0', time_saved: '0' })
 
   useEffect(() => {
@@ -131,7 +132,12 @@ export default function DashboardPage() {
       } catch {
         setMyRides([])
       }
-      
+
+      try {
+        const reqRes = await api.get('/user/requests')
+        if (Array.isArray(reqRes)) setMyRequests(reqRes as any[])
+      } catch {}
+
       setLoading(false)
     }
 
@@ -231,6 +237,53 @@ export default function DashboardPage() {
             </button>
           </div>
         </div>
+
+        {/* Pending & Accepted Booking Requests */}
+        {myRequests.length > 0 && (
+          <section className="mb-12">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-black text-white">My Seat Requests</h2>
+                {myRequests.filter(r => r.status === 'pending').length > 0 && (
+                  <span className="px-2.5 py-0.5 bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-black rounded-full">
+                    {myRequests.filter(r => r.status === 'pending').length} pending
+                  </span>
+                )}
+              </div>
+              <Link href="/rides" className="text-xs font-black text-blue-400 uppercase tracking-widest">Find More →</Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {myRequests.slice(0, 6).map(req => (
+                <Link key={req.id} href={`/rides/${req.ride_id}`}
+                  className={`block border rounded-3xl p-5 hover:scale-[1.02] transition-all ${
+                    req.status === 'accepted' ? 'bg-green-500/10 border-green-500/20'
+                    : req.status === 'rejected' ? 'bg-white/[0.03] border-white/5 opacity-50'
+                    : 'bg-amber-500/5 border-amber-500/20'
+                  }`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
+                      req.status === 'accepted' ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                      : req.status === 'rejected' ? 'bg-white/5 border-white/10 text-white/30'
+                      : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                    }`}>
+                      {req.status === 'accepted' ? '✅ Confirmed' : req.status === 'rejected' ? '❌ Declined' : '⏳ Awaiting host'}
+                    </span>
+                    <span className="font-mono text-blue-400 text-[10px] font-black">Ride #{req.ride_id}</span>
+                  </div>
+                  <p className="font-black text-white text-sm mb-1">{req.corridor_name || 'Ride'}</p>
+                  <div className="flex items-center gap-4 text-xs text-white/40 font-bold">
+                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{req.ride_date}</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{req.ride_time}</span>
+                    <span>{req.seats_requested} seat{req.seats_requested > 1 ? 's' : ''}</span>
+                  </div>
+                  {req.status === 'accepted' && (
+                    <p className="text-[10px] text-green-400 font-black mt-3">Tap to view ride details, host contact, and UPI ↗</p>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Your Active Rides / Bookings */}
         <section className="mb-16">
