@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Car, LayoutDashboard, Search, Plus, Wrench, Shield, LogOut, Menu, X, Bell, User, Leaf } from 'lucide-react'
+import { Car, LayoutDashboard, Search, Plus, Wrench, Shield, LogOut, Menu, X, Bell, User, Leaf, LifeBuoy } from 'lucide-react'
 
 const NAV_LINKS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { href: '/offer-ride', label: 'Share Ride', icon: Plus },
   { href: '/vehicles', label: 'My Garage', icon: Wrench },
   { href: '/profile', label: 'Profile', icon: User },
+  { href: '/support', label: 'Support', icon: LifeBuoy },
 ]
 
 export default function JoolNav({ adminMode = false }: { adminMode?: boolean }) {
