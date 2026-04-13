@@ -7,7 +7,7 @@ import {
   ArrowLeft, MapPin, Clock, Users, IndianRupee, Car, Star, Shield,
   MessageSquare, Send, Check, X, CheckCheck, Loader2, Phone, Navigation,
   Calendar, Info, AlertCircle, Sparkles, Leaf, CheckCircle2, Banknote, QrCode,
-  Timer, ShieldCheck, ArrowRight
+  Timer, ShieldCheck, ArrowRight, Ticket, Copy
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
@@ -129,14 +129,34 @@ export default function RideDetailPage() {
 
       <main className="max-w-4xl mx-auto px-6 mt-12 space-y-6">
         {/* PANEL 1: MISSION CORE */}
-        <div className="flex items-center gap-4 mb-8">
-           <Link href="/rides" className="p-3 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-all active:scale-95">
-              <ArrowLeft className="w-5 h-5 text-white/40" />
-           </Link>
-           <div>
-             <h1 className="text-4xl font-black tracking-tighter text-white leading-none uppercase italic">{ride.corridor_name}</h1>
-             <p className="text-white/30 text-[10px] mt-1 font-black uppercase tracking-widest leading-none">Intelligence Node #{ride.id}</p>
+        <div className="flex items-start justify-between gap-4 mb-8">
+           <div className="flex items-center gap-4">
+              <Link href="/rides" className="p-3 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-all active:scale-95">
+                 <ArrowLeft className="w-5 h-5 text-white/40" />
+              </Link>
+              <div>
+                <h1 className="text-4xl font-black tracking-tighter text-white leading-none uppercase italic">{ride.corridor_name}</h1>
+                <div className="flex items-center gap-2 mt-2">
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(String(ride.id)); toast.success('Ride ID copied!') }}
+                    className="flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all group"
+                  >
+                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Ride ID</span>
+                    <span className="text-[11px] font-mono font-black text-blue-400">#{ride.id}</span>
+                    <Copy className="w-3 h-3 text-white/20 group-hover:text-blue-400 transition-colors" />
+                  </button>
+                </div>
+              </div>
            </div>
+
+           {/* Report / Raise Ticket */}
+           <Link
+             href={`/support?tab=ticket&trip_id=${ride.id}&issue=${isOwner ? 'ride' : 'payment'}`}
+             className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl text-xs font-black hover:bg-red-500/20 transition-all flex-shrink-0"
+           >
+             <Ticket className="w-3.5 h-3.5" />
+             {isOwner ? 'Report Issue' : 'Report / Dispute'}
+           </Link>
         </div>
 
         <GlassPanel className="flex flex-col md:flex-row items-center justify-between gap-8 border-blue-500/20">

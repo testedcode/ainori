@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Leaf, MessageSquare, Ticket, ChevronDown, ChevronUp,
   Car, Search, CheckCircle2, ArrowRight, Zap,
@@ -11,6 +11,7 @@ import {
 import JoolNav from '../components/JoolNav'
 import toast from 'react-hot-toast'
 import { api } from '@/lib/api'
+import { useSearchParams } from 'next/navigation'
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 type TabType = 'how-it-works' | 'faq' | 'payments' | 'feedback' | 'ticket'
@@ -130,6 +131,8 @@ function AccordionItem({ q, a }: { q: string; a: string }) {
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function SupportPage() {
+  const searchParams = useSearchParams()
+
   const [activeTab, setActiveTab] = useState<TabType>('how-it-works')
   const [feedbackForm, setFeedbackForm] = useState({ name: '', email: '', rating: 5, message: '', type: 'general' })
   const [feedbackLoading, setFeedbackLoading] = useState(false)
@@ -139,6 +142,22 @@ export default function SupportPage() {
   const [checkRef, setCheckRef] = useState('')
   const [ticketStatus, setTicketStatus] = useState<any>(null)
   const [checkLoading, setCheckLoading] = useState(false)
+
+  // Auto-fill from URL params (deep link from ride detail page)
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    const tripId = searchParams.get('trip_id')
+    const issue = searchParams.get('issue')
+    if (tab === 'ticket') setActiveTab('ticket')
+    if (tripId || issue) {
+      setActiveTab('ticket')
+      setTicketForm(prev => ({
+        ...prev,
+        trip_id: tripId || prev.trip_id,
+        issue_type: issue || prev.issue_type,
+      }))
+    }
+  }, [searchParams])
 
   const handleFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -595,16 +614,28 @@ export default function SupportPage() {
               <p className="text-slate-500 mt-2 text-sm">Our team typically responds within 24 hours. Include your Trip ID for faster resolution.</p>
             </div>
 
-            <div className="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-4 mb-6 flex items-start gap-3">
-              <Sparkles className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-bold text-white mb-1">Where to find your Trip ID?</p>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Go to <strong className="text-blue-400">Dashboard then Your Upcoming / Past Trips</strong> and click on the ride.
-                  The Trip ID (e.g. <code className="bg-white/10 px-1.5 py-0.5 rounded text-blue-300 font-mono">#1042</code>) is shown at the top of the ride detail page. Including it helps us find your trip instantly.
-                </p>
+            {ticketForm.trip_id ? (
+              <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-4 mb-6 flex items-start gap-3">
+                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-bold text-green-400 mb-0.5">Ride ID pre-filled</p>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Your ticket is linked to <strong className="text-white">Ride #{ticketForm.trip_id}</strong>. Our team can look this up directly — just describe what happened below.
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-4 mb-6 flex items-start gap-3">
+                <Sparkles className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-bold text-white mb-1">Where to find your Trip ID?</p>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Go to <strong className="text-blue-400">Dashboard then Your Upcoming / Past Trips</strong> and click on the ride.
+                    The Trip ID (e.g. <code className="bg-white/10 px-1.5 py-0.5 rounded text-blue-300 font-mono">#1042</code>) is shown at the top of the ride detail page. Or tap <strong className="text-blue-400">Report / Dispute</strong> directly from any ride — it pre-fills automatically.
+                  </p>
+                </div>
+              </div>
+            )}
 
             <form onSubmit={handleTicketSubmit} className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 space-y-6">
               <div>
