@@ -1,16 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import {
   Leaf, MessageSquare, Ticket, ChevronDown, ChevronUp,
   Car, Search, CheckCircle2, ArrowRight, Zap,
   IndianRupee, ShieldCheck, MapPin, Users,
   Sparkles, HelpCircle, Send, Star, AlertCircle,
-  LifeBuoy, BookOpen, Activity, CreditCard
+  LifeBuoy, BookOpen, Activity, CreditCard, RefreshCw, CheckCircle
 } from 'lucide-react'
 import JoolNav from '../components/JoolNav'
 import toast from 'react-hot-toast'
+import { api } from '@/lib/api'
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 type TabType = 'how-it-works' | 'faq' | 'payments' | 'feedback' | 'ticket'
@@ -135,6 +135,10 @@ export default function SupportPage() {
   const [feedbackLoading, setFeedbackLoading] = useState(false)
   const [ticketForm, setTicketForm] = useState({ name: '', email: '', trip_id: '', issue_type: 'payment', description: '', urgency: 'normal' })
   const [ticketLoading, setTicketLoading] = useState(false)
+  const [lastTicketRef, setLastTicketRef] = useState('')
+  const [checkRef, setCheckRef] = useState('')
+  const [ticketStatus, setTicketStatus] = useState<any>(null)
+  const [checkLoading, setCheckLoading] = useState(false)
 
   const handleFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -143,10 +147,15 @@ export default function SupportPage() {
       return
     }
     setFeedbackLoading(true)
-    await new Promise(r => setTimeout(r, 1200))
-    toast.success('Thank you! Your feedback has been received.', { duration: 4000 })
-    setFeedbackForm({ name: '', email: '', rating: 5, message: '', type: 'general' })
-    setFeedbackLoading(false)
+    try {
+      await api.post('/support/feedback', feedbackForm)
+      toast.success('Thank you! Your feedback has been received.', { duration: 4000 })
+      setFeedbackForm({ name: '', email: '', rating: 5, message: '', type: 'general' })
+    } catch {
+      toast.error('Failed to send. Please try again.')
+    } finally {
+      setFeedbackLoading(false)
+    }
   }
 
   const handleTicketSubmit = async (e: React.FormEvent) => {
@@ -156,11 +165,33 @@ export default function SupportPage() {
       return
     }
     setTicketLoading(true)
-    await new Promise(r => setTimeout(r, 1400))
-    const ticketId = `JOOL-${Date.now().toString().slice(-6)}`
-    toast.success(`Ticket ${ticketId} raised! We will respond within 24 hours.`, { duration: 6000 })
-    setTicketForm({ name: '', email: '', trip_id: '', issue_type: 'payment', description: '', urgency: 'normal' })
-    setTicketLoading(false)
+    try {
+      const data = await api.post('/support/ticket', ticketForm) as any
+      const ref = data.ref
+      setLastTicketRef(ref)
+      setCheckRef(ref)
+      toast.success(`Ticket ${ref} raised! Save this reference number.`, { duration: 8000 })
+      setTicketForm({ name: '', email: '', trip_id: '', issue_type: 'payment', description: '', urgency: 'normal' })
+    } catch {
+      toast.error('Failed to raise ticket. Please try again.')
+    } finally {
+      setTicketLoading(false)
+    }
+  }
+
+  const handleCheckTicket = async () => {
+    if (!checkRef.trim()) return
+    setCheckLoading(true)
+    setTicketStatus(null)
+    try {
+      const ref = checkRef.trim().toUpperCase().startsWith('JOOL-') ? checkRef.trim() : `JOOL-${checkRef.trim()}`
+      const data = await api.get(`/support/${ref}`) as any
+      setTicketStatus(data)
+    } catch {
+      toast.error('Ticket not found. Check the reference number.')
+    } finally {
+      setCheckLoading(false)
+    }
   }
 
   const tabs: { id: TabType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -686,6 +717,75 @@ export default function SupportPage() {
                 You will receive a confirmation with your ticket ID. Our team responds to all tickets — please do not submit duplicates.
               </p>
             </form>
+
+            {/* Ticket Status Checker */}
+            <div className="mt-10 bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                  <RefreshCw className="w-5 h-5 text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="font-black text-white">Check Ticket Status</h3>
+                  <p className="text-slate-500 text-xs">Already raised a ticket? Enter your reference to see the reply.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="relative flex-1">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 font-black text-sm">JOOL-</span>
+                  <input
+                    type="text"
+                    value={checkRef.replace(/^JOOL-/i, '')}
+                    onChange={e => setCheckRef(e.target.value)}
+                    placeholder="e.g. 222091"
+                    className="w-full bg-black/40 border border-white/10 rounded-2xl pl-16 pr-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500 transition-colors font-mono"
+                  />
+                </div>
+                <button
+                  onClick={handleCheckTicket}
+                  disabled={checkLoading || !checkRef.trim()}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-black hover:bg-blue-500 transition-colors disabled:opacity-40 flex items-center gap-2"
+                >
+                  {checkLoading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Check'}
+                </button>
+              </div>
+
+              {ticketStatus && (
+                <div className="mt-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono text-blue-400 font-black text-sm">{ticketStatus.ref}</span>
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                        ticketStatus.status === 'replied' ? 'bg-green-500/10 border border-green-500/20 text-green-400'
+                        : ticketStatus.status === 'closed' ? 'bg-slate-500/10 border border-slate-500/20 text-slate-400'
+                        : 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
+                      }`}>{ticketStatus.status}</span>
+                    </div>
+                    <span className="text-xs text-white/20">{new Date(ticketStatus.created_at).toLocaleDateString('en-IN')}</span>
+                  </div>
+
+                  <div className="bg-black/30 border border-white/5 rounded-2xl p-4">
+                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-2">Your Issue</p>
+                    <p className="text-sm text-slate-400 leading-relaxed">{ticketStatus.description}</p>
+                  </div>
+
+                  {ticketStatus.admin_reply ? (
+                    <div className="bg-blue-600/10 border border-blue-500/20 rounded-2xl p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle className="w-4 h-4 text-blue-400" />
+                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">JOOL Team Reply</p>
+                        <span className="text-[10px] text-white/20 ml-auto">{ticketStatus.replied_at ? new Date(ticketStatus.replied_at).toLocaleDateString('en-IN') : ''}</span>
+                      </div>
+                      <p className="text-sm text-white leading-relaxed">{ticketStatus.admin_reply}</p>
+                    </div>
+                  ) : (
+                    <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 text-center">
+                      <p className="text-xs text-white/30">No reply yet — we typically respond within 24 hours.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

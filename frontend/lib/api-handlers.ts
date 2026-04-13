@@ -844,3 +844,115 @@ export async function handleFlushData(pool: Pool, auth: Auth) {
   
   return jsonResponse({ message: `Flushed ${r.rowCount} users and associated records.`, count: r.rowCount })
 }
+
+// ─── SUPPORT TABLES (auto-create) ──────────────────────────────────────────
+async function ensureSupportTables(pool: Pool) {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS support_tickets (
+      id SERIAL PRIMARY KEY,
+      ref TEXT UNIQUE NOT NULL,
+      name TEXT,
+      email TEXT NOT NULL,
+      trip_id TEXT,
+      issue_type TEXT NOT NULL DEFAULT 'other',
+      urgency TEXT NOT NULL DEFAULT 'normal',
+      description TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'open',
+      admin_reply TEXT,
+      replied_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS feedback (
+      id SERIAL PRIMARY KEY,
+      name TEXT,
+      email TEXT NOT NULL,
+      rating INTEGER NOT NULL DEFAULT 5,
+      type TEXT NOT NULL DEFAULT 'general',
+      message TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'unread',
+      admin_reply TEXT,
+      replied_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `)
+}
+
+// ─── TICKETS: CREATE ────────────────────────────────────────────────────────
+export async function handleCreateTicket(pool: Pool, body: unknown) {
+  await ensureSupportTables(pool)
+  const b = body as { name?: string; email?: string; trip_id?: string; issue_type?: string; urgency?: string; description?: string }
+  if (!b?.email || !b?.description) return errResponse('email and description required', 400)
+  const ref = `JOOL-${Date.now().toString().slice(-6)}`
+  const r = await pool.query(
+    `INSERT INTO support_tickets (ref, name, email, trip_id, issue_type, urgency, description)
+     VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id, ref, created_at`,
+    [ref, b.name || null, b.email, b.trip_id || null, b.issue_type || 'other', b.urgency || 'normal', b.description]
+  )
+  return jsonResponse({ ref: r.rows[0].ref, id: r.rows[0].id, message: `Ticket ${ref} raised! We will respond within 24 hours.` }, 201)
+}
+
+// ─── TICKETS: GET ALL (admin) ───────────────────────────────────────────────
+export async function handleGetTickets(pool: Pool) {
+  await ensureSupportTables(pool)
+  const r = await pool.query(`SELECT * FROM support_tickets ORDER BY created_at DESC LIMIT 200`)
+  return jsonResponse(r.rows)
+}
+
+// ─── TICKETS: GET BY REF (user status check) ────────────────────────────────
+export async function handleGetTicketByRef(pool: Pool, ref: string) {
+  await ensureSupportTables(pool)
+  const r = await pool.query(
+    `SELECT id, ref, name, email, issue_type, urgency, description, status, admin_reply, replied_at, created_at
+     FROM support_tickets WHERE UPPER(ref) = UPPER($1)`,
+    [ref]
+  )
+  if (r.rows.length === 0) return errResponse('Ticket not found', 404)
+  return jsonResponse(r.rows[0])
+}
+
+// ─── TICKETS: ADMIN REPLY ───────────────────────────────────────────────────
+export async function handleReplyTicket(pool: Pool, id: number, body: unknown) {
+  await ensureSupportTables(pool)
+  const b = body as { admin_reply?: string; status?: string }
+  if (!b?.admin_reply) return errResponse('admin_reply required', 400)
+  const r = await pool.query(
+    `UPDATE support_tickets SET admin_reply=$1, status=$2, replied_at=NOW() WHERE id=$3 RETURNING id, ref, status`,
+    [b.admin_reply, b.status || 'replied', id]
+  )
+  if (r.rows.length === 0) return errResponse('Ticket not found', 404)
+  return jsonResponse({ message: 'Reply sent', ref: r.rows[0].ref, status: r.rows[0].status })
+}
+
+// ─── FEEDBACK: CREATE ───────────────────────────────────────────────────────
+export async function handleCreateFeedback(pool: Pool, body: unknown) {
+  await ensureSupportTables(pool)
+  const b = body as { name?: string; email?: string; rating?: number; type?: string; message?: string }
+  if (!b?.email || !b?.message) return errResponse('email and message required', 400)
+  const r = await pool.query(
+    `INSERT INTO feedback (name, email, rating, type, message)
+     VALUES ($1,$2,$3,$4,$5) RETURNING id, created_at`,
+    [b.name || null, b.email, b.rating ?? 5, b.type || 'general', b.message]
+  )
+  return jsonResponse({ id: r.rows[0].id, message: 'Feedback received. Thank you!' }, 201)
+}
+
+// ─── FEEDBACK: GET ALL (admin) ──────────────────────────────────────────────
+export async function handleGetFeedback(pool: Pool) {
+  await ensureSupportTables(pool)
+  const r = await pool.query(`SELECT * FROM feedback ORDER BY created_at DESC LIMIT 200`)
+  return jsonResponse(r.rows)
+}
+
+// ─── FEEDBACK: ADMIN REPLY / MARK READ ─────────────────────────────────────
+export async function handleReplyFeedback(pool: Pool, id: number, body: unknown) {
+  await ensureSupportTables(pool)
+  const b = body as { admin_reply?: string; status?: string }
+  const r = await pool.query(
+    `UPDATE feedback SET admin_reply=$1, status=$2, replied_at=NOW() WHERE id=$3 RETURNING id`,
+    [b.admin_reply || null, b.status || 'read', id]
+  )
+  if (r.rows.length === 0) return errResponse('Feedback not found', 404)
+  return jsonResponse({ message: 'Updated' })
+}

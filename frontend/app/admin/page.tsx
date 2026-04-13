@@ -8,7 +8,8 @@ import {
   ArrowLeft, Users, MapPin, Car, BarChart3, Lock, Unlock, 
   CheckCircle, XCircle, Shield, Search, Plus, AlertTriangle,
   ChevronRight, Activity, Leaf, Ban, UserCheck, Clock,
-  TrendingUp, Globe, Database, Pencil, Camera, Loader2
+  TrendingUp, Globe, Database, Pencil, Camera, Loader2,
+  Inbox, MessageSquare, Ticket, Send, RefreshCw
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
@@ -25,7 +26,10 @@ interface City { id: number; name: string; status: string }
 interface Analytics { total_users: number; total_rides: number; active_corridors: number; completed_rides: number; total_revenue: number; total_credits: number }
 interface RideRequest { id: number; rider_name: string; driver_name: string; pickup_point: string; seats_requested: number; corridor_name: string; ride_date: string; ride_time: string; status: string }
 
-type Tab = 'overview' | 'users' | 'corridors' | 'locations' | 'requests'
+type Tab = 'overview' | 'users' | 'corridors' | 'locations' | 'requests' | 'inbox'
+
+interface SupportTicket { id: number; ref: string; name?: string; email: string; trip_id?: string; issue_type: string; urgency: string; description: string; status: string; admin_reply?: string; replied_at?: string; created_at: string }
+interface Feedback { id: number; name?: string; email: string; rating: number; type: string; message: string; status: string; admin_reply?: string; replied_at?: string; created_at: string }
 
 const DEMO_ANALYTICS: Analytics = { total_users: 347, total_rides: 1842, active_corridors: 4, completed_rides: 1650, total_revenue: 221040, total_credits: 8250 }
 const DEMO_USERS: User[] = [
@@ -80,6 +84,11 @@ export default function AdminPage() {
   const [newCorridor, setNewCorridor] = useState({ city_id: 1, name: '', location_from: '', location_to: '', description: '', image_url: '' })
   const [showAddCity, setShowAddCity] = useState(false)
   const [newCity, setNewCity] = useState('')
+  const [tickets, setTickets] = useState<SupportTicket[]>([])
+  const [feedback, setFeedback] = useState<Feedback[]>([])
+  const [inboxTab, setInboxTab] = useState<'tickets' | 'feedback'>('tickets')
+  const [replyText, setReplyText] = useState<Record<number, string>>({})
+  const [replyLoading, setReplyLoading] = useState<number | null>(null)
 
   const [uploadingImage, setUploadingImage] = useState(false)
   const supabase = createClient()
@@ -152,6 +161,15 @@ export default function AdminPage() {
       if (a && typeof a === 'object' && 'total_users' in (a as object)) setAnalytics(a as Analytics)
       if (Array.isArray(cor) && cor.length > 0) setCorridors(cor as Corridor[])
       if (Array.isArray(cit) && cit.length > 0) setCities(cit as City[])
+    } catch {}
+    // Fetch inbox
+    try {
+      const [t, f] = await Promise.all([
+        api.get('/admin/tickets').catch(() => []),
+        api.get('/admin/feedback').catch(() => []),
+      ])
+      if (Array.isArray(t)) setTickets(t as SupportTicket[])
+      if (Array.isArray(f)) setFeedback(f as Feedback[])
     } catch {}
   }
 
@@ -226,6 +244,29 @@ export default function AdminPage() {
     toast.success(status === 'accepted' ? 'Ride validated.' : 'Ride request rejected.')
   }
 
+  const sendTicketReply = async (id: number) => {
+    const reply = replyText[id]
+    if (!reply?.trim()) return
+    setReplyLoading(id)
+    try {
+      await api.put(`/admin/tickets/${id}`, { admin_reply: reply, status: 'replied' })
+      setTickets(prev => prev.map(t => t.id === id ? { ...t, admin_reply: reply, status: 'replied' } : t))
+      setReplyText(prev => ({ ...prev, [id]: '' }))
+      toast.success('Reply sent!')
+    } catch { toast.error('Failed to send reply') }
+    finally { setReplyLoading(null) }
+  }
+
+  const sendFeedbackReply = async (id: number) => {
+    const reply = replyText[`f${id}` as any]
+    await api.put(`/admin/feedback/${id}`, { admin_reply: reply || null, status: 'read' })
+    setFeedback(prev => prev.map(f => f.id === id ? { ...f, status: 'read', admin_reply: reply || f.admin_reply } : f))
+    toast.success('Marked as read')
+  }
+
+  const openTicketCount = tickets.filter(t => t.status === 'open').length
+  const unreadFeedbackCount = feedback.filter(f => f.status === 'unread').length
+
   const filteredUsers = users.filter(u => 
     u.name.toLowerCase().includes(searchUser.toLowerCase()) ||
     u.email.toLowerCase().includes(searchUser.toLowerCase())
@@ -239,6 +280,7 @@ export default function AdminPage() {
     { id: 'corridors', label: 'Corridors', icon: MapPin },
     { id: 'locations', label: 'Cities', icon: Globe },
     { id: 'requests', label: 'Ride Flow', icon: Car, badge: pendingRequests.length || undefined },
+    { id: 'inbox', label: 'Inbox', icon: Inbox, badge: (openTicketCount + unreadFeedbackCount) || undefined },
   ]
 
   return (
@@ -622,6 +664,171 @@ export default function AdminPage() {
                  </div>
                ))}
             </div>
+          </div>
+        )}
+
+        {/* INBOX */}
+        {activeTab === 'inbox' && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+              <div>
+                <h2 className="text-3xl font-black">Support Inbox</h2>
+                <p className="text-white/40 font-bold">Tickets and feedback from users — reply directly from here.</p>
+              </div>
+              <button onClick={fetchAll} className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm font-black hover:bg-white/10 transition-colors">
+                <RefreshCw className="w-4 h-4" /> Refresh
+              </button>
+            </div>
+
+            {/* Sub-tabs */}
+            <div className="flex gap-2 mb-8">
+              <button onClick={() => setInboxTab('tickets')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-black transition-all ${
+                  inboxTab === 'tickets' ? 'bg-white text-black' : 'bg-white/5 border border-white/10 text-white/40 hover:text-white'
+                }`}>
+                <Ticket className="w-4 h-4" /> Support Tickets
+                {openTicketCount > 0 && <span className="bg-red-500 text-white text-[10px] rounded-full px-2 py-0.5 font-black">{openTicketCount} open</span>}
+              </button>
+              <button onClick={() => setInboxTab('feedback')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-black transition-all ${
+                  inboxTab === 'feedback' ? 'bg-white text-black' : 'bg-white/5 border border-white/10 text-white/40 hover:text-white'
+                }`}>
+                <MessageSquare className="w-4 h-4" /> Feedback
+                {unreadFeedbackCount > 0 && <span className="bg-blue-500 text-white text-[10px] rounded-full px-2 py-0.5 font-black">{unreadFeedbackCount} new</span>}
+              </button>
+            </div>
+
+            {/* TICKETS */}
+            {inboxTab === 'tickets' && (
+              <div className="space-y-4">
+                {tickets.length === 0 && <div className="text-center py-16 text-white/20 font-bold">No tickets yet</div>}
+                {tickets.map(t => (
+                  <div key={t.id} className={`border rounded-[2rem] p-8 transition-all ${
+                    t.status === 'open' ? 'bg-amber-500/5 border-amber-500/20' : 'bg-white/[0.03] border-white/5'
+                  }`}>
+                    <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-blue-400 font-black text-sm">{t.ref}</span>
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                          t.status === 'replied' ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                          : t.status === 'closed' ? 'bg-slate-500/10 border-slate-500/20 text-slate-400'
+                          : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                        }`}>{t.status}</span>
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                          t.urgency === 'urgent' ? 'bg-red-500/10 border-red-500/20 text-red-400'
+                          : t.urgency === 'high' ? 'bg-orange-500/10 border-orange-500/20 text-orange-400'
+                          : 'bg-white/5 border-white/10 text-white/30'
+                        }`}>{t.urgency}</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-white">{t.name || 'Anonymous'}</p>
+                        <p className="text-xs text-white/40">{t.email}</p>
+                        <p className="text-xs text-white/20 mt-1">{new Date(t.created_at).toLocaleString('en-IN')}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-3 mb-4">
+                      <span className="px-3 py-1 bg-white/5 border border-white/5 rounded-full text-[10px] font-black text-white/40 uppercase">{t.issue_type}</span>
+                      {t.trip_id && <span className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full text-[10px] font-black text-blue-400 uppercase">Trip #{t.trip_id}</span>}
+                    </div>
+
+                    <div className="bg-black/40 border border-white/5 rounded-2xl p-4 mb-4">
+                      <p className="text-sm text-slate-300 leading-relaxed">{t.description}</p>
+                    </div>
+
+                    {t.admin_reply && (
+                      <div className="bg-blue-600/10 border border-blue-500/20 rounded-2xl p-4 mb-4">
+                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">Your Reply ({t.replied_at ? new Date(t.replied_at).toLocaleDateString('en-IN') : ''})</p>
+                        <p className="text-sm text-white">{t.admin_reply}</p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-3">
+                      <textarea
+                        rows={2}
+                        value={replyText[t.id] || ''}
+                        onChange={e => setReplyText(prev => ({ ...prev, [t.id]: e.target.value }))}
+                        placeholder={t.admin_reply ? 'Send another reply...' : 'Type your reply to this user...'}
+                        className="flex-1 bg-black/40 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                      />
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => sendTicketReply(t.id)}
+                          disabled={replyLoading === t.id || !replyText[t.id]?.trim()}
+                          className="px-5 py-3 bg-blue-600 text-white rounded-2xl text-sm font-black hover:bg-blue-500 transition-colors disabled:opacity-40 flex items-center gap-2"
+                        >
+                          {replyLoading === t.id ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Send className="w-4 h-4" /> Reply</>}
+                        </button>
+                        {t.status !== 'closed' && (
+                          <button
+                            onClick={() => sendTicketReply(t.id)}
+                            className="px-5 py-2 bg-white/5 border border-white/10 text-white/30 rounded-2xl text-xs font-black hover:bg-white/10 transition-colors"
+                          >Close</button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* FEEDBACK */}
+            {inboxTab === 'feedback' && (
+              <div className="space-y-4">
+                {feedback.length === 0 && <div className="text-center py-16 text-white/20 font-bold">No feedback yet</div>}
+                {feedback.map(f => (
+                  <div key={f.id} className={`border rounded-[2rem] p-8 transition-all ${
+                    f.status === 'unread' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-white/[0.03] border-white/5'
+                  }`}>
+                    <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex">
+                          {[1,2,3,4,5].map(n => (
+                            <span key={n} className={`text-lg ${n <= f.rating ? 'text-amber-400' : 'text-white/10'}`}>★</span>
+                          ))}
+                        </div>
+                        <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-black text-white/40 uppercase">{f.type}</span>
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase border ${
+                          f.status === 'unread' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-white/5 border-white/10 text-white/20'
+                        }`}>{f.status}</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-white">{f.name || 'Anonymous'}</p>
+                        <p className="text-xs text-white/40">{f.email}</p>
+                        <p className="text-xs text-white/20 mt-1">{new Date(f.created_at).toLocaleString('en-IN')}</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-black/40 border border-white/5 rounded-2xl p-4 mb-4">
+                      <p className="text-sm text-slate-300 leading-relaxed">{f.message}</p>
+                    </div>
+
+                    {f.admin_reply && (
+                      <div className="bg-blue-600/10 border border-blue-500/20 rounded-2xl p-3 mb-4">
+                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Note Added</p>
+                        <p className="text-sm text-white">{f.admin_reply}</p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        value={replyText[`f${f.id}` as any] || ''}
+                        onChange={e => setReplyText(prev => ({ ...prev, [`f${f.id}`]: e.target.value }))}
+                        placeholder="Add an internal note (optional)..."
+                        className="flex-1 bg-black/40 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500 transition-colors"
+                      />
+                      <button
+                        onClick={() => sendFeedbackReply(f.id)}
+                        className="px-5 py-3 bg-white/5 border border-white/10 text-white/60 rounded-2xl text-sm font-black hover:bg-white/10 transition-colors"
+                      >
+                        Mark Read
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

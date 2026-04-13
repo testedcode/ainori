@@ -222,6 +222,25 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if ('error' in r) return r.error
     return h.handleGetUserProfile(pool as any, parseInt(path[1], 10))
   }
+  // Support tickets
+  if (pathStr === 'admin/tickets') {
+    const r = await requireAuth(request)
+    if ('error' in r) return r.error
+    const adminErr = requireAdmin(r.auth)
+    if (adminErr) return adminErr
+    return h.handleGetTickets(pool as any)
+  }
+  if (path.length === 2 && path[0] === 'support' && path[1] !== 'feedback') {
+    return h.handleGetTicketByRef(pool as any, path[1])
+  }
+  // Feedback
+  if (pathStr === 'admin/feedback') {
+    const r = await requireAuth(request)
+    if ('error' in r) return r.error
+    const adminErr = requireAdmin(r.auth)
+    if (adminErr) return adminErr
+    return h.handleGetFeedback(pool as any)
+  }
   return Response.json({ error: 'Not found' }, { status: 404 })
 }
 
@@ -239,6 +258,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   if (pathStr === 'auth/register') return h.handleRegister(pool, body)
   if (pathStr === 'auth/login') return h.handleLogin(pool, body)
+
+  if (pathStr === 'support/ticket') return h.handleCreateTicket(pool, body)
+  if (pathStr === 'support/feedback') return h.handleCreateFeedback(pool, body)
 
   const r = await requireAuth(request)
   if ('error' in r) {
@@ -326,6 +348,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const adminErr = requireAdmin(auth)
     if (adminErr) return adminErr
     return h.handleToggleFeature(pool, path[2], body)
+  }
+  // Admin reply to support tickets
+  if (path.length === 3 && path[0] === 'admin' && path[1] === 'tickets' && /^\d+$/.test(path[2])) {
+    const adminErr = requireAdmin(auth)
+    if (adminErr) return adminErr
+    return h.handleReplyTicket(pool, parseInt(path[2], 10), body)
+  }
+  // Admin reply to feedback
+  if (path.length === 3 && path[0] === 'admin' && path[1] === 'feedback' && /^\d+$/.test(path[2])) {
+    const adminErr = requireAdmin(auth)
+    if (adminErr) return adminErr
+    return h.handleReplyFeedback(pool, parseInt(path[2], 10), body)
   }
   return Response.json({ error: 'Not found' }, { status: 404 })
 }
