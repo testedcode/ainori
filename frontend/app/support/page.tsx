@@ -4,8 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import {
   Leaf, MessageSquare, Ticket, ChevronDown, ChevronUp,
-  Car, Search, Plus, CheckCircle2, ArrowRight, Zap,
-  IndianRupee, ShieldCheck, MapPin, Clock, Users,
+  Car, Search, CheckCircle2, ArrowRight, Zap,
+  IndianRupee, ShieldCheck, MapPin, Users,
   Sparkles, HelpCircle, Send, Star, AlertCircle,
   LifeBuoy, BookOpen, Activity, CreditCard
 } from 'lucide-react'
@@ -20,30 +20,28 @@ const USER_FLOWS = [
   {
     role: 'Ride Seeker',
     icon: Search,
-    color: 'blue',
     gradient: 'from-blue-600/20 to-blue-900/10',
     border: 'border-blue-500/20',
     iconBg: 'bg-blue-600/20',
     iconColor: 'text-blue-400',
     steps: [
       { title: 'Sign Up & Get Verified', desc: 'Register with your work email. Our team verifies your profile to maintain a trusted network.' },
-      { title: 'Explore Active Corridors', desc: 'Browse routes like Casa Rio → RCP, Casa Bella → RCP. Each corridor has live rides posted by colleagues.' },
+      { title: 'Explore Active Corridors', desc: 'Browse routes like Casa Rio to RCP, Casa Bella to RCP. Each corridor has live rides posted by colleagues.' },
       { title: 'Pick a Ride & Request Seat', desc: 'Choose a ride that matches your time. Select seats and send a join request to the host.' },
-      { title: 'Get Confirmed & Commute', desc: 'Host accepts your request. You\'re confirmed! Meet at the pickup point and commute together.' },
+      { title: 'Get Confirmed & Commute', desc: 'Host accepts your request. You are confirmed! Meet at the pickup point and commute together.' },
       { title: 'Settle Payment', desc: 'After the trip, settle your seat contribution directly via UPI to the host.' },
     ]
   },
   {
     role: 'Ride Host',
     icon: Car,
-    color: 'green',
     gradient: 'from-green-600/20 to-green-900/10',
     border: 'border-green-500/20',
     iconBg: 'bg-green-600/20',
     iconColor: 'text-green-400',
     steps: [
       { title: 'Add Your Vehicle', desc: 'Go to My Garage and register your car. This links to all rides you offer.' },
-      { title: 'Post Your Commute', desc: 'Use "Share Ride" to publish your daily commute. Set date, time, pickup, drop-off, and price per seat.' },
+      { title: 'Post Your Commute', desc: 'Use Share Ride to publish your daily commute. Set date, time, pickup, drop-off, and price per seat.' },
       { title: 'Review Join Requests', desc: 'Co-commuters will request seats. Review their profiles and accept or decline.' },
       { title: 'Drive & Drop', desc: 'Pick up confirmed passengers at the agreed point and commute to your destination.' },
       { title: 'Collect Contribution', desc: 'Co-commuters pay you via UPI after the trip. Mark payment as received in the app.' },
@@ -54,14 +52,14 @@ const USER_FLOWS = [
 const FAQ_ITEMS = [
   {
     q: 'How do I know my ride is confirmed?',
-    a: 'Once the host accepts your seat request, your dashboard shows the ride as "Confirmed" under Upcoming Trips. You'll also see the host's contact details and pickup point clearly.'
+    a: `Once the host accepts your seat request, your dashboard shows the ride as "Confirmed" under Upcoming Trips. You will also see the host's contact details and pickup point clearly.`
   },
   {
     q: 'Can I cancel a ride after booking?',
-    a: 'Yes, you can retract a pending request any time before it's accepted. Once accepted, please message the host and cancel at least 1 hour before the ride time. Repeated last-minute cancellations affect your trust score.'
+    a: `Yes, you can retract a pending request any time before it is accepted. Once accepted, please message the host and cancel at least 1 hour before the ride time. Repeated last-minute cancellations affect your trust score.`
   },
   {
-    q: 'What if the host doesn't show up?',
+    q: `What if the host doesn't show up?`,
     a: 'Use the SOS / Report button on the ride detail page. Our team reviews all reports within 24 hours. Hosts with no-show patterns get flagged and suspended.'
   },
   {
@@ -74,34 +72,34 @@ const FAQ_ITEMS = [
   },
   {
     q: 'What is a corridor?',
-    a: 'A corridor is a fixed route between two key zones — for example, "Casa Rio → RCP". All rides within a corridor follow the same general path, making it easy to find co-commuters along your exact route.'
+    a: `A corridor is a fixed route between two key zones — for example, "Casa Rio to RCP". All rides within a corridor follow the same general path, making it easy to find co-commuters along your exact route.`
   },
   {
     q: 'Can I do a round trip (morning + evening)?',
-    a: 'Yes! When posting a ride, enable the "Round Trip (+10hr)" toggle. It automatically creates a return ride 10 hours after your departure.'
+    a: `Yes! When posting a ride, enable the "Round Trip (+10hr)" toggle. It automatically creates a return ride 10 hours after your departure.`
   },
   {
     q: 'Is my personal info visible to everyone?',
-    a: 'No. Your phone number and UPI ID are only shared with confirmed co-commuters on your accepted ride. Public profiles only show your name and trust score.'
+    a: `No. Your phone number and UPI ID are only shared with confirmed co-commuters on your accepted ride. Public profiles only show your name and trust score.`
   },
   {
     q: 'What is a Trust Score?',
-    a: 'Your trust score reflects ride history, punctuality, payment settlements, and community ratings. It ranges from 0–10 and is visible to others when they consider joining your ride.'
+    a: `Your trust score reflects ride history, punctuality, payment settlements, and community ratings. It ranges from 0-10 and is visible to others when they consider joining your ride.`
   },
   {
     q: 'Can I message someone before confirming a seat?',
-    a: 'Currently, messaging is available to confirmed participants of a ride. You can view the host\'s corridor and pickup info before sending a join request.'
+    a: `Currently, messaging is available to confirmed participants of a ride. You can view the host's corridor and pickup info before sending a join request.`
   },
 ]
 
 const CORRIDOR_PRICING = [
-  { corridor: 'Casa Rio → RCP', min: 80, suggested: 120, distance: '~8 km', seats: '1–4' },
-  { corridor: 'Casa Bella → RCP', min: 80, suggested: 110, distance: '~7 km', seats: '1–4' },
-  { corridor: 'Lakeshore → RCP', min: 90, suggested: 130, distance: '~9 km', seats: '1–3' },
-  { corridor: 'Kharghar → RCP', min: 100, suggested: 150, distance: '~12 km', seats: '1–3' },
+  { corridor: 'Casa Rio to RCP', min: 80, suggested: 120, distance: '~8 km', seats: '1-4' },
+  { corridor: 'Casa Bella to RCP', min: 80, suggested: 110, distance: '~7 km', seats: '1-4' },
+  { corridor: 'Lakeshore to RCP', min: 90, suggested: 130, distance: '~9 km', seats: '1-3' },
+  { corridor: 'Kharghar to RCP', min: 100, suggested: 150, distance: '~12 km', seats: '1-3' },
 ]
 
-// ─── ACCORDION ITEM ───────────────────────────────────────────────────────────
+// ─── ACCORDION ───────────────────────────────────────────────────────────────
 function AccordionItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false)
   return (
@@ -133,12 +131,8 @@ function AccordionItem({ q, a }: { q: string; a: string }) {
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function SupportPage() {
   const [activeTab, setActiveTab] = useState<TabType>('how-it-works')
-
-  // Feedback form
   const [feedbackForm, setFeedbackForm] = useState({ name: '', email: '', rating: 5, message: '', type: 'general' })
   const [feedbackLoading, setFeedbackLoading] = useState(false)
-
-  // Support ticket form
   const [ticketForm, setTicketForm] = useState({ name: '', email: '', trip_id: '', issue_type: 'payment', description: '', urgency: 'normal' })
   const [ticketLoading, setTicketLoading] = useState(false)
 
@@ -149,9 +143,8 @@ export default function SupportPage() {
       return
     }
     setFeedbackLoading(true)
-    // Simulate submission — replace with real API when ready
     await new Promise(r => setTimeout(r, 1200))
-    toast.success('🙏 Thank you! Your feedback has been received.', { duration: 4000 })
+    toast.success('Thank you! Your feedback has been received.', { duration: 4000 })
     setFeedbackForm({ name: '', email: '', rating: 5, message: '', type: 'general' })
     setFeedbackLoading(false)
   }
@@ -165,12 +158,12 @@ export default function SupportPage() {
     setTicketLoading(true)
     await new Promise(r => setTimeout(r, 1400))
     const ticketId = `JOOL-${Date.now().toString().slice(-6)}`
-    toast.success(`✅ Ticket ${ticketId} raised! We'll respond within 24 hours.`, { duration: 6000 })
+    toast.success(`Ticket ${ticketId} raised! We will respond within 24 hours.`, { duration: 6000 })
     setTicketForm({ name: '', email: '', trip_id: '', issue_type: 'payment', description: '', urgency: 'normal' })
     setTicketLoading(false)
   }
 
-  const tabs: { id: TabType; label: string; icon: any }[] = [
+  const tabs: { id: TabType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'how-it-works', label: 'How It Works', icon: BookOpen },
     { id: 'faq', label: 'FAQ', icon: HelpCircle },
     { id: 'payments', label: 'Payments', icon: CreditCard },
@@ -180,13 +173,12 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white font-sans pb-32">
-      {/* Background glow */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-blue-600/5 blur-[150px] -z-10 pointer-events-none" />
       <div className="fixed top-1/3 right-0 w-[400px] h-[400px] bg-indigo-600/5 blur-[120px] -z-10 pointer-events-none" />
 
       <JoolNav />
 
-      {/* ── HERO HEADER ────────────────────────────────────────────────────── */}
+      {/* HERO */}
       <section className="max-w-6xl mx-auto px-6 md:px-12 pt-16 pb-8">
         <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
           <div>
@@ -194,7 +186,7 @@ export default function SupportPage() {
               <LifeBuoy className="w-3 h-3" /> JOOL SUPPORT CENTER
             </div>
             <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-white leading-tight">
-              We've Got<br />
+              We have Got<br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Your Back.</span>
             </h1>
             <p className="text-slate-400 mt-4 text-base max-w-lg leading-relaxed">
@@ -202,7 +194,7 @@ export default function SupportPage() {
             </p>
           </div>
 
-          {/* Carbon Highlight Card */}
+          {/* Carbon Highlight */}
           <div className="bg-gradient-to-br from-green-600/20 to-emerald-900/20 border border-green-500/20 rounded-[2rem] p-6 md:p-8 min-w-[260px] relative overflow-hidden group">
             <div className="absolute -top-6 -right-6 w-32 h-32 bg-green-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
             <div className="relative z-10">
@@ -216,7 +208,7 @@ export default function SupportPage() {
                 </div>
               </div>
               <p className="text-white font-bold text-sm leading-relaxed">
-                Every shared seat on JOOL means one fewer solo car on the road — directly reducing CO₂ emissions for your corridor.
+                Every shared seat on JOOL means one fewer solo car on the road — directly reducing CO2 emissions for your corridor.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {['Fewer Solo Cars', 'Verified Routes', 'Tracked Impact'].map(tag => (
@@ -226,16 +218,16 @@ export default function SupportPage() {
                 ))}
               </div>
               <p className="mt-4 text-[10px] text-white/30 font-medium">
-                Your carbon credit balance in the app reflects the cumulative impact of your carpooling activity over time.
+                Your carbon credit balance in the app reflects your cumulative carpooling impact over time.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── TABS ───────────────────────────────────────────────────────────── */}
+      {/* TABS */}
       <div className="max-w-6xl mx-auto px-6 md:px-12 mb-8">
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2">
           {tabs.map(tab => {
             const Icon = tab.icon
             const active = activeTab === tab.id
@@ -244,9 +236,7 @@ export default function SupportPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${
-                  active
-                    ? 'bg-white text-black shadow-xl'
-                    : 'bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10'
+                  active ? 'bg-white text-black shadow-xl' : 'bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -257,7 +247,7 @@ export default function SupportPage() {
         </div>
       </div>
 
-      {/* ── CONTENT ────────────────────────────────────────────────────────── */}
+      {/* CONTENT */}
       <div className="max-w-6xl mx-auto px-6 md:px-12">
 
         {/* HOW IT WORKS */}
@@ -266,7 +256,7 @@ export default function SupportPage() {
             <div className="text-center mb-4">
               <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">User Journey</p>
               <h2 className="text-3xl font-black tracking-tighter">Two ways to use JOOL</h2>
-              <p className="text-slate-500 mt-2 text-sm">Whether you're offering a ride or looking for one, here's exactly how it works.</p>
+              <p className="text-slate-500 mt-2 text-sm">Whether you are offering a ride or looking for one, here is exactly how it works.</p>
             </div>
 
             {USER_FLOWS.map((flow) => {
@@ -284,7 +274,6 @@ export default function SupportPage() {
                   </div>
 
                   <div className="relative">
-                    {/* Timeline line */}
                     <div className="absolute left-5 top-6 bottom-6 w-[2px] bg-white/10 hidden md:block" />
                     <div className="space-y-6">
                       {flow.steps.map((step, i) => (
@@ -304,13 +293,13 @@ export default function SupportPage() {
               )
             })}
 
-            {/* Platform Features Grid */}
+            {/* Platform Features */}
             <div>
               <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mb-8 text-center">Platform Features</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
                   { icon: ShieldCheck, title: 'Verified Network', desc: 'Every user is profile-verified. Only real colleagues from your building commute together.', color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20' },
-                  { icon: Activity, title: 'Live Ride Tracking', desc: 'Track ride status in real-time — from "open" through pickup and drop-off via the ride detail page.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+                  { icon: Activity, title: 'Live Ride Tracking', desc: 'Track ride status in real-time from open through pickup and drop-off via the ride detail page.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
                   { icon: Zap, title: 'AI Corridor Matching', desc: 'Our routing engine suggests the best rides based on your corridor, time of day, and past commutes.', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
                   { icon: IndianRupee, title: 'Transparent Pricing', desc: 'Price per seat is set by the host. No surge, no platform commission — what you see is what you pay.', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
                   { icon: Users, title: 'Co-Commuter Profiles', desc: 'See trust scores, ride history, and ratings before sending or accepting a join request.', color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20' },
@@ -344,7 +333,7 @@ export default function SupportPage() {
             </div>
             <div className="mt-12 text-center bg-white/[0.03] border border-white/10 rounded-[2rem] p-8">
               <HelpCircle className="w-8 h-8 text-white/20 mx-auto mb-3" />
-              <p className="text-white/60 text-sm mb-4">Still have a question we didn't cover?</p>
+              <p className="text-white/60 text-sm mb-4">Still have a question we did not cover?</p>
               <button
                 onClick={() => setActiveTab('ticket')}
                 className="px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-black hover:bg-blue-500 transition-colors inline-flex items-center gap-2"
@@ -364,7 +353,6 @@ export default function SupportPage() {
               <p className="text-slate-500 mt-2 text-sm max-w-xl mx-auto">JOOL has zero platform commission. Contributions go directly from co-commuter to host via UPI.</p>
             </div>
 
-            {/* How Payment Works */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
               {[
                 { step: '01', title: 'Ride Confirmed', desc: 'Host accepts your seat request. Your spot is reserved.', icon: CheckCircle2, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20' },
@@ -382,7 +370,7 @@ export default function SupportPage() {
               ))}
             </div>
 
-            {/* Corridor Minimum Pricing Table */}
+            {/* Pricing Table */}
             <div className="bg-white/[0.03] border border-white/10 rounded-[2rem] overflow-hidden">
               <div className="p-6 border-b border-white/10">
                 <div className="flex items-center gap-3">
@@ -409,25 +397,15 @@ export default function SupportPage() {
                   <tbody>
                     {CORRIDOR_PRICING.map((row, i) => (
                       <tr key={i} className="border-b border-white/5 hover:bg-white/[0.03] transition-colors">
-                        <td className="px-6 py-4">
-                          <span className="font-bold text-white text-sm">{row.corridor}</span>
+                        <td className="px-6 py-4"><span className="font-bold text-white text-sm">{row.corridor}</span></td>
+                        <td className="px-6 py-4 text-center"><span className="text-slate-400 text-sm">{row.distance}</span></td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-black rounded-full">Rs.{row.min}</span>
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <span className="text-slate-400 text-sm">{row.distance}</span>
+                          <span className="px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-black rounded-full">Rs.{row.suggested}</span>
                         </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-black rounded-full">
-                            ₹{row.min}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-black rounded-full">
-                            ₹{row.suggested}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <span className="text-slate-400 text-sm">{row.seats}</span>
-                        </td>
+                        <td className="px-6 py-4 text-center"><span className="text-slate-400 text-sm">{row.seats}</span></td>
                       </tr>
                     ))}
                   </tbody>
@@ -441,7 +419,6 @@ export default function SupportPage() {
               </div>
             </div>
 
-            {/* Payment Notes */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white/[0.03] border border-white/10 rounded-[2rem] p-6">
                 <div className="flex items-center gap-3 mb-4">
@@ -449,7 +426,12 @@ export default function SupportPage() {
                   <h4 className="font-black text-white">What JOOL guarantees</h4>
                 </div>
                 <ul className="space-y-2">
-                  {['Transparent UPI-based payment between peers', 'No hidden fees or platform deductions', 'Payment dispute tracking via support tickets', 'Host UPI visible only to confirmed co-commuters'].map((item, i) => (
+                  {[
+                    'Transparent UPI-based payment between peers',
+                    'No hidden fees or platform deductions',
+                    'Payment dispute tracking via support tickets',
+                    'Host UPI visible only to confirmed co-commuters',
+                  ].map((item, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm text-slate-400">
                       <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
                       {item}
@@ -463,7 +445,7 @@ export default function SupportPage() {
                   <h4 className="font-black text-white">Payment Disputes</h4>
                 </div>
                 <p className="text-sm text-slate-400 leading-relaxed mb-4">
-                  If you've paid but the host hasn't marked it received, or vice versa — raise a support ticket with your <strong className="text-white">Trip ID</strong>. Our team will review within 24 hours.
+                  If you have paid but the host has not marked it received, or vice versa — raise a support ticket with your <strong className="text-white">Trip ID</strong>. Our team will review within 24 hours.
                 </p>
                 <button
                   onClick={() => setActiveTab('ticket')}
@@ -486,15 +468,14 @@ export default function SupportPage() {
             </div>
 
             <form onSubmit={handleFeedbackSubmit} className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 space-y-6">
-              {/* Feedback Type */}
               <div>
                 <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-3">Feedback Type</label>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { id: 'general', label: '💬 General' },
-                    { id: 'feature', label: '✨ Feature Request' },
-                    { id: 'bug', label: '🐛 Bug Report' },
-                    { id: 'experience', label: '🚗 Ride Experience' },
+                    { id: 'general', label: 'General' },
+                    { id: 'feature', label: 'Feature Request' },
+                    { id: 'bug', label: 'Bug Report' },
+                    { id: 'experience', label: 'Ride Experience' },
                   ].map(t => (
                     <button
                       key={t.id}
@@ -508,7 +489,6 @@ export default function SupportPage() {
                 </div>
               </div>
 
-              {/* Rating */}
               <div>
                 <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-3">Overall Rating</label>
                 <div className="flex items-center gap-2">
@@ -526,7 +506,6 @@ export default function SupportPage() {
                 </div>
               </div>
 
-              {/* Name */}
               <div>
                 <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-2">Your Name (optional)</label>
                 <input
@@ -538,7 +517,6 @@ export default function SupportPage() {
                 />
               </div>
 
-              {/* Email */}
               <div>
                 <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-2">Email Address *</label>
                 <input
@@ -551,7 +529,6 @@ export default function SupportPage() {
                 />
               </div>
 
-              {/* Message */}
               <div>
                 <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-2">Your Feedback *</label>
                 <textarea
@@ -559,7 +536,7 @@ export default function SupportPage() {
                   rows={5}
                   value={feedbackForm.message}
                   onChange={e => setFeedbackForm(f => ({ ...f, message: e.target.value }))}
-                  placeholder="Tell us what's working, what's not, or what you'd love to see..."
+                  placeholder="Tell us what is working, what is not, or what you would love to see..."
                   className="w-full bg-black/40 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500 transition-colors resize-none"
                 />
               </div>
@@ -569,11 +546,10 @@ export default function SupportPage() {
                 disabled={feedbackLoading}
                 className="w-full py-4 bg-white text-black font-black rounded-2xl hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-3 text-sm disabled:opacity-50"
               >
-                {feedbackLoading ? (
-                  <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <><Send className="w-4 h-4" /> Send Feedback</>
-                )}
+                {feedbackLoading
+                  ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  : <><Send className="w-4 h-4" /> Send Feedback</>
+                }
               </button>
             </form>
           </div>
@@ -588,28 +564,27 @@ export default function SupportPage() {
               <p className="text-slate-500 mt-2 text-sm">Our team typically responds within 24 hours. Include your Trip ID for faster resolution.</p>
             </div>
 
-            {/* Where to find Trip ID */}
             <div className="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-4 mb-6 flex items-start gap-3">
               <Sparkles className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-bold text-white mb-1">Where to find your Trip ID?</p>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Go to <strong className="text-blue-400">Dashboard → Your Upcoming/Past Trips</strong> and click on the ride. The Trip ID (e.g. <code className="bg-white/10 px-1.5 py-0.5 rounded text-blue-300 font-mono">#1042</code>) is shown at the top of the ride detail page. Including it helps us find your trip instantly.
+                  Go to <strong className="text-blue-400">Dashboard then Your Upcoming / Past Trips</strong> and click on the ride.
+                  The Trip ID (e.g. <code className="bg-white/10 px-1.5 py-0.5 rounded text-blue-300 font-mono">#1042</code>) is shown at the top of the ride detail page. Including it helps us find your trip instantly.
                 </p>
               </div>
             </div>
 
             <form onSubmit={handleTicketSubmit} className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 space-y-6">
-              {/* Issue Type */}
               <div>
                 <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-3">Issue Type *</label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { id: 'payment', label: '💳 Payment Issue', desc: 'Disputes, UPI, amounts' },
-                    { id: 'ride', label: '🚗 Ride Problem', desc: 'No-show, cancellation' },
-                    { id: 'account', label: '👤 Account Issue', desc: 'Login, profile, access' },
-                    { id: 'safety', label: '🛡 Safety Concern', desc: 'Behavior, SOS, report' },
-                    { id: 'other', label: '📋 Other', desc: 'Anything else' },
+                    { id: 'payment', label: 'Payment Issue', desc: 'Disputes, UPI, amounts' },
+                    { id: 'ride', label: 'Ride Problem', desc: 'No-show, cancellation' },
+                    { id: 'account', label: 'Account Issue', desc: 'Login, profile, access' },
+                    { id: 'safety', label: 'Safety Concern', desc: 'Behavior, SOS, report' },
+                    { id: 'other', label: 'Other', desc: 'Anything else' },
                   ].map(t => (
                     <button
                       key={t.id}
@@ -624,7 +599,6 @@ export default function SupportPage() {
                 </div>
               </div>
 
-              {/* Name */}
               <div>
                 <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-2">Your Name</label>
                 <input
@@ -636,7 +610,6 @@ export default function SupportPage() {
                 />
               </div>
 
-              {/* Email */}
               <div>
                 <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-2">Email Address *</label>
                 <input
@@ -649,7 +622,6 @@ export default function SupportPage() {
                 />
               </div>
 
-              {/* Trip ID */}
               <div>
                 <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-2">
                   Trip ID <span className="text-white/20 normal-case font-medium">(if applicable)</span>
@@ -666,14 +638,13 @@ export default function SupportPage() {
                 </div>
               </div>
 
-              {/* Urgency */}
               <div>
                 <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-3">Priority</label>
                 <div className="flex gap-2">
                   {[
-                    { id: 'normal', label: '🟢 Normal', sub: '24–48 hrs' },
-                    { id: 'high', label: '🟡 High', sub: '12–24 hrs' },
-                    { id: 'urgent', label: '🔴 Urgent', sub: 'Safety / Same day' },
+                    { id: 'normal', label: 'Normal', sub: '24-48 hrs' },
+                    { id: 'high', label: 'High', sub: '12-24 hrs' },
+                    { id: 'urgent', label: 'Urgent', sub: 'Safety / Same day' },
                   ].map(u => (
                     <button
                       key={u.id}
@@ -688,7 +659,6 @@ export default function SupportPage() {
                 </div>
               </div>
 
-              {/* Description */}
               <div>
                 <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-2">Describe the Issue *</label>
                 <textarea
@@ -696,7 +666,7 @@ export default function SupportPage() {
                   rows={5}
                   value={ticketForm.description}
                   onChange={e => setTicketForm(f => ({ ...f, description: e.target.value }))}
-                  placeholder="Be as specific as possible — include date, time, what happened, and what resolution you're looking for..."
+                  placeholder="Be as specific as possible — include date, time, what happened, and what resolution you are looking for..."
                   className="w-full bg-black/40 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500 transition-colors resize-none"
                 />
               </div>
@@ -706,15 +676,14 @@ export default function SupportPage() {
                 disabled={ticketLoading}
                 className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-500 transition-all flex items-center justify-center gap-3 text-sm disabled:opacity-50 shadow-xl shadow-blue-600/20"
               >
-                {ticketLoading ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <><Ticket className="w-4 h-4" /> Submit Ticket</>
-                )}
+                {ticketLoading
+                  ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : <><Ticket className="w-4 h-4" /> Submit Ticket</>
+                }
               </button>
 
               <p className="text-center text-[10px] text-white/20">
-                You'll receive a confirmation with your ticket ID. Our team responds to all tickets — please do not submit duplicates.
+                You will receive a confirmation with your ticket ID. Our team responds to all tickets — please do not submit duplicates.
               </p>
             </form>
           </div>
