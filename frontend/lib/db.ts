@@ -1,6 +1,7 @@
 import { Pool } from 'pg'
 
 const globalForDb = globalThis as unknown as { pool: Pool | null }
+let schemaSyncPromise: Promise<void> | null = null
 
 /** Normalize connection string so password with ! or other special chars works (encode for URL). */
 function normalizeConnectionString(url: string): string {
@@ -186,7 +187,29 @@ class HybridPool {
     this.mockPool = new MockPool()
   }
 
+  private async ensureRuntimeSchema() {
+    if (!schemaSyncPromise) {
+      schemaSyncPromise = (async () => {
+        const statements = [
+          `ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`,
+          `ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT`,
+          `ALTER TABLE users ADD COLUMN IF NOT EXISTS qr_code_url TEXT`,
+          `ALTER TABLE corridors ADD COLUMN IF NOT EXISTS description TEXT`,
+          `ALTER TABLE corridors ADD COLUMN IF NOT EXISTS image_url TEXT`,
+          `ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS image_url TEXT`,
+        ]
+        for (const statement of statements) {
+          await this.realPool.query(statement)
+        }
+      })().catch((error: any) => {
+        console.error('Runtime schema sync failed:', error?.message || error)
+      })
+    }
+    await schemaSyncPromise
+  }
+
   async query(text: string, params?: any[]): Promise<any> {
+    await this.ensureRuntimeSchema()
     try {
       return await this.realPool.query(text, params)
     } catch (e: any) {
