@@ -17,8 +17,51 @@ function normalizeConnectionString(url: string): string {
   return prefix + encoded + afterAt
 }
 
+function isIdentityCriticalQuery(text: string): boolean {
+  const t = text.toLowerCase()
+  return (
+    t.includes('select id, email, role from users') ||
+    t.includes('from users where id =') ||
+    t.includes('select id, email, name, phone, city, role, carbon_credits') ||
+    t.includes('update users set last_seen')
+  )
+}
+
 // Mock Pool that prevents 500 errors if DB is unreachable locally
 class MockPool {
+  private static usersByEmail = new Map<string, any>()
+  private static usersById = new Map<number, any>()
+  private static nextUserId = 1000
+
+  private static ensureUser(email: string, role = 'user', nameHint?: string) {
+    const normalizedEmail = (email || '').toLowerCase()
+    const existing = this.usersByEmail.get(normalizedEmail)
+    if (existing) return existing
+
+    const id = this.nextUserId++
+    const now = new Date().toISOString()
+    const inferredName = nameHint || (normalizedEmail.split('@')[0] || 'User')
+    const user = {
+      id,
+      email: normalizedEmail || `user${id}@local.dev`,
+      name: inferredName,
+      role: role || 'user',
+      carbon_credits: 0,
+      phone: null,
+      city: null,
+      upi_id: null,
+      avatar_url: null,
+      bio: null,
+      qr_code_url: null,
+      last_seen: now,
+      created_at: now,
+      updated_at: now,
+    }
+    this.usersByEmail.set(user.email, user)
+    this.usersById.set(user.id, user)
+    return user
+  }
+
   async query(text: string, params?: any[]) {
     const t = text.toLowerCase();
     console.warn('[Mock DB] Query executed without DATABASE_URL:', text.slice(0, 100));
@@ -26,26 +69,59 @@ class MockPool {
     if (t.includes('count(*) from users')) return { rows: [{ count: 142 }] };
     if (t.includes('count(*) from rides')) return { rows: [{ count: 85 }] };
     
-    // Handle INSERTs (return a dummy ID)
+    // Identity-safe mock auth/profile behavior: deterministic per-email, no demo/admin fallback.
+    if (t.includes('select id, email, role from users')) {
+      const email = String(params?.[0] || '').toLowerCase()
+      const existing = MockPool.usersByEmail.get(email)
+      return { rows: existing ? [{ id: existing.id, email: existing.email, role: existing.role }] : [], rowCount: existing ? 1 : 0 };
+    }
+    if (t.includes('insert into users')) {
+      const email = String(params?.[0] || '').toLowerCase()
+      const name = String(params?.[1] || email.split('@')[0] || 'User')
+      const role = String(params?.[2] || 'user')
+      const user = MockPool.ensureUser(email, role, name)
+      return {
+        rows: [{ id: user.id, email: user.email, role: user.role }],
+        rowCount: 1
+      }
+    }
+    if (t.includes('update users set last_seen') && t.includes('where id =')) {
+      const id = Number(params?.[0])
+      const user = MockPool.usersById.get(id)
+      if (!user) return { rows: [], rowCount: 0 }
+      user.last_seen = new Date().toISOString()
+      user.updated_at = user.last_seen
+      return { rows: [], rowCount: 1 }
+    }
+    if ((t.includes('select id, email, name, phone, city, role, carbon_credits') || t.includes('from users where id =')) && t.includes('from users')) {
+      const id = Number(params?.[0])
+      const user = MockPool.usersById.get(id)
+      return { rows: user ? [user] : [], rowCount: user ? 1 : 0 }
+    }
+    if (t.includes('update users set') && t.includes('where id =')) {
+      const id = Number(params?.[params.length - 1])
+      const user = MockPool.usersById.get(id)
+      if (!user) return { rows: [], rowCount: 0 }
+
+      const keys = ['name', 'phone', 'city', 'upi_id', 'avatar_url', 'bio', 'qr_code_url']
+      for (let i = 0; i < params.length - 1 && i < keys.length; i++) {
+        user[keys[i]] = params[i]
+      }
+      user.updated_at = new Date().toISOString()
+      MockPool.usersByEmail.set(user.email, user)
+      MockPool.usersById.set(user.id, user)
+      return { rows: [], rowCount: 1 }
+    }
+
+    // Handle generic INSERTs (return a dummy ID)
     if (t.includes('insert into')) {
       return { rows: [{ id: Math.floor(Math.random() * 1000) + 100 }], rowCount: 1 };
     }
 
     // Handle common SELECT patterns
-    if (t.includes('select id, email, role from users')) {
-      return { rows: [{ id: 1, email: params?.[0] || 'demo@jool.ai', role: 'admin' }] };
-    }
-    if (t.includes('select id, email, name, phone, city, role, carbon_credits') || t.includes('from users where id =')) {
-      return { rows: [{ 
-        id: 1, 
-        email: 'demo@jool.ai', 
-        name: 'Demo User', 
-        role: 'admin', 
-        carbon_credits: 450,
-        phone: '9876543210',
-        city: 'Mumbai',
-        upi_id: 'demo@upi'
-      }] };
+    if (isIdentityCriticalQuery(t)) {
+      console.warn('[Mock DB] Identity-critical query had no mock handler; returning empty set.')
+      return { rows: [], rowCount: 0 }
     }
     if (t.includes('from corridors')) {
       return {
@@ -114,6 +190,10 @@ class HybridPool {
       return await this.realPool.query(text, params)
     } catch (e: any) {
       console.error('CRITICAL DB ERROR IN HYBRID POOL:', e.message)
+      if (isIdentityCriticalQuery(text)) {
+        console.error('Identity-critical query failed. Refusing mock fallback.')
+        throw e
+      }
       console.warn('Falling back to mock database response to keep UI alive.')
       return this.mockPool.query(text, params)
     }

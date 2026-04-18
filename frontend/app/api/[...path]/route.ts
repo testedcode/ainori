@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { getPool } from '@/lib/db'
-import { getAuthFromRequest, verifyToken } from '@/lib/auth-server'
+import { getAuthFromRequest } from '@/lib/auth-server'
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
 import * as h from '@/lib/api-handlers'
@@ -13,7 +13,28 @@ async function requireAuth(request: NextRequest) {
   
   // 1. Try legacy auth first (for transition)
   const legacyAuth = getAuthFromRequest(request)
-  if (legacyAuth) return { auth: legacyAuth }
+  if (legacyAuth) {
+    try {
+      const r = await pool.query(
+        'SELECT id, email, role FROM users WHERE id = $1 AND email = $2',
+        [legacyAuth.userId, legacyAuth.email]
+      )
+      if (r.rows.length === 0) {
+        return { error: Response.json({ error: 'Session is invalid. Please login again.' }, { status: 401 }) }
+      }
+      const row = r.rows[0]
+      return {
+        auth: {
+          userId: row.id,
+          email: row.email,
+          role: row.role,
+        },
+      }
+    } catch (dbError: any) {
+      console.error('Legacy auth validation failed:', dbError?.message || dbError)
+      return { error: Response.json({ error: 'Could not validate your session. Please re-login.' }, { status: 503 }) }
+    }
+  }
 
   // 2. Try Supabase Auth
   try {
@@ -39,10 +60,16 @@ async function requireAuth(request: NextRequest) {
 
     if (user && user.email) {
       // 1. Fetch role and userId from our database based on email
-      const r = await pool.query(
-        'SELECT id, email, role FROM users WHERE email = $1',
-        [user.email]
-      )
+      let r: any
+      try {
+        r = await pool.query(
+          'SELECT id, email, role FROM users WHERE email = $1',
+          [user.email]
+        )
+      } catch (dbError: any) {
+        console.error('Auth user lookup failed:', dbError?.message || dbError)
+        return { error: Response.json({ error: 'Could not verify your account right now. Please re-login.' }, { status: 503 }) }
+      }
 
       if (r.rows.length > 0) {
         const row = r.rows[0]
@@ -74,7 +101,7 @@ async function requireAuth(request: NextRequest) {
           }
         } catch (e: any) {
           console.error('Error auto-creating PG user:', e)
-          return { error: Response.json({ error: 'Database sync failed: ' + e.message }, { status: 500 }) }
+          return { error: Response.json({ error: 'Could not finish account sync. Please re-login.' }, { status: 503 }) }
         }
       }
     } else {
@@ -111,23 +138,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         const token = authHeader.split(' ')[1]
         const payload = verifyToken(token)
         if (payload) {
-          // Try DB first, fall back to token data
+          // Try DB first; if unavailable, use normal auth path below.
           try {
             const r = await pool.query(
               `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url FROM users WHERE id = $1`,
               [payload.user_id]
             )
             if (r.rows.length > 0) return Response.json(r.rows[0])
-          } catch {}
-          // Fallback: return profile from JWT payload
-          return Response.json({
-            id: payload.user_id,
-            email: payload.email,
-            name: payload.email.split('@')[0],
-            role: payload.role,
-            carbon_credits: 450,
-            phone: null, city: null, bio: null, qr_code_url: null
-          })
+          } catch {
+            console.warn('Profile fast path DB read failed; trying authenticated handler path.')
+          }
         }
       } catch {}
     }

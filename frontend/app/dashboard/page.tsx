@@ -106,7 +106,15 @@ export default function DashboardPage() {
           setUser(profile as unknown as UserProfile)
           localStorage.setItem('user', JSON.stringify(profile))
         }
-      } catch {
+      } catch (e: any) {
+        const status = e?.response?.status
+        if (status === 401 || status === 503) {
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          toast.error('Session validation failed. Please login again.')
+          router.push('/login')
+          return
+        }
         console.warn('Profile API unavailable, using cached data')
       }
 

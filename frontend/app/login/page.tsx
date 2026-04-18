@@ -29,6 +29,7 @@ export default function LoginPage() {
     try {
       // Primary: Try Supabase Auth
       let token = '';
+      let legacyUser: any = null
       try {
         const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
           email: formData.email,
@@ -43,7 +44,7 @@ export default function LoginPage() {
           const res = await api.post('/auth/login', { email: formData.email, password: formData.password }) as any;
           if (res.token) {
              token = res.token;
-             localStorage.setItem('user', JSON.stringify(res.user));
+             legacyUser = res.user || null
           } else {
              throw new Error('Custom login failed');
           }
@@ -53,21 +54,18 @@ export default function LoginPage() {
       }
 
       if (token) {
+        localStorage.removeItem('user')
         localStorage.setItem('token', token)
-        // Store minimal user data immediately so dashboard never gets stuck
-        if (!localStorage.getItem('user')) {
-          localStorage.setItem('user', JSON.stringify({
-            id: 1,
-            email: formData.email,
-            name: formData.email.split('@')[0],
-            role: formData.email.includes('admin') ? 'admin' : 'user',
-            carbon_credits: 450
-          }))
+        if (legacyUser) {
+          localStorage.setItem('user', JSON.stringify(legacyUser))
         }
-        // Try to fetch fresh profile in background (non-blocking)
+
+        // Always prefer server-verified profile to avoid stale identity.
         api.getProfile().then((profile) => {
           if (profile) localStorage.setItem('user', JSON.stringify(profile))
-        }).catch(() => {/* ignore — cached data will be used */})
+        }).catch(() => {
+          toast.error('Could not verify profile data. Please re-login if profile looks wrong.')
+        })
         
         toast.success('Login successful!')
         router.push('/dashboard')

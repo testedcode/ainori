@@ -72,8 +72,18 @@ export default function ProfilePage() {
           qr_code_url: data.qr_code_url || ''
         })
         localStorage.setItem('user', JSON.stringify(data))
+      } else {
+        throw new Error('Empty profile response')
       }
-    } catch (e) {
+    } catch (e: any) {
+      const status = e?.response?.status
+      if (status === 401 || status === 503) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        toast.error('Session verification failed. Please login again.')
+        router.push('/login')
+        return
+      }
       toast.error('Failed to load profile intelligence')
     } finally {
       setLoading(false)
