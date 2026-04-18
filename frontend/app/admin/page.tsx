@@ -31,14 +31,10 @@ type Tab = 'overview' | 'users' | 'corridors' | 'locations' | 'requests' | 'inbo
 interface SupportTicket { id: number; ref: string; name?: string; email: string; trip_id?: string; issue_type: string; urgency: string; description: string; status: string; admin_reply?: string; replied_at?: string; created_at: string }
 interface Feedback { id: number; name?: string; email: string; rating: number; type: string; message: string; status: string; admin_reply?: string; replied_at?: string; created_at: string }
 
+interface SubTicket { id: number; ref: string; name?: string; email: string; trip_id?: string; issue_type: string; urgency: string; description: string; status: string; admin_reply?: string; replied_at?: string; created_at: string }
+
 const DEMO_ANALYTICS: Analytics = { total_users: 347, total_rides: 1842, active_corridors: 4, completed_rides: 1650, total_revenue: 221040, total_credits: 8250 }
-const DEMO_USERS: User[] = [
-  { id: 2, name: 'Aayushi Singh', email: 'aayushi@example.com', role: 'user', carbon_credits: 420, created_at: '2026-01-10', approved: true, blocked: false },
-  { id: 3, name: 'Rajiv Mehta', email: 'rajiv@example.com', role: 'user', carbon_credits: 280, created_at: '2026-01-15', approved: true, blocked: false },
-  { id: 4, name: 'Samiksha Patil', email: 'samiksha@example.com', role: 'user', carbon_credits: 0, created_at: '2026-02-01', approved: false, blocked: false },
-  { id: 5, name: 'Priya Nair', email: 'priya@nair.com', role: 'user', carbon_credits: 150, created_at: '2026-02-10', approved: false, blocked: false },
-  { id: 6, name: 'Arjun Sharma', email: 'arjun@example.com', role: 'user', carbon_credits: 90, created_at: '2026-03-05', approved: true, blocked: true },
-]
+
 const DEMO_CORRIDORS: Corridor[] = [
   { id: 1, city_id: 1, name: 'Casa Rio', location_from: 'Casa Rio', location_to: 'RCP', description: 'Palava City Gate 1 to Reliance Corporate Park', is_active: true },
   { id: 2, city_id: 1, name: 'Casa Bella', location_from: 'Casa Bella', location_to: 'RCP', description: 'Casa Bella Main Gate to Reliance Corporate Park', is_active: true },
@@ -49,11 +45,6 @@ const DEMO_CITIES: City[] = [
   { id: 1, name: 'Mumbai', status: 'active' },
   { id: 2, name: 'Navi Mumbai', status: 'active' },
   { id: 3, name: 'Thane', status: 'locked' },
-]
-const DEMO_REQUESTS: RideRequest[] = [
-  { id: 1, rider_name: 'Samiksha Patil', driver_name: 'Aayushi Singh', pickup_point: 'Casa Rio Gate 2', seats_requested: 1, corridor_name: 'Casa Rio', ride_date: '2026-04-05', ride_time: '08:30', status: 'pending' },
-  { id: 2, rider_name: 'Priya Nair', driver_name: 'Rajiv Mehta', pickup_point: 'Casa Bella Main', seats_requested: 1, corridor_name: 'Casa Bella', ride_date: '2026-04-05', ride_time: '09:00', status: 'pending' },
-  { id: 3, rider_name: 'Arjun Sharma', driver_name: 'Aayushi Singh', pickup_point: 'Lakeshore Ph2', seats_requested: 2, corridor_name: 'Lakeshore', ride_date: '2026-04-04', ride_time: '08:00', status: 'accepted' },
 ]
 
 function StatCard({ label, value, sub, color, icon: Icon }: { label: string; value: string | number; sub?: string; color: string; icon: any }) {
@@ -74,10 +65,10 @@ export default function AdminPage() {
   const [user, setUser] = useState<any>(null)
   const [activeTab, setActiveTab] = useState<Tab>('overview')
   const [analytics, setAnalytics] = useState<Analytics>(DEMO_ANALYTICS)
-  const [users, setUsers] = useState<User[]>(DEMO_USERS)
+  const [users, setUsers] = useState<User[]>([])
   const [corridors, setCorridors] = useState<Corridor[]>(DEMO_CORRIDORS)
   const [cities, setCities] = useState<City[]>(DEMO_CITIES)
-  const [requests, setRequests] = useState<RideRequest[]>(DEMO_REQUESTS)
+  const [adminRides, setAdminRides] = useState<any[]>([])
   const [searchUser, setSearchUser] = useState('')
   const [showAddCorridor, setShowAddCorridor] = useState(false)
   const [editCorridorMode, setEditCorridorMode] = useState<number | null>(null)
@@ -156,14 +147,18 @@ export default function AdminPage() {
 
   const fetchAll = async () => {
     try {
-      const [a, cor, cit] = await Promise.all([
+      const [a, cor, cit, usrs, rds] = await Promise.all([
         api.get('/admin/analytics').catch(() => DEMO_ANALYTICS),
         api.get('/corridors').catch(() => DEMO_CORRIDORS),
         api.get('/cities').catch(() => DEMO_CITIES),
+        api.get('/admin/users').catch(() => []),
+        api.get('/rides').catch(() => [])
       ])
       if (a && typeof a === 'object' && 'total_users' in (a as object)) setAnalytics(a as Analytics)
       if (Array.isArray(cor) && cor.length > 0) setCorridors(cor as Corridor[])
       if (Array.isArray(cit) && cit.length > 0) setCities(cit as City[])
+      if (Array.isArray(usrs)) setUsers(usrs as User[])
+      if (Array.isArray(rds)) setAdminRides(rds)
     } catch {}
     // Fetch inbox
     try {
@@ -243,8 +238,7 @@ export default function AdminPage() {
     toast.success(`${newCity} expanded into network.`)
   }
   const handleRequest = (requestId: number, status: 'accepted' | 'rejected') => {
-    setRequests(prev => prev.map(r => r.id === requestId ? { ...r, status } : r))
-    toast.success(status === 'accepted' ? 'Ride validated.' : 'Ride request rejected.')
+    // Legacy function, replaced.
   }
 
   const sendTicketReply = async (id: number) => {
@@ -289,14 +283,15 @@ export default function AdminPage() {
     u.email.toLowerCase().includes(searchUser.toLowerCase())
   )
   const pendingUsers = users.filter(u => !u.approved && !u.blocked)
-  const pendingRequests = requests.filter(r => r.status === 'pending')
+  const liveRides = adminRides.filter(r => ['open', 'partially_filled', 'full'].includes(r.status))
+  const archivedRides = adminRides.filter(r => ['completed', 'cancelled'].includes(r.status))
 
   const TABS: { id: Tab; label: string; icon: any; badge?: number }[] = [
     { id: 'overview', label: 'Ecosystem', icon: BarChart3 },
     { id: 'users', label: 'Members', icon: Users, badge: pendingUsers.length || undefined },
     { id: 'corridors', label: 'Corridors', icon: MapPin },
     { id: 'locations', label: 'Cities', icon: Globe },
-    { id: 'requests', label: 'Ride Flow', icon: Car, badge: pendingRequests.length || undefined },
+    { id: 'requests', label: 'Ride Flow', icon: Car, badge: liveRides.length || undefined },
     { id: 'inbox', label: 'Inbox', icon: Inbox, badge: (openTicketCount + unreadFeedbackCount) || undefined },
   ]
 
@@ -623,21 +618,24 @@ export default function AdminPage() {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h2 className="text-3xl font-black mb-12">Global Traffic Audit</h2>
             
-            {pendingRequests.length > 0 && (
+            {liveRides.length > 0 && (
               <div className="mb-16">
                  <p className="text-[10px] font-black text-yellow-500 uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
-                   <AlertTriangle className="w-4 h-4" /> AWAITING CLEARANCE ({pendingRequests.length})
+                   <Activity className="w-4 h-4" /> LIVE RIDES ({liveRides.length})
                  </p>
                  <div className="space-y-4">
-                    {pendingRequests.map(r => (
-                      <div key={r.id} className="bg-white/5 border border-yellow-500/10 rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center gap-10">
+                    {liveRides.map(r => {
+                      const hasTicket = tickets.some(t => t.trip_id === String(r.id) && t.status !== 'closed');
+                      return (
+                      <div key={r.id} className="bg-white/5 border border-white/5 rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center gap-10">
                          <div className="flex-1">
-                            <div className="flex flex-wrap items-center gap-4 mb-4">
-                               <p className="text-2xl font-black text-white">{r.rider_name}</p>
-                               <ChevronRight className="w-6 h-6 text-white/10" />
-                               <p className="text-2xl font-black text-blue-400">{r.driver_name}</p>
+                            <div className="flex items-center gap-4 mb-4">
+                               <p className="text-2xl font-black text-white">{r.user_name}</p>
+                               <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.1em] ${r.status === 'full' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'bg-green-500/10 text-green-400 border border-green-500/20'}`}>
+                                  {r.status.replace('_', ' ')}
+                               </span>
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                                <div className="flex flex-col">
                                   <span className="text-[9px] font-black text-white/20 tracking-widest uppercase mb-1">Pick Location</span>
                                   <span className="text-xs font-bold text-white/60">{r.pickup_point}</span>
@@ -648,39 +646,45 @@ export default function AdminPage() {
                                </div>
                                <div className="flex flex-col">
                                   <span className="text-[9px] font-black text-white/20 tracking-widest uppercase mb-1">Schedule</span>
-                                  <span className="text-xs font-bold text-white/60">{r.ride_date} · {r.ride_time}</span>
-                                </div>
-                                <div className="flex flex-col">
-                                   <span className="text-[9px] font-black text-white/20 tracking-widest uppercase mb-1">Seats</span>
-                                   <span className="text-xs font-bold text-white/60">{r.seats_requested} Requested</span>
-                                </div>
-                             </div>
+                                  <span className="text-xs font-bold text-white/60">{new Date(r.ride_date).toLocaleDateString()} · {r.ride_time?.slice(0,5)}</span>
+                               </div>
+                               <div className="flex flex-col">
+                                  <span className="text-[9px] font-black text-white/20 tracking-widest uppercase mb-1">Capacity</span>
+                                  <span className="text-xs font-bold text-white/60">{r.available_seats} / {r.total_seats} Seats</span>
+                               </div>
+                            </div>
                          </div>
-                         <div className="flex gap-4 w-full md:w-auto">
-                            <button onClick={() => handleRequest(r.id, 'accepted')} className="flex-1 bg-green-600 hover:bg-green-700 text-white px-10 py-5 rounded-2xl font-black shadow-xl active:scale-95 transition-all">
-                               VALIDATE
-                            </button>
-                            <button onClick={() => handleRequest(r.id, 'rejected')} className="flex-1 bg-white/5 border border-white/5 text-white/40 hover:bg-red-600 hover:text-white px-10 py-5 rounded-2xl font-black transition-all">
-                               REJECT
-                            </button>
+                         <div className="flex flex-col gap-4 w-full md:w-auto items-end">
+                            {hasTicket && (
+                              <div className="flex items-center gap-1.5 min-w-max bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase">
+                                <Ticket className="w-3.5 h-3.5" /> FLAG
+                              </div>
+                            )}
+                            <Link href={`/rides/${r.id}`} className="min-w-max bg-blue-600 hover:bg-blue-700 text-white px-8 py-5 rounded-2xl font-black shadow-xl active:scale-95 transition-all text-sm uppercase tracking-widest inline-flex items-center gap-2">
+                               VIEW TRX <ArrowRight className="w-4 h-4" />
+                            </Link>
                          </div>
                       </div>
-                    ))}
+                    )})}
                  </div>
               </div>
             )}
 
             <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-6">ARCHIVED FLOWS</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               {requests.filter(r => r.status !== 'pending').map(r => (
-                 <div key={r.id} className={`bg-white/5 border rounded-[2rem] p-8 flex items-center justify-between ${r.status === 'accepted' ? 'border-green-500/5' : 'border-red-500/5 opacity-50'}`}>
+            <div className="grid grid-cols-1 gap-4">
+               {archivedRides.length === 0 && <p className="text-xs font-bold text-white/20 py-4">No archived rides</p>}
+               {archivedRides.map(r => (
+                 <div key={r.id} className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-6 flex items-center justify-between opacity-60">
                     <div>
-                       <p className="text-lg font-black">{r.rider_name} → {r.driver_name}</p>
-                       <p className="text-xs font-bold text-white/20 mt-1 uppercase tracking-widest">{r.corridor_name} · {r.ride_date}</p>
+                       <p className="text-lg font-black">{r.user_name}</p>
+                       <p className="text-xs font-bold text-white/30 mt-1 uppercase tracking-widest">{r.corridor_name} · {new Date(r.ride_date).toLocaleDateString()}</p>
                     </div>
-                    <span className={`text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.1em] ${r.status === 'accepted' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
-                       LOG: {r.status}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.1em] ${r.status === 'completed' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                         LOG: {r.status}
+                      </span>
+                      <Link href={`/rides/${r.id}`} className="p-2 border border-white/10 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-all"><ArrowRight className="w-4 h-4" /></Link>
+                    </div>
                  </div>
                ))}
             </div>

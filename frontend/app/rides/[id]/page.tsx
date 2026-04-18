@@ -64,7 +64,7 @@ export default function RideDetailPage() {
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  }, [messages.length])
 
   const fetchAll = async () => {
     try {
