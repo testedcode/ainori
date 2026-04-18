@@ -99,13 +99,14 @@ class MockPool {
       return { rows: user ? [user] : [], rowCount: user ? 1 : 0 }
     }
     if (t.includes('update users set') && t.includes('where id =')) {
-      const id = Number(params?.[params.length - 1])
+      const safeParams = params ?? []
+      const id = Number(safeParams[safeParams.length - 1])
       const user = MockPool.usersById.get(id)
       if (!user) return { rows: [], rowCount: 0 }
 
       const keys = ['name', 'phone', 'city', 'upi_id', 'avatar_url', 'bio', 'qr_code_url']
-      for (let i = 0; i < params.length - 1 && i < keys.length; i++) {
-        user[keys[i]] = params[i]
+      for (let i = 0; i < safeParams.length - 1 && i < keys.length; i++) {
+        user[keys[i]] = safeParams[i]
       }
       user.updated_at = new Date().toISOString()
       MockPool.usersByEmail.set(user.email, user)
