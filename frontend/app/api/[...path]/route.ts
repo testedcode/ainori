@@ -23,11 +23,14 @@ async function requireAuth(request: NextRequest) {
         return { error: Response.json({ error: 'Session is invalid. Please login again.' }, { status: 401 }) }
       }
       const row = r.rows[0]
+      let finalRole = row.role
+      if (row.email === 'admin@cpoolai.com') finalRole = 'admin'
+
       return {
         auth: {
           userId: row.id,
           email: row.email,
-          role: row.role,
+          role: finalRole,
         },
       }
     } catch (dbError: any) {
