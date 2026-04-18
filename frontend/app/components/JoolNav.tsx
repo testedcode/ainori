@@ -27,9 +27,12 @@ export default function JoolNav({ adminMode = false }: { adminMode?: boolean }) 
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    const { createClient } = await import('@/utils/supabase/client')
+    const supabase = createClient()
+    await supabase.auth.signOut()
     window.location.href = '/'
   }
 
