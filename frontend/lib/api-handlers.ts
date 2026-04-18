@@ -61,11 +61,22 @@ export async function handleLogin(pool: Pool, body: unknown) {
   const b = body as { email?: string; password?: string }
   if (!b?.email || !b?.password) return errResponse('Email and password required', 400)
   try {
-    const r = await pool.query(
-      `SELECT id, email, password_hash, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url
-       FROM users WHERE email = $1`,
-      [b.email]
-    )
+    let r: any
+    try {
+      r = await pool.query(
+        `SELECT id, email, password_hash, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url
+         FROM users WHERE email = $1`,
+        [b.email]
+      )
+    } catch (e: any) {
+      console.warn('Login full select failed, trying base columns', e.message)
+      r = await pool.query(
+        `SELECT id, email, password_hash, name, phone, city, role, carbon_credits, upi_id
+         FROM users WHERE email = $1`,
+        [b.email]
+      )
+    }
+
     if (r.rows.length === 0) return errResponse('Invalid credentials', 401)
     const row = r.rows[0]
     if (!comparePassword(b.password, row.password_hash)) return errResponse('Invalid credentials', 401)
@@ -79,9 +90,9 @@ export async function handleLogin(pool: Pool, body: unknown) {
       role: row.role,
       carbon_credits: row.carbon_credits,
       upi_id: row.upi_id,
-      avatar_url: row.avatar_url,
-      bio: row.bio,
-      qr_code_url: row.qr_code_url,
+      avatar_url: row.avatar_url || null,
+      bio: row.bio || null,
+      qr_code_url: row.qr_code_url || null,
     }
     return jsonResponse({ token, user })
   } catch (e: any) {
@@ -760,10 +771,18 @@ export async function handleUpdatePaymentStatus(pool: Pool, rideId: number, user
 }
 
 export async function handleGetAllUsers(pool: Pool, _auth: Auth) {
-  const r = await pool.query(
-    `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, created_at, updated_at FROM users ORDER BY created_at DESC`
-  )
-  return jsonResponse(r.rows)
+  try {
+    const r = await pool.query(
+      `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, created_at, updated_at FROM users ORDER BY created_at DESC`
+    )
+    return jsonResponse(r.rows)
+  } catch (e: any) {
+    console.warn('handleGetAllUsers full select failed, trying base columns', e.message)
+    const r2 = await pool.query(
+      `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, created_at, updated_at FROM users ORDER BY created_at DESC`
+    )
+    return jsonResponse(r2.rows.map(row => ({ ...row, avatar_url: null, bio: null, qr_code_url: null })))
+  }
 }
 
 export async function handleUpdateUser(pool: Pool, id: number, body: unknown, _auth: Auth) {

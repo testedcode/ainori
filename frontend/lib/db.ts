@@ -23,6 +23,7 @@ function isIdentityCriticalQuery(text: string): boolean {
   return (
     t.includes('select id, email, role from users') ||
     t.includes('from users where id =') ||
+    t.includes('from users where email =') ||
     t.includes('select id, email, name, phone, city, role, carbon_credits') ||
     t.includes('update users set last_seen')
   )
