@@ -45,15 +45,21 @@ async function requireAuth(request: NextRequest) {
     // Check for token in header first (more reliable for API calls)
     const authHeader = request.headers.get('authorization')
     let user = null
+    let bearerAttempted = false
     
     if (authHeader?.startsWith('Bearer ')) {
+      bearerAttempted = true
       const token = authHeader.split(' ')[1]
       const { data } = await supabase.auth.getUser(token)
       user = data.user
     }
     
-    // Fallback to cookies
+    // Fallback to cookies only when no explicit bearer token was provided.
+    // This avoids mixing identities from stale browser cookie sessions.
     if (!user) {
+      if (bearerAttempted) {
+        return { error: Response.json({ error: 'Invalid or expired session token. Please login again.' }, { status: 401 }) }
+      }
       const { data } = await supabase.auth.getUser()
       user = data.user
     }
