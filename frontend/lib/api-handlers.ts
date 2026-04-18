@@ -62,7 +62,7 @@ export async function handleLogin(pool: Pool, body: unknown) {
   if (!b?.email || !b?.password) return errResponse('Email and password required', 400)
   try {
     const r = await pool.query(
-      `SELECT id, email, password_hash, name, phone, city, role, carbon_credits, upi_id
+      `SELECT id, email, password_hash, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url
        FROM users WHERE email = $1`,
       [b.email]
     )
@@ -79,6 +79,9 @@ export async function handleLogin(pool: Pool, body: unknown) {
       role: row.role,
       carbon_credits: row.carbon_credits,
       upi_id: row.upi_id,
+      avatar_url: row.avatar_url,
+      bio: row.bio,
+      qr_code_url: row.qr_code_url,
     }
     return jsonResponse({ token, user })
   } catch (e: any) {
@@ -92,7 +95,7 @@ export async function handleProfile(pool: Pool, auth: Auth) {
   await pool.query(`UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = $1`, [auth.userId])
   
   const r = await pool.query(
-    `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, last_seen, created_at, updated_at
+    `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, last_seen, created_at, updated_at
      FROM users WHERE id = $1`,
     [auth.userId]
   )
@@ -115,7 +118,7 @@ export async function handleUpdateProfile(pool: Pool, body: unknown, auth: Auth)
   const updates: string[] = []
   const args: unknown[] = []
   let i = 1
-  for (const key of ['name', 'phone', 'city', 'upi_id', 'avatar_url']) {
+  for (const key of ['name', 'phone', 'city', 'upi_id', 'avatar_url', 'bio', 'qr_code_url']) {
     if (b[key] !== undefined) {
       updates.push(`${key} = $${i++}`)
       args.push(b[key])
@@ -126,7 +129,7 @@ export async function handleUpdateProfile(pool: Pool, body: unknown, auth: Auth)
   args.push(auth.userId)
   await pool.query(`UPDATE users SET ${updates.join(', ')} WHERE id = $${i}`, args)
   const r = await pool.query(
-    `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, created_at, updated_at
+    `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, created_at, updated_at
      FROM users WHERE id = $1`,
     [auth.userId]
   )
@@ -713,7 +716,7 @@ export async function handleUpdatePaymentStatus(pool: Pool, rideId: number, user
 
 export async function handleGetAllUsers(pool: Pool, _auth: Auth) {
   const r = await pool.query(
-    `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, created_at, updated_at FROM users ORDER BY created_at DESC`
+    `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, created_at, updated_at FROM users ORDER BY created_at DESC`
   )
   return jsonResponse(r.rows)
 }
@@ -734,6 +737,29 @@ export async function handleUpdateUser(pool: Pool, id: number, body: unknown, _a
   args.push(id)
   await pool.query(`UPDATE users SET ${updates.join(', ')} WHERE id = $${i}`, args)
   return jsonResponse({ message: 'User updated' })
+}
+
+export async function handleUpdatePassword(pool: Pool, body: unknown, auth: Auth) {
+  const b = body as { old_password?: string; new_password?: string }
+  if (!b?.old_password || !b?.new_password || b.new_password.length < 6) {
+    return errResponse('Old password and new password (min 6 chars) required', 400)
+  }
+  const r = await pool.query(`SELECT password_hash FROM users WHERE id = $1`, [auth.userId])
+  if (r.rows.length === 0) return errResponse('User not found', 404)
+  if (!comparePassword(b.old_password, r.rows[0].password_hash)) {
+    return errResponse('Incorrect old password', 401)
+  }
+  const hashed = hashPassword(b.new_password)
+  await pool.query(`UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`, [hashed, auth.userId])
+  return jsonResponse({ message: 'Password updated successfully' })
+}
+
+export async function handleAdminUpdatePassword(pool: Pool, id: number, body: unknown) {
+  const b = body as { new_password?: string }
+  if (!b?.new_password) return errResponse('New password is required for override', 400)
+  const hashed = hashPassword(b.new_password)
+  await pool.query(`UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`, [hashed, id])
+  return jsonResponse({ message: 'Password forcefully updated globally' })
 }
 
 export async function handleGetAnalytics(pool: Pool) {

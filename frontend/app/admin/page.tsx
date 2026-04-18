@@ -90,6 +90,9 @@ export default function AdminPage() {
   const [replyText, setReplyText] = useState<Record<number, string>>({})
   const [replyLoading, setReplyLoading] = useState<number | null>(null)
 
+  const [adminPasswordModalUser, setAdminPasswordModalUser] = useState<number | null>(null)
+  const [adminPasswordInput, setAdminPasswordInput] = useState('')
+
   const [uploadingImage, setUploadingImage] = useState(false)
   const supabase = createClient()
 
@@ -264,6 +267,20 @@ export default function AdminPage() {
     toast.success('Marked as read')
   }
 
+  const handleAdminResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!adminPasswordModalUser) return
+    if (!adminPasswordInput || adminPasswordInput.length < 6) return toast.error('Min 6 chars required')
+    try {
+      await api.put(`/admin/users/${adminPasswordModalUser}/password`, { new_password: adminPasswordInput })
+      toast.success('System override: User password reset.')
+      setAdminPasswordModalUser(null)
+      setAdminPasswordInput('')
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || 'Password override failed')
+    }
+  }
+
   const openTicketCount = tickets.filter(t => t.status === 'open').length
   const unreadFeedbackCount = feedback.filter(f => f.status === 'unread').length
 
@@ -428,6 +445,9 @@ export default function AdminPage() {
                            GRANT ACCESS
                          </button>
                        )}
+                       <button onClick={() => setAdminPasswordModalUser(u.id)} className="bg-yellow-600/10 text-yellow-500 hover:bg-yellow-600 hover:text-white px-8 py-4 rounded-2xl font-black text-xs transition-all active:scale-95">
+                         RESET PW
+                       </button>
                        <button onClick={() => toggleBlock(u.id, u.blocked || false)}
                          className={`px-8 py-4 rounded-2xl font-black text-xs transition-all active:scale-95 ${u.blocked ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white'}`}>
                          {u.blocked ? 'RESTORE ACCOUNT' : 'BLACKLIST USER'}
@@ -831,6 +851,28 @@ export default function AdminPage() {
             )}
           </div>
         )}
+
+      {adminPasswordModalUser && (
+        <div className="fixed inset-0 bg-[#0f172a]/90 backdrop-blur-xl z-50 flex items-center justify-center p-6 animate-in fade-in">
+           <div className="bg-slate-900 border border-red-500/20 p-8 rounded-[3rem] w-full max-w-md shadow-2xl relative overflow-hidden">
+             <AlertTriangle className="absolute -top-10 -right-10 w-48 h-48 opacity-[0.03] text-red-500 pointer-events-none" />
+             <h3 className="text-2xl font-black text-white mb-2 relative">Force Protocol Reset</h3>
+             <p className="text-sm font-bold text-red-400 mb-6 relative">Warning: Replacing user authentication.</p>
+             <form onSubmit={handleAdminResetPassword} className="space-y-4 relative">
+               <input 
+                 type="password" placeholder="Type new password (min 6)" 
+                 value={adminPasswordInput} onChange={e => setAdminPasswordInput(e.target.value)}
+                 className="w-full bg-black/40 border border-red-500/30 rounded-2xl py-4 px-6 text-white outline-none focus:border-red-500 transition-all"
+                 autoFocus
+               />
+               <div className="flex gap-4 pt-4">
+                 <button type="submit" className="flex-1 bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-2xl transition-all shadow-lg active:scale-95">OVERRIDE</button>
+                 <button type="button" onClick={() => {setAdminPasswordModalUser(null); setAdminPasswordInput('')}} className="flex-1 bg-white/5 text-white/60 hover:text-white font-black py-4 rounded-2xl transition-all border border-white/5 relative z-10">ABORT</button>
+               </div>
+             </form>
+           </div>
+        </div>
+      )}
 
       </main>
     </div>

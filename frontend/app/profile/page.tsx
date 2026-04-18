@@ -22,6 +22,7 @@ interface ProfileData {
   role: string
   bio?: string
   avatar_url?: string
+  qr_code_url?: string
 }
 
 export default function ProfilePage() {
@@ -37,10 +38,14 @@ export default function ProfilePage() {
     city: '',
     upi_id: '',
     bio: '',
-    avatar_url: ''
+    avatar_url: '',
+    qr_code_url: ''
   })
   
   const [uploading, setUploading] = useState(false)
+  const [uploadingQr, setUploadingQr] = useState(false)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [passwordData, setPasswordData] = useState({ old: '', new: '' })
   const supabase = createClient()
 
   useEffect(() => {
@@ -63,7 +68,8 @@ export default function ProfilePage() {
           city: data.city || '',
           upi_id: data.upi_id || '',
           bio: data.bio || '',
-          avatar_url: data.avatar_url || ''
+          avatar_url: data.avatar_url || '',
+          qr_code_url: data.qr_code_url || ''
         })
         localStorage.setItem('user', JSON.stringify(data))
       }
@@ -111,6 +117,42 @@ export default function ProfilePage() {
       toast.error(e.message || 'Error uploading avatar')
     } finally {
       setUploading(false)
+    }
+  }
+
+  const handleQrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploadingQr(true)
+      if (!e.target.files || e.target.files.length === 0) return
+      const file = e.target.files[0]
+      const fileExt = file.name.split('.').pop()
+      const filePath = `qr-${profile?.id}-${Math.random()}.${fileExt}`
+
+      const { error } = await supabase.storage.from('avatars').upload(filePath, file)
+      if (error) throw error
+
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath)
+      
+      await api.put('/auth/profile', { ...formData, qr_code_url: publicUrl })
+      toast.success('Payment QR Matrix Updated!')
+      fetchProfile()
+    } catch (e: any) {
+      toast.error(e.message || 'Error uploading QR code')
+    } finally {
+      setUploadingQr(false)
+    }
+  }
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!passwordData.old || !passwordData.new) return toast.error('Fill required fields')
+    try {
+      await api.put('/auth/password', { old_password: passwordData.old, new_password: passwordData.new })
+      toast.success('Security Protocol: Password Reset Successful')
+      setShowPasswordModal(false)
+      setPasswordData({ old: '', new: '' })
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || 'Password update failed')
     }
   }
 
@@ -332,13 +374,18 @@ export default function ProfilePage() {
                        <div className="space-y-3">
                           <label className="text-[10px] font-black text-white/40 uppercase tracking-widest px-1">Payment QR Protocol</label>
                           <div className="aspect-square bg-white rounded-[2rem] p-6 flex flex-col items-center justify-center relative overflow-hidden group/qr">
-                             <QrCode className="w-full h-full text-slate-100 group-hover/qr:scale-105 transition-transform" />
-                             <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 group-hover/qr:opacity-100 transition-opacity">
-                                <button className="px-6 py-3 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl">
-                                   UPLOAD QR
-                                </button>
-                             </div>
-                             <p className="absolute bottom-4 text-slate-300 text-[8px] font-black uppercase tracking-[0.2em]">System Placeholder</p>
+                             {formData.qr_code_url ? (
+                               <img src={formData.qr_code_url} alt="QR Code" className="w-full h-full object-cover rounded-xl" />
+                             ) : (
+                               <QrCode className="w-full h-full text-slate-100 group-hover/qr:scale-105 transition-transform" />
+                             )}
+                             <label className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 group-hover/qr:opacity-100 transition-opacity cursor-pointer">
+                                <span className="px-6 py-3 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-2">
+                                   {uploadingQr ? <Loader2 className="w-4 h-4 animate-spin" /> : 'UPLOAD QR'}
+                                </span>
+                                <input type="file" accept="image/*" onChange={handleQrUpload} disabled={uploadingQr} className="hidden" />
+                             </label>
+                             {!formData.qr_code_url && <p className="absolute bottom-4 text-slate-300 text-[8px] font-black uppercase tracking-[0.2em]">System Placeholder</p>}
                           </div>
                        </div>
                     </div>
@@ -350,7 +397,7 @@ export default function ProfilePage() {
                     <ShieldCheck className="w-5 h-5 text-green-400" /> SECURITY HUB
                  </h3>
                  <div className="space-y-3">
-                    <button className="w-full text-left p-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all">
+                    <button onClick={() => setShowPasswordModal(true)} className="w-full text-left p-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all">
                        <p className="text-xs font-black text-white mb-0.5">RESET PROTOCOL CODE</p>
                        <p className="text-[10px] text-white/20 font-bold uppercase">Change system password</p>
                     </button>
@@ -364,6 +411,30 @@ export default function ProfilePage() {
 
         </div>
       </main>
+
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-[#0f172a]/90 backdrop-blur-xl z-50 flex items-center justify-center p-6 animate-in fade-in">
+           <div className="bg-slate-900 border border-white/10 p-8 rounded-[3rem] w-full max-w-md shadow-2xl">
+             <h3 className="text-2xl font-black text-white mb-6">Security Override</h3>
+             <form onSubmit={handlePasswordChange} className="space-y-4">
+               <input 
+                 type="password" placeholder="Current Password" 
+                 value={passwordData.old} onChange={e => setPasswordData({...passwordData, old: e.target.value})}
+                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none focus:border-blue-500"
+               />
+               <input 
+                 type="password" placeholder="New Password (min 6)" 
+                 value={passwordData.new} onChange={e => setPasswordData({...passwordData, new: e.target.value})}
+                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none focus:border-blue-500"
+               />
+               <div className="flex gap-4 pt-4">
+                 <button type="submit" className="flex-1 bg-blue-600 text-white font-black py-4 rounded-2xl">ENCRYPT NEW</button>
+                 <button type="button" onClick={() => setShowPasswordModal(false)} className="flex-1 bg-white/5 text-white font-black py-4 rounded-2xl">CANCEL</button>
+               </div>
+             </form>
+           </div>
+        </div>
+      )}
     </div>
   )
 }

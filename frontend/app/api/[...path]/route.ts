@@ -114,7 +114,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           // Try DB first, fall back to token data
           try {
             const r = await pool.query(
-              `SELECT id, email, name, phone, city, role, carbon_credits, upi_id FROM users WHERE id = $1`,
+              `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url FROM users WHERE id = $1`,
               [payload.user_id]
             )
             if (r.rows.length > 0) return Response.json(r.rows[0])
@@ -126,7 +126,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             name: payload.email.split('@')[0],
             role: payload.role,
             carbon_credits: 450,
-            phone: null, city: null
+            phone: null, city: null, bio: null, qr_code_url: null
           })
         }
       } catch {}
@@ -319,6 +319,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   if (pathStr === 'auth/profile') {
     return h.handleUpdateProfile(pool, body, auth)
   }
+  if (pathStr === 'auth/password') {
+    return h.handleUpdatePassword(pool, body, auth)
+  }
 
   if (path.length === 3 && path[0] === 'cities' && /^\d+$/.test(path[1]) && path[2] === 'status') {
     const adminErr = requireAdmin(auth)
@@ -349,6 +352,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const adminErr = requireAdmin(auth)
     if (adminErr) return adminErr
     return h.handleUpdateUser(pool, parseInt(path[2], 10), body, auth)
+  }
+  if (path.length === 4 && path[0] === 'admin' && path[1] === 'users' && /^\d+$/.test(path[2]) && path[3] === 'password') {
+    const adminErr = requireAdmin(auth)
+    if (adminErr) return adminErr
+    return h.handleAdminUpdatePassword(pool, parseInt(path[2], 10), body)
   }
   if (path.length === 3 && path[0] === 'admin' && path[1] === 'features') {
     const adminErr = requireAdmin(auth)
