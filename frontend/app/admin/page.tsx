@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
-  ArrowLeft, Users, MapPin, Car, BarChart3, Lock, Unlock, 
+  ArrowLeft, ArrowRight, Users, MapPin, Car, BarChart3, Lock, Unlock, 
   CheckCircle, XCircle, Shield, Search, Plus, AlertTriangle,
   ChevronRight, Activity, Leaf, Ban, UserCheck, Clock,
   TrendingUp, Globe, Database, Pencil, Camera, Loader2,
@@ -384,12 +384,12 @@ export default function AdminPage() {
                     </button>
                  </div>
                )}
-               {pendingRequests.length > 0 && (
+               {liveRides.length > 0 && (
                  <div className="bg-blue-600/10 border border-blue-600/20 rounded-[2.5rem] p-10 flex flex-col justify-between items-start group relative overflow-hidden">
                     <Car className="absolute -bottom-10 -right-10 w-48 h-48 opacity-10 text-blue-500 -rotate-12 group-hover:rotate-0 transition-transform duration-700" />
                     <div>
                        <h3 className="text-3xl font-black text-blue-400 mb-2">Global Ride Flow</h3>
-                       <p className="text-blue-400/60 font-bold">{pendingRequests.length} seat requests awaiting driver matching.</p>
+                       <p className="text-blue-400/60 font-bold">{liveRides.length} active rides traversing the network.</p>
                     </div>
                     <button onClick={() => setActiveTab('requests')} className="mt-8 bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-2xl font-black transition-all active:scale-95 shadow-xl">
                        AUDIT TRAFFIC
