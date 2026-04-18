@@ -91,16 +91,33 @@ export async function handleLogin(pool: Pool, body: unknown) {
 }
 
 export async function handleProfile(pool: Pool, auth: Auth) {
-  // Heartbeat: Update last_seen
-  await pool.query(`UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = $1`, [auth.userId])
-  
-  const r = await pool.query(
-    `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, last_seen, created_at, updated_at
-     FROM users WHERE id = $1`,
-    [auth.userId]
-  )
-  if (r.rows.length === 0) return errResponse('User not found', 404)
-  return jsonResponse(r.rows[0])
+  try {
+    // Heartbeat: Update last_seen
+    await pool.query(`UPDATE users SET last_seen = CURRENT_TIMESTAMP WHERE id = $1`, [auth.userId])
+    
+    try {
+      const r = await pool.query(
+        `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, last_seen, created_at, updated_at
+         FROM users WHERE id = $1`,
+        [auth.userId]
+      )
+      if (r.rows.length === 0) return errResponse('User not found', 404)
+      return jsonResponse(r.rows[0])
+    } catch (e: any) {
+      console.warn('handleProfile full select failed, trying base columns', e.message)
+      // Fallback if schema hasn't synced successfully
+      const r2 = await pool.query(
+        `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, last_seen, created_at, updated_at
+         FROM users WHERE id = $1`,
+        [auth.userId]
+      )
+      if (r2.rows.length === 0) return errResponse('User not found', 404)
+      return jsonResponse({ ...r2.rows[0], avatar_url: null, bio: null, qr_code_url: null })
+    }
+  } catch (e: any) {
+    console.error('Fatal DB error in handleProfile:', e.message)
+    return errResponse('Profile Database Error: ' + e.message, 500)
+  }
 }
 
 export async function handleGetUserProfile(pool: Pool, id: number) {
@@ -114,26 +131,54 @@ export async function handleGetUserProfile(pool: Pool, id: number) {
 }
 
 export async function handleUpdateProfile(pool: Pool, body: unknown, auth: Auth) {
-  const b = body as Record<string, unknown>
-  const updates: string[] = []
-  const args: unknown[] = []
-  let i = 1
-  for (const key of ['name', 'phone', 'city', 'upi_id', 'avatar_url', 'bio', 'qr_code_url']) {
-    if (b[key] !== undefined) {
-      updates.push(`${key} = $${i++}`)
-      args.push(b[key])
+  try {
+    const b = body as Record<string, unknown>
+    const updates: string[] = []
+    const args: unknown[] = []
+    let i = 1
+    for (const key of ['name', 'phone', 'city', 'upi_id', 'avatar_url', 'bio', 'qr_code_url']) {
+      if (b[key] !== undefined) {
+        updates.push(`${key} = $${i}`)
+        args.push(b[key])
+        i++
+      }
     }
+    
+    if (updates.length > 0) {
+      args.push(auth.userId)
+      const query = `UPDATE users SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${i} RETURNING id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, last_seen, created_at, updated_at`
+      
+      try {
+        const r = await pool.query(query, args)
+        if (r.rows.length > 0) return jsonResponse(r.rows[0])
+      } catch (dbError: any) {
+        console.warn('Update full schema failed, falling back to base columns', dbError.message)
+        // Fallback for missing avatar_url, bio, qr_code_url by filtering them out
+        const baseUpdates: string[] = []
+        const baseArgs: unknown[] = []
+        let j = 1
+        for (const key of ['name', 'phone', 'city', 'upi_id']) {
+          if (b[key] !== undefined) {
+            baseUpdates.push(`${key} = $${j}`)
+            baseArgs.push(b[key])
+            j++
+          }
+        }
+        if (baseUpdates.length > 0) {
+           baseArgs.push(auth.userId)
+           const baseQuery = `UPDATE users SET ${baseUpdates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${j} RETURNING id, email, name, phone, city, role, carbon_credits, upi_id, last_seen, created_at, updated_at`
+           const rb = await pool.query(baseQuery, baseArgs)
+           if (rb.rows.length > 0) return jsonResponse({ ...rb.rows[0], avatar_url: null, bio: null, qr_code_url: null })
+        }
+      }
+    }
+    
+    // Return base user if no updates were made
+    return handleProfile(pool, auth)
+  } catch (e: any) {
+    console.error('Fatal DB error in handleUpdateProfile:', e.message)
+    return errResponse('Profile Update Error: ' + e.message, 500)
   }
-  if (updates.length === 0) return errResponse('No fields to update', 400)
-  updates.push('updated_at = CURRENT_TIMESTAMP')
-  args.push(auth.userId)
-  await pool.query(`UPDATE users SET ${updates.join(', ')} WHERE id = $${i}`, args)
-  const r = await pool.query(
-    `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, created_at, updated_at
-     FROM users WHERE id = $1`,
-    [auth.userId]
-  )
-  return jsonResponse({ message: 'Profile updated', user: r.rows[0] })
 }
 
 export async function handleStats(pool: Pool) {
