@@ -17,7 +17,16 @@ export default function LoginPage() {
   // Redirect if already logged in
   useEffect(() => {
     const token = localStorage.getItem('token')
-    if (token) router.push('/dashboard')
+    const userStr = localStorage.getItem('user')
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr)
+        if (user.role === 'admin') router.push('/admin')
+        else router.push('/dashboard')
+      } catch (e) {
+        router.push('/dashboard')
+      }
+    }
   }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,19 +65,34 @@ export default function LoginPage() {
       if (token) {
         localStorage.removeItem('user')
         localStorage.setItem('token', token)
-        if (legacyUser) {
-          localStorage.setItem('user', JSON.stringify(legacyUser))
-        }
+        let finalUser = legacyUser
 
         // Always prefer server-verified profile to avoid stale identity.
-        api.getProfile().then((profile) => {
-          if (profile) localStorage.setItem('user', JSON.stringify(profile))
-        }).catch(() => {
-          toast.error('Could not verify profile data. Please re-login if profile looks wrong.')
-        })
+        try {
+          const profile = await api.getProfile() as any
+          if (profile) {
+            localStorage.setItem('user', JSON.stringify(profile))
+            finalUser = profile
+          }
+        } catch (profileErr) {
+          console.warn('Profile fetch failed during login, using legacy user data if available');
+          if (legacyUser) {
+            localStorage.setItem('user', JSON.stringify(legacyUser))
+          } else {
+            // If we have no profile and no legacy user, we can't determine the role safely
+            toast.error('Could not verify profile data. Please try again.')
+            return
+          }
+        }
         
-        toast.success('Login successful!')
-        router.push('/dashboard')
+        toast.success(`Login successful! Welcome back ${finalUser?.name || ''}`)
+        
+        // Role-based redirect
+        if (finalUser?.role === 'admin') {
+          router.push('/admin')
+        } else {
+          router.push('/dashboard')
+        }
       }
     } catch (error: any) {
       const msg = error.message || 'Login failed'

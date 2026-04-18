@@ -46,8 +46,14 @@ export default function RegisterPage() {
       localStorage.setItem('token', authData.session?.access_token || '')
       localStorage.setItem('user', JSON.stringify(response.user))
       
-      toast.success('Registration successful! Please check your email if confirmation is required.')
-      router.push('/dashboard')
+      toast.success('Registration successful!')
+      
+      // Role-based redirect
+      if (response.user?.role === 'admin') {
+        router.push('/admin')
+      } else {
+        router.push('/dashboard')
+      }
       router.refresh()
     } catch (error: any) {
       toast.error(error.message || 'Registration failed')
