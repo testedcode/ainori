@@ -192,18 +192,38 @@ class HybridPool {
     if (!schemaSyncPromise) {
       schemaSyncPromise = (async () => {
         const statements = [
+          // Users table
+          `ALTER TABLE users ADD COLUMN IF NOT EXISTS phone TEXT`,
+          `ALTER TABLE users ADD COLUMN IF NOT EXISTS city TEXT`,
+          `ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user'`,
+          `ALTER TABLE users ADD COLUMN IF NOT EXISTS carbon_credits INTEGER DEFAULT 0`,
+          `ALTER TABLE users ADD COLUMN IF NOT EXISTS upi_id TEXT`,
           `ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT`,
           `ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT`,
           `ALTER TABLE users ADD COLUMN IF NOT EXISTS qr_code_url TEXT`,
+          `ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP`,
+          `ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP`,
+          
+          // Corridors table
           `ALTER TABLE corridors ADD COLUMN IF NOT EXISTS description TEXT`,
           `ALTER TABLE corridors ADD COLUMN IF NOT EXISTS image_url TEXT`,
+          
+          // Vehicles table
+          `ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS color TEXT`,
           `ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS image_url TEXT`,
+          `ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS total_seats INTEGER DEFAULT 4`,
+          `ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS default_available_seats INTEGER DEFAULT 3`,
         ]
         for (const statement of statements) {
-          await this.realPool.query(statement)
+          try {
+            await this.realPool.query(statement)
+          } catch (err: any) {
+            // Log but don't crash the whole promise if one ALTER fails (e.g. if table doesn't exist yet)
+            console.error(`Schema Sync - Failed statement: ${statement} - Error: ${err.message}`)
+          }
         }
       })().catch((error: any) => {
-        console.error('Runtime schema sync failed:', error?.message || error)
+        console.error('Fatal Runtime schema sync error:', error?.message || error)
       })
     }
     await schemaSyncPromise
