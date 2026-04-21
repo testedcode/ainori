@@ -35,6 +35,7 @@ interface UserRide {
   role: 'host' | 'rider'
   driver_name: string
   direction?: string
+  confirmed_riders?: { id: number; name: string; avatar_url: string }[]
 }
 
 export default function ProfilePage() {

@@ -464,7 +464,17 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
   }
   query += ` ORDER BY r.ride_date, r.ride_time`
   const r = await pool.query(query, args)
-  return Response.json(r.rows, {
+  
+  const enriched = await Promise.all(r.rows.map(async (ride) => {
+    const riders = await pool.query(`
+      SELECT rr.id, rr.user_id, u.name, u.avatar_url, rr.seats_requested 
+      FROM ride_requests rr JOIN users u ON rr.user_id = u.id 
+      WHERE rr.ride_id = $1 AND rr.status = 'accepted'
+    `, [ride.id])
+    return { ...ride, confirmed_riders: riders.rows }
+  }))
+
+  return Response.json(enriched, {
     status: 200,
     headers: {
       'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
@@ -533,6 +543,23 @@ export async function handleGetRide(pool: Pool, id: number) {
     )
     if (v.rows[0]) ride.vehicle_info = v.rows[0]
   }
+
+  // 1. Fetch Confirmed Riders for Social Visualization
+  const riders = await pool.query(`
+    SELECT rr.id as request_id, rr.user_id, u.name, u.avatar_url, rr.seats_requested 
+    FROM ride_requests rr JOIN users u ON rr.user_id = u.id 
+    WHERE rr.ride_id = $1 AND rr.status = 'accepted'
+  `, [id])
+  ride.confirmed_riders = riders.rows
+
+  // 2. Fetch pending requests (optional, but helpful for detail view)
+  const pending = await pool.query(`
+    SELECT rr.id as request_id, rr.user_id, u.name, u.avatar_url, rr.seats_requested, rr.created_at
+    FROM ride_requests rr JOIN users u ON rr.user_id = u.id 
+    WHERE rr.ride_id = $1 AND rr.status = 'pending'
+  `, [id])
+  ride.pending_requests = pending.rows
+
   return jsonResponse(ride)
 }
 

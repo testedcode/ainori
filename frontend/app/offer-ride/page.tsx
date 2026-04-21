@@ -248,6 +248,25 @@ export default function OfferRidePage() {
                      <label className="text-[9px] font-black text-white/30 uppercase tracking-widest pl-1 mb-2 block">Departure Time</label>
                      <input type="time" value={form.ride_time} onChange={e => setForm(p => ({ ...p, ride_time: e.target.value }))}
                        className="w-full bg-black/40 border border-white/5 rounded-xl p-3 text-xl font-black focus:outline-none focus:border-blue-600 transition-all" />
+                     {form.ride_time && (() => {
+                        const h = parseInt(form.ride_time.split(':')[0])
+                        let label = 'Custom Slot'
+                        let color = 'text-white/20'
+                        if (direction === 'to_office') {
+                          if (h >= 6 && h < 7) { label = 'Early Birds'; color = 'text-amber-400' }
+                          else if (h >= 7 && h < 8) { label = 'GM Route'; color = 'text-amber-400' }
+                          else if (h >= 8 && h < 9) { label = 'Rush Hour'; color = 'text-amber-400' }
+                          else if (h >= 9 && h < 10) { label = 'Pick Perfect'; color = 'text-amber-400' }
+                          else if (h >= 10 && h < 11) { label = 'Still Looking'; color = 'text-amber-400' }
+                          else if (h >= 11 || h < 2) { label = 'Late Join'; color = 'text-amber-400' }
+                        } else {
+                          if (h >= 16 && h < 18) { label = 'On Time'; color = 'text-blue-400' }
+                          else if (h >= 18 && h < 20) { label = 'Traffic Fighters'; color = 'text-blue-400' }
+                          else if (h >= 20 && h < 22) { label = 'Late Comers'; color = 'text-blue-400' }
+                          else if (h >= 22 || h < 4) { label = 'Homebound'; color = 'text-blue-400' }
+                        }
+                        return <p className={`mt-2 text-[10px] font-black uppercase tracking-widest ${color}`}>{label} Signaling</p>
+                     })()}
                   </div>
                </div>
 

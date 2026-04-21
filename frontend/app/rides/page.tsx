@@ -25,6 +25,7 @@ interface Ride {
   status: string; vehicle_make?: string; vehicle_model?: string; vehicle_color?: string;
   vehicle_type?: string; vehicle_number?: string;
   direction?: string; pending_count?: number;
+  confirmed_riders?: { id: number; user_id: number; name: string; avatar_url: string; seats_requested: number }[];
 }
 
 interface Corridor { id: number; name: string; image_url?: string }
@@ -106,6 +107,32 @@ function CardView({
               <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
               <p className="text-white font-bold text-xs truncate flex-1">{ride.pickup_point}</p>
            </div>
+           
+           {/* TRAVELER AVATARS */}
+           <div className="flex items-center gap-1 min-h-[24px]">
+              {ride.confirmed_riders && ride.confirmed_riders.length > 0 ? (
+                <div className="flex -space-x-2 overflow-hidden">
+                  {ride.confirmed_riders.slice(0, 3).map((r, i) => (
+                    <div key={r.id} className="inline-block h-6 w-6 rounded-full ring-2 ring-[#1e293b] bg-slate-800 flex items-center justify-center text-[8px] font-black overflow-hidden">
+                      {r.avatar_url ? (
+                        <img src={r.avatar_url} alt={r.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <span>{r.name[0].toUpperCase()}</span>
+                      )}
+                    </div>
+                  ))}
+                  {ride.confirmed_riders.length > 3 && (
+                    <div className="inline-block h-6 w-6 rounded-full ring-2 ring-[#1e293b] bg-white/5 flex items-center justify-center text-[7px] font-black text-white/40">
+                      +{ride.confirmed_riders.length - 3}
+                    </div>
+                  )}
+                  <span className="ml-4 text-[9px] font-black text-white/30 uppercase tracking-widest self-center">Joined</span>
+                </div>
+              ) : (
+                <span className="text-[9px] font-black text-white/10 uppercase tracking-widest italic">Solo Explorer</span>
+              )}
+           </div>
+
            <div className="flex items-start gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-white/10 mt-1.5" />
               <p className="text-white/40 font-medium text-[11px] truncate flex-1">{ride.drop_point}</p>
@@ -452,42 +479,48 @@ function RidesContent() {
         </div>
 
         {/* VIBE TAGS - USER SPECIFIC THEME */}
-        <div className="mb-12 overflow-x-auto scrollbar-hide">
-           <div className="flex gap-3 min-w-max pb-4">
+        <div className="mb-12 overflow-x-auto scrollbar-hide py-4">
+           <div className="flex gap-3 min-w-max">
               <button 
                 onClick={() => setFilter(p => ({ ...p, vibeTag: 'all' }))}
-                className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all ${filter.vibeTag === 'all' ? 'bg-white text-black border-white' : 'bg-white/5 text-white/40 border-white/5'}`}
+                className={`px-8 py-4 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.2em] border transition-all ${filter.vibeTag === 'all' ? 'bg-white text-black border-white shadow-xl shadow-white/10 scale-105' : 'bg-white/5 text-white/40 border-white/5 hover:border-white/20'}`}
               >
-                 All Times
+                 All Signals
               </button>
-              {(filter.direction === 'all' || filter.direction === 'to_office') && [
-                { id: '6-7', label: 'Early Birds', sub: '6-7 AM' },
-                { id: '7-8', label: 'GM Route', sub: '7-8 AM' },
-                { id: '8-9', label: 'Rush Hour', sub: '8-9 AM' },
-                { id: '9-10', label: 'Pick Perfect', sub: '9-10 AM' },
-                { id: '10-11', label: 'Still Looking', sub: '10-11 AM' },
-                { id: '12-24', label: 'Late Join', sub: '12+ PM' },
+              
+              {/* MORNING SLOTS: ONLY SHOW EARLY OR IF NOT LATE AFTERNOON */}
+              {(hour < 14 || filter.vibeTag.includes('6-7') || filter.vibeTag.includes('9-10')) && (filter.direction === 'all' || filter.direction === 'to_office') && [
+                { id: '6-7', label: 'Early Birds', sub: '6-7 AM', recommend: hour >= 5 && hour <= 7 },
+                { id: '7-8', label: 'GM Route', sub: '7-8 AM', recommend: hour >= 6 && hour <= 8 },
+                { id: '8-9', label: 'Rush Hour', sub: '8-9 AM', recommend: hour >= 7 && hour <= 9 },
+                { id: '9-10', label: 'Pick Perfect', sub: '9-10 AM', recommend: hour >= 8 && hour <= 10 },
+                { id: '10-11', label: 'Still Looking', sub: '10-11 AM', recommend: hour >= 9 && hour <= 11 },
+                { id: '12-24', label: 'Late Join', sub: '12+ PM', recommend: hour >= 11 && hour <= 13 },
               ].map(v => (
                 <button 
                   key={v.id}
                   onClick={() => setFilter(p => ({ ...p, vibeTag: v.id }))}
-                  className={`px-6 py-3 rounded-2xl border transition-all flex flex-col items-start gap-0.5 ${filter.vibeTag === v.id ? 'bg-amber-400 text-black border-amber-400' : 'bg-white/5 text-white/40 border-white/5 hover:border-white/20'}`}
+                  className={`px-7 py-4 rounded-[1.8rem] border transition-all flex flex-col items-start gap-0.5 relative group ${filter.vibeTag === v.id ? 'bg-amber-400 text-black border-amber-400 shadow-xl shadow-amber-400/20 scale-105' : 'bg-white/5 text-white/40 border-white/5 hover:border-white/20'}`}
                 >
+                   {v.recommend && <div className="absolute -top-2 -right-1 px-2 py-0.5 bg-blue-600 text-white text-[7px] font-black rounded-full shadow-lg border border-white/10 animate-bounce">RECOMMENDED</div>}
                    <span className="text-[10px] font-black uppercase tracking-widest">{v.label}</span>
                    <span className={`text-[8px] font-bold ${filter.vibeTag === v.id ? 'text-black/60' : 'text-white/20'}`}>{v.sub}</span>
                 </button>
               ))}
-              {(filter.direction === 'all' || filter.direction === 'to_home') && [
-                { id: '16-18', label: 'On Time', sub: '4-6 PM' },
-                { id: '18-20', label: 'Traffic Fighters', sub: '6-8 PM' },
-                { id: '20-22', label: 'Late Comers', sub: '8-10 PM' },
-                { id: '22-24', label: 'Homebound', sub: '10+ PM' },
+
+              {/* EVENING SLOTS: ALWAYS SHOW OR PRIORITIZE AFTER 12 PM */}
+              {(hour >= 12 || filter.vibeTag.includes('16-18') || filter.vibeTag.includes('20-22')) && (filter.direction === 'all' || filter.direction === 'to_home') && [
+                { id: '16-18', label: 'On Time', sub: '4-6 PM', recommend: hour >= 15 && hour <= 17 },
+                { id: '18-20', label: 'Traffic Fighters', sub: '6-8 PM', recommend: hour >= 17 && hour <= 19 },
+                { id: '20-22', label: 'Late Comers', sub: '8-10 PM', recommend: hour >= 19 && hour <= 21 },
+                { id: '22-24', label: 'Homebound', sub: '10+ PM', recommend: hour >= 21 || hour < 2 },
               ].map(v => (
                 <button 
                   key={v.id}
                   onClick={() => setFilter(p => ({ ...p, vibeTag: v.id }))}
-                  className={`px-6 py-3 rounded-2xl border transition-all flex flex-col items-start gap-0.5 ${filter.vibeTag === v.id ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white/5 text-white/40 border-white/5 hover:border-white/20'}`}
+                  className={`px-7 py-4 rounded-[1.8rem] border transition-all flex flex-col items-start gap-0.5 relative group ${filter.vibeTag === v.id ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-600/20 scale-105' : 'bg-white/5 text-white/40 border-white/5 hover:border-white/20'}`}
                 >
+                   {v.recommend && <div className="absolute -top-2 -right-1 px-2 py-0.5 bg-amber-400 text-black text-[7px] font-black rounded-full shadow-lg border border-black/10 animate-pulse">PRIME SIGNAL</div>}
                    <span className="text-[10px] font-black uppercase tracking-widest">{v.label}</span>
                    <span className={`text-[8px] font-bold ${filter.vibeTag === v.id ? 'text-white/60' : 'text-white/20'}`}>{v.sub}</span>
                 </button>

@@ -22,6 +22,7 @@ interface Ride {
   price_per_seat: number; available_seats: number; total_seats: number; status: string;
   corridor_description?: string; vehicle_make?: string; vehicle_model?: string;
   vehicle_number?: string; phone?: string; upi_id?: string; direction?: 'to_office' | 'to_home';
+  confirmed_riders?: { id: number; user_id: number; name: string; avatar_url: string; seats_requested: number }[];
 }
 
 interface Message { id: number; user_id?: number; user_name: string; message: string; created_at: string }
@@ -296,7 +297,7 @@ export default function RideDetailPage() {
                 <div className="w-full">
                   <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] text-center mb-6">Select Seats</p>
                   <div className="flex justify-center gap-4 mb-8">
-                    {[1, 2, 3, 4].filter(n => n <= ride.available_seats).map(n => (
+                    {Array.from({ length: ride.available_seats }, (_, i) => i + 1).map(n => (
                       <button
                         key={n}
                         onClick={() => setSeatsToBook(n)}
@@ -308,6 +309,50 @@ export default function RideDetailPage() {
                   </div>
                 </div>
               )}
+
+              {/* SOCIAL SEAT MAP - SHOWS WHO IS IN THE RIDE */}
+              <div className="bg-white/5 border border-white/5 rounded-[2rem] p-6 mb-8">
+                 <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+                    <Users className="w-3 h-3" /> TRAVELER ROSTER
+                 </h3>
+                 <div className="flex flex-wrap gap-4 items-center">
+                    {/* HOST SEAT */}
+                    <div className="flex flex-col items-center gap-2">
+                       <div className="w-14 h-14 rounded-full border-2 border-amber-400 p-0.5 shadow-[0_0_20px_rgba(251,191,36,0.1)]">
+                          <div className="w-full h-full rounded-full bg-slate-800 flex items-center justify-center text-sm font-black text-amber-400 overflow-hidden">
+                             {ride.user_name[0].toUpperCase()}
+                          </div>
+                       </div>
+                       <span className="text-[8px] font-black text-amber-400 uppercase tracking-widest">HOST</span>
+                    </div>
+
+                    {/* CONFIRMED RIDERS */}
+                    {ride.confirmed_riders && ride.confirmed_riders.map((r, i) => (
+                       <div key={i} className="group relative flex flex-col items-center gap-2">
+                          <div className="w-14 h-14 rounded-full border-2 border-blue-400/30 p-0.5 group-hover:border-blue-400 transition-all">
+                             <div className="w-full h-full rounded-full bg-slate-800 flex items-center justify-center text-sm font-black text-white overflow-hidden">
+                                {r.avatar_url ? (
+                                   <img src={r.avatar_url} alt={r.name} className="w-full h-full object-cover" />
+                                ) : (
+                                   <span>{r.name[0].toUpperCase()}</span>
+                                )}
+                             </div>
+                          </div>
+                          <span className="text-[8px] font-black text-white/30 group-hover:text-white transition-colors uppercase tracking-widest truncate w-14 text-center">{r.name.split(' ')[0]}</span>
+                       </div>
+                    ))}
+
+                    {/* EMPTY SEATS VISUAL */}
+                    {Array.from({ length: ride.available_seats }).map((_, i) => (
+                       <div key={`empty-${i}`} className="flex flex-col items-center gap-2 opacity-20">
+                          <div className="w-14 h-14 rounded-full border-2 border-white/10 border-dashed flex items-center justify-center">
+                             <div className="w-8 h-8 rounded-full bg-white/5" />
+                          </div>
+                          <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">OPEN</span>
+                       </div>
+                    ))}
+                 </div>
+              </div>
 
               <button
                 onClick={isPending ? handleCancelRequest : isAccepted ? undefined : handleRequest}
