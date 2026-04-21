@@ -197,20 +197,27 @@ function CardView({
             </div>
 
             {/* ACTION SECTION */}
-            {!isRequested ? (
-               <button 
-                  onClick={() => isSelected && onBook(ride.id, isSelected)}
-                  disabled={!isSelected}
-                  className={`w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${
-                    isSelected 
-                     ? 'bg-white text-black shadow-[0_20px_40px_rgba(255,255,255,0.2)] scale-102' 
-                     : 'bg-white/5 text-white/20 border border-white/5 cursor-not-allowed'
-                  }`}
-               >
-                  {isSelected && <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 via-transparent to-green-400/20 animate-pulse pointer-events-none" />}
-                  {isSelected ? <>REQUEST SEAT <ArrowRight className="w-4 h-4" /></> : 'CHOOSE SEATS'}
-               </button>
-            ) : (
+               {isOwnRide ? (
+                  <Link 
+                    href={`/rides/${ride.id}`}
+                    className="w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] bg-amber-400 text-black shadow-[0_20px_40px_rgba(251,191,36,0.2)] flex items-center justify-center gap-3 transition-all hover:scale-105"
+                  >
+                     MANAGE ROSTER <ArrowRight className="w-4 h-4" />
+                  </Link>
+               ) : !isRequested ? (
+                  <button 
+                     onClick={() => isSelected && onBook(ride.id, isSelected)}
+                     disabled={!isSelected}
+                     className={`w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${
+                       isSelected 
+                        ? 'bg-white text-black shadow-[0_20px_40px_rgba(255,255,255,0.2)] scale-102' 
+                        : 'bg-white/5 text-white/20 border border-white/5 cursor-not-allowed'
+                     }`}
+                  >
+                     {isSelected && <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 via-transparent to-green-400/20 animate-pulse pointer-events-none" />}
+                     {isSelected ? <>REQUEST SEAT <ArrowRight className="w-4 h-4" /></> : 'CHOOSE SEATS'}
+                  </button>
+               ) : (
                <button 
                 onClick={() => onRetract(ride.id)}
                 className="w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] bg-blue-600/10 border border-blue-500/30 text-blue-400 hover:bg-blue-600 hover:text-white transition-all group flex items-center justify-center gap-3"
@@ -508,31 +515,33 @@ function RidesContent() {
           </div>
         </div>
 
-               {/* USER THEMED VIBE SIGNALS */}
-               {Object.entries(VIBE_CONFIG).map(([id, v]) => {
-                  const active = filter.vibeTag === id
-                  const isVisible = id === 'all' || 
-                                   (hour < 14 && ['6-7','7-8','8-9','9-10','10-11','12-24'].includes(id)) ||
-                                   (hour >= 12 && ['16-18','18-20','20-22','22-24'].includes(id))
-                  
-                  if (!isVisible) return null
+               <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-16">
+                  {Object.entries(VIBE_CONFIG).map(([id, v]) => {
+                     const active = filter.vibeTag === id
+                     const h = new Date().getHours() // Re-fetch current hour for visibility check
+                     const isVisible = id === 'all' || 
+                                      (h < 14 && ['6-7','7-8','8-9','9-10','10-11','12-24'].includes(id)) ||
+                                      (h >= 12 && ['16-18','18-20','20-22','22-24'].includes(id))
+                     
+                     if (!isVisible) return null
 
-                  return (
-                    <button 
-                      key={id}
-                      onClick={() => setFilter(p => ({ ...p, vibeTag: id }))}
-                      className={`px-8 py-4 rounded-full border-2 transition-all flex items-center gap-3 relative group ${active ? `bg-black/40 ${v.classes} ${v.glow} scale-105 shadow-[0_0_20px_currentColor]` : `bg-white/[0.03] border-white/5 text-white/30 hover:border-white/20 hover:bg-white/[0.07] ${v.classes.replace('border-', 'border-').split(' ').filter(c => c.startsWith('border-')).map(c => c+'/20').join(' ')}`}`}
-                    >
-                       <div className={`transition-all duration-300 ${active ? 'opacity-100 scale-110' : 'opacity-40 group-hover:opacity-100'}`}>
-                          {v.icon}
-                       </div>
-                       <div className="flex flex-col items-start leading-none transition-all duration-300">
-                          <span className={`text-[10px] font-black uppercase tracking-widest ${active ? '' : 'text-white/40 group-hover:text-white'}`}>{v.label}</span>
-                          <span className={`text-[8px] font-bold mt-1 ${active ? 'opacity-60' : 'opacity-20 group-hover:opacity-40'}`}>{v.sub}</span>
-                       </div>
-                    </button>
-                  )
-               })}
+                     return (
+                       <button 
+                         key={id}
+                         onClick={() => setFilter(p => ({ ...p, vibeTag: id }))}
+                         className={`px-8 py-5 rounded-[2.5rem] border-2 transition-all flex items-center gap-4 relative group ${active ? `bg-white/10 ${v.classes} ${v.glow} scale-105 shadow-[0_0_20px_currentColor]` : `bg-white/[0.03] border-white/5 text-white/30 hover:border-white/20 hover:bg-white/[0.07] ${v.classes.replace('border-', 'border-').split(' ').filter(c => c.startsWith('border-')).map(c => c+'/20').join(' ')}`}`}
+                       >
+                          <div className={`transition-all duration-300 ${active ? 'opacity-100 scale-110' : 'opacity-40 group-hover:opacity-100'}`}>
+                             {v.icon}
+                          </div>
+                          <div className="flex flex-col items-start leading-none transition-all duration-300">
+                             <span className={`text-[11px] font-black uppercase tracking-widest ${active ? '' : 'text-white/40 group-hover:text-white'}`}>{v.label}</span>
+                             <span className={`text-[9px] font-bold mt-1 ${active ? 'opacity-60' : 'opacity-20 group-hover:opacity-40'}`}>{v.sub}</span>
+                          </div>
+                       </button>
+                     )
+                  })}
+               </div>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 opacity-20">

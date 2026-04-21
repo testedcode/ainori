@@ -401,79 +401,88 @@ export default function RideDetailPage() {
           </GlassPanel>
         )}
 
-        {/* ─── RIDER: COMPACT JOIN STRIP (SQUEEZED) ───────────────────────── */}
-        {!isOwner && (
-          <GlassPanel className={`transition-all duration-500 border-white/5`}>
-              <div className="flex flex-col items-center gap-6">
-                 {/* SQUEEZED SOCIAL CABIN STRIP */}
-                 <div className="w-full flex items-center justify-between gap-4 px-4 py-3 bg-white/[0.03] border border-white/5 rounded-[2rem] relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent pointer-events-none" />
-                    
-                    <div className="flex -space-x-2">
-                       {/* Host */}
-                       <div className="w-8 h-8 rounded-full border border-amber-400 bg-slate-900 flex items-center justify-center text-[10px] font-black text-amber-400 z-10">{ride.user_name[0]}</div>
-                       {/* Accepted Riders */}
-                       {ride.confirmed_riders?.map(r => (
-                          <div key={r.id} className="w-8 h-8 rounded-full border border-blue-400 bg-slate-900 flex items-center justify-center overflow-hidden z-10">
-                             {r.avatar_url ? <img src={r.avatar_url} className="w-full h-full object-cover" /> : <span className="text-[10px] font-black text-blue-400">{r.name[0]}</span>}
-                          </div>
-                       ))}
-                    </div>
+        {/* ─── SOCIAL CABIN STRIP (VISIBLE TO ALL) ───────────────────────── */}
+        <GlassPanel className="border-white/5 !p-6">
+            <div className="flex items-center gap-3 mb-6">
+               <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                  <Car className="w-4 h-4 text-blue-400" />
+               </div>
+               <h3 className="text-xs font-black text-white/60 uppercase tracking-[0.3em]">Social Cabin</h3>
+            </div>
+            
+            <div className="flex flex-col items-center gap-6">
+               {/* CABIN VISUALIZATION */}
+               <div className="w-full flex items-center justify-between gap-4 px-6 py-4 bg-white/[0.03] border border-white/5 rounded-[2.5rem] relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent pointer-events-none" />
+                  
+                  <div className="flex -space-x-3">
+                     {/* Host Seat */}
+                     <VisualSeat type="host" />
+                     
+                     {/* Accepted Riders */}
+                     {ride.confirmed_riders?.map(r => (
+                        <VisualSeat key={r.id} type="rider" user={r} />
+                     ))}
+                  </div>
 
-                    <div className="flex-1 flex justify-center gap-3">
-                       {Array.from({ length: ride.available_seats }).map((_, i) => (
-                          <button
-                            key={i}
-                            onClick={() => handleSeatClick(i)}
-                            className={`w-10 h-10 rounded-xl border transition-all flex items-center justify-center ${selectedSeats > i ? 'bg-green-500 border-green-400 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-white/5 border-white/10'}`}
-                          >
-                             {selectedSeats > i ? <Check className="w-4 h-4 text-black" /> : <div className="w-1 h-1 bg-white/20 rounded-full" />}
-                          </button>
-                       ))}
-                    </div>
+                  <div className="flex-1 flex justify-center gap-4">
+                     {/* Available Slots */}
+                     {Array.from({ length: ride.available_seats }).map((_, i) => (
+                        <VisualSeat 
+                          key={`avail-${i}`} 
+                          type="available" 
+                          isSelected={selectedSeats > i}
+                          onClick={() => handleSeatClick(i)}
+                        />
+                     ))}
+                  </div>
 
-                    <div className="text-right min-w-[60px]">
-                       <p className="text-[14px] font-black text-white leading-none italic">₹{ride.price_per_seat}</p>
-                       <p className="text-[7px] font-black text-white/20 uppercase tracking-widest mt-1">per seat</p>
-                    </div>
+                  <div className="text-right min-w-[80px]">
+                     <p className="text-2xl font-black text-white leading-none italic tracking-tighter">₹{ride.price_per_seat}</p>
+                     <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mt-1">per seat</p>
+                  </div>
+               </div>
+
+               {/* JOIN ACTIONS (Riders Only) */}
+               {!isOwner && (
+                 <div className="w-full">
+                   {!myRequest ? (
+                      <button
+                        onClick={handleJoin}
+                        disabled={joining || ride.available_seats === 0}
+                        className={`w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${
+                          selectedSeats > 0 
+                           ? 'bg-white text-black shadow-[0_20px_40px_rgba(255,255,255,0.2)] scale-102 active:scale-95' 
+                           : 'bg-white/5 text-white/20 border border-white/5'
+                        }`}
+                      >
+                         {selectedSeats > 0 && <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 via-transparent to-green-400/20 animate-pulse" />}
+                         {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+                         {selectedSeats > 0 ? `REQUEST ${selectedSeats} SEAT${selectedSeats > 1 ? 'S' : ''}` : 'SELECT YOUR SEATS'}
+                      </button>
+                   ) : (
+                      <div className="w-full h-16 rounded-[2rem] border-2 border-dashed border-white/10 flex items-center justify-center gap-4 group">
+                         {isAccepted ? (
+                            <div className="flex items-center gap-2 text-green-400 font-extrabold text-xs uppercase tracking-widest">
+                               <CheckCircle2 className="w-5 h-5" /> Seat Confirmed
+                            </div>
+                         ) : (
+                            <button
+                              onClick={handleCancelRequest}
+                              className="flex items-center gap-2 text-blue-400 font-extrabold text-xs uppercase tracking-widest hover:text-red-400 transition-colors"
+                            >
+                               <Timer className="w-5 h-5 group-hover:hidden" />
+                               <span className="group-hover:hidden">Pending {myRequest.seats_requested} Seats</span>
+                               <X className="w-5 h-5 hidden group-hover:block" />
+                               <span className="hidden group-hover:block">Cancel Request</span>
+                            </button>
+                         )}
+                      </div>
+                   )}
                  </div>
-
-                 {!myRequest ? (
-                    <button
-                      onClick={handleJoin}
-                      disabled={joining || ride.available_seats === 0}
-                      className={`w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${
-                        selectedSeats > 0 
-                         ? 'bg-white text-black shadow-[0_20px_40px_rgba(255,255,255,0.2)] scale-102 active:scale-95' 
-                         : 'bg-white/5 text-white/20 border border-white/5'
-                      }`}
-                    >
-                       {selectedSeats > 0 && <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 via-transparent to-green-400/20 animate-pulse" />}
-                       {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
-                       {selectedSeats > 0 ? `REQUEST ${selectedSeats} SEAT${selectedSeats > 1 ? 'S' : ''}` : 'SELECT SEATS'}
-                    </button>
-                 ) : (
-                    <div className="w-full h-16 rounded-[2rem] border-2 border-dashed border-white/10 flex items-center justify-center gap-4 group">
-                       {isAccepted ? (
-                          <div className="flex items-center gap-2 text-green-400 font-extrabold text-xs uppercase tracking-widest">
-                             <CheckCircle2 className="w-5 h-5" /> Seat Confirmed
-                          </div>
-                       ) : (
-                          <button
-                            onClick={handleCancelRequest}
-                            className="flex items-center gap-2 text-blue-400 font-extrabold text-xs uppercase tracking-widest hover:text-red-400 transition-colors"
-                          >
-                             <Timer className="w-5 h-5 group-hover:hidden" />
-                             <span className="group-hover:hidden">Pending {myRequest.seats_requested} Seats</span>
-                             <X className="w-5 h-5 hidden group-hover:block" />
-                             <span className="hidden group-hover:block">Cancel Request</span>
-                          </button>
-                       )}
-                    </div>
-                 )}
-              </div>
-          </GlassPanel>
-        )}
+               )}
+            </div>
+        </GlassPanel>
 
         {/* ROUTE PANEL */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
