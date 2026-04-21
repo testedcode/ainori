@@ -9,7 +9,8 @@ import {
   ChevronRight, MapPin, Clock, RefreshCw,
   EyeOff, ChevronLeft, Info, Calendar,
   ArrowRight, Check, X, ShieldCheck,
-  Building2, Home, Users
+  Building2, Home, Users, Sun, Sunrise,
+  Navigation2, CheckCircle2, Timer, Moon
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import { getVibe, VIBE_THEMES, VibeState } from '@/lib/vibe-utils'
@@ -490,39 +491,47 @@ function RidesContent() {
               
               {/* MORNING SLOTS: ONLY SHOW EARLY OR IF NOT LATE AFTERNOON */}
               {(hour < 14 || filter.vibeTag.includes('6-7') || filter.vibeTag.includes('9-10')) && (filter.direction === 'all' || filter.direction === 'to_office') && [
-                { id: '6-7', label: 'Early Birds', sub: '6-7 AM', recommend: hour >= 5 && hour <= 7 },
-                { id: '7-8', label: 'GM Route', sub: '7-8 AM', recommend: hour >= 6 && hour <= 8 },
-                { id: '8-9', label: 'Rush Hour', sub: '8-9 AM', recommend: hour >= 7 && hour <= 9 },
-                { id: '9-10', label: 'Pick Perfect', sub: '9-10 AM', recommend: hour >= 8 && hour <= 10 },
-                { id: '10-11', label: 'Still Looking', sub: '10-11 AM', recommend: hour >= 9 && hour <= 11 },
-                { id: '12-24', label: 'Late Join', sub: '12+ PM', recommend: hour >= 11 && hour <= 13 },
+                { id: '6-7', label: 'Early Birds', icon: <Sun className="w-3.5 h-3.5" />, sub: '6-7 AM', color: 'border-cyan-400 text-cyan-400 shadow-cyan-400/20' },
+                { id: '7-8', label: 'GM Route', icon: <Sunrise className="w-3.5 h-3.5" />, sub: '7-8 AM', color: 'border-amber-400 text-amber-400 shadow-amber-400/20' },
+                { id: '8-9', label: 'Rush Hour', icon: <Navigation2 className="w-3.5 h-3.5" />, sub: '8-9 AM', color: 'border-red-400 text-red-400 shadow-red-400/20' },
+                { id: '9-10', label: 'Pick Perfect', icon: <CheckCircle2 className="w-3.5 h-3.5" />, sub: '9-10 AM', color: 'border-green-400 text-green-400 shadow-green-400/20' },
+                { id: '10-11', label: 'Still Looking', icon: <Search className="w-3.5 h-3.5" />, sub: '10-11 AM', color: 'border-white/40 text-white/40 shadow-white/10' },
+                { id: '12-24', label: 'Late Join', icon: <Timer className="w-3.5 h-3.5" />, sub: '12+ PM', color: 'border-indigo-400 text-indigo-400 shadow-indigo-400/20' },
               ].map(v => (
                 <button 
                   key={v.id}
                   onClick={() => setFilter(p => ({ ...p, vibeTag: v.id }))}
-                  className={`px-7 py-4 rounded-[1.8rem] border transition-all flex flex-col items-start gap-0.5 relative group ${filter.vibeTag === v.id ? 'bg-amber-400 text-black border-amber-400 shadow-xl shadow-amber-400/20 scale-105' : 'bg-white/5 text-white/40 border-white/5 hover:border-white/20'}`}
+                  className={`px-6 py-4 rounded-full border-2 transition-all flex items-center gap-3 relative group ${filter.vibeTag === v.id ? `bg-black/40 ${v.color} shadow-[0_0_25px_rgba(0,0,0,0.5),0_0_15px_currentColor] scale-105` : 'bg-white/5 text-white/30 border-white/5 hover:border-white/20'}`}
                 >
-                   {v.recommend && <div className="absolute -top-2 -right-1 px-2 py-0.5 bg-blue-600 text-white text-[7px] font-black rounded-full shadow-lg border border-white/10 animate-bounce">RECOMMENDED</div>}
-                   <span className="text-[10px] font-black uppercase tracking-widest">{v.label}</span>
-                   <span className={`text-[8px] font-bold ${filter.vibeTag === v.id ? 'text-black/60' : 'text-white/20'}`}>{v.sub}</span>
+                   <div className={`${filter.vibeTag === v.id ? 'opacity-100' : 'opacity-40'}`}>
+                      {v.icon}
+                   </div>
+                   <div className="flex flex-col items-start leading-none">
+                      <span className="text-[10px] font-black uppercase tracking-widest">{v.label}</span>
+                      <span className={`text-[8px] font-bold mt-1 ${filter.vibeTag === v.id ? 'opacity-60' : 'opacity-20'}`}>{v.sub}</span>
+                   </div>
                 </button>
               ))}
 
-              {/* EVENING SLOTS: ALWAYS SHOW OR PRIORITIZE AFTER 12 PM */}
+              {/* EVENING SLOTS */}
               {(hour >= 12 || filter.vibeTag.includes('16-18') || filter.vibeTag.includes('20-22')) && (filter.direction === 'all' || filter.direction === 'to_home') && [
-                { id: '16-18', label: 'On Time', sub: '4-6 PM', recommend: hour >= 15 && hour <= 17 },
-                { id: '18-20', label: 'Traffic Fighters', sub: '6-8 PM', recommend: hour >= 17 && hour <= 19 },
-                { id: '20-22', label: 'Late Comers', sub: '8-10 PM', recommend: hour >= 19 && hour <= 21 },
-                { id: '22-24', label: 'Homebound', sub: '10+ PM', recommend: hour >= 21 || hour < 2 },
+                { id: '16-18', label: 'On Time', icon: <Clock className="w-3.5 h-3.5" />, sub: '4-6 PM', color: 'border-emerald-400 text-emerald-400 shadow-emerald-400/20' },
+                { id: '18-20', label: 'Traffic Fighters', icon: <Zap className="w-3.5 h-3.5" />, sub: '6-8 PM', color: 'border-orange-400 text-orange-400 shadow-orange-400/20' },
+                { id: '20-22', label: 'Late Comers', icon: <Moon className="w-3.5 h-3.5" />, sub: '8-10 PM', color: 'border-blue-400 text-blue-400 shadow-blue-400/20' },
+                { id: '22-24', label: 'Homebound', icon: <Home className="w-3.5 h-3.5" />, sub: '10+ PM', color: 'border-purple-400 text-purple-400 shadow-purple-400/20' },
               ].map(v => (
                 <button 
                   key={v.id}
                   onClick={() => setFilter(p => ({ ...p, vibeTag: v.id }))}
-                  className={`px-7 py-4 rounded-[1.8rem] border transition-all flex flex-col items-start gap-0.5 relative group ${filter.vibeTag === v.id ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-600/20 scale-105' : 'bg-white/5 text-white/40 border-white/5 hover:border-white/20'}`}
+                  className={`px-6 py-4 rounded-full border-2 transition-all flex items-center gap-3 relative group ${filter.vibeTag === v.id ? `bg-black/40 ${v.color} shadow-[0_0_25px_rgba(0,0,0,0.5),0_0_15px_currentColor] scale-105` : 'bg-white/5 text-white/30 border-white/5 hover:border-white/20'}`}
                 >
-                   {v.recommend && <div className="absolute -top-2 -right-1 px-2 py-0.5 bg-amber-400 text-black text-[7px] font-black rounded-full shadow-lg border border-black/10 animate-pulse">PRIME SIGNAL</div>}
-                   <span className="text-[10px] font-black uppercase tracking-widest">{v.label}</span>
-                   <span className={`text-[8px] font-bold ${filter.vibeTag === v.id ? 'text-white/60' : 'text-white/20'}`}>{v.sub}</span>
+                   <div className={`${filter.vibeTag === v.id ? 'opacity-100' : 'opacity-40'}`}>
+                      {v.icon}
+                   </div>
+                   <div className="flex flex-col items-start leading-none">
+                      <span className="text-[10px] font-black uppercase tracking-widest">{v.label}</span>
+                      <span className={`text-[8px] font-bold mt-1 ${filter.vibeTag === v.id ? 'opacity-60' : 'opacity-20'}`}>{v.sub}</span>
+                   </div>
                 </button>
               ))}
            </div>

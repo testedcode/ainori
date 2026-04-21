@@ -53,6 +53,60 @@ export default function RideDetailPage() {
   const [handlingReq, setHandlingReq] = useState<number | null>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
+  // ─── HIGH-FIDELITY COMPONENTS ─────────────────────────────────────────────
+  const VisualSeat = ({ type, user, status }: { type: 'host' | 'rider' | 'available', user?: any, status?: string }) => {
+    const isAvailable = type === 'available'
+    const name = user?.name || (type === 'host' ? ride?.user_name : 'Available')
+    
+    return (
+      <div className="flex flex-col items-center gap-4 group">
+        <div className="relative w-20 h-28 flex items-center justify-center">
+          {/* CAR SEAT OUTLINE */}
+          <svg viewBox="0 0 100 140" className={`absolute inset-0 w-full h-full transition-all duration-500 ${isAvailable ? 'stroke-blue-500/40' : 'stroke-white/10'}`}>
+             <path 
+               d="M30,20 Q30,10 50,10 Q70,10 70,20 L70,30 Q70,40 50,40 Q30,40 30,30 Z" 
+               fill="none" strokeWidth="2" strokeDasharray={isAvailable ? "4,4" : "0"} 
+               className={isAvailable ? "animate-[pulse_3s_infinite]" : ""}
+             />
+             <path 
+               d="M20,45 Q20,35 50,35 Q80,35 80,45 L85,90 Q85,110 50,110 Q15,110 15,90 Z" 
+               fill="none" strokeWidth="2" strokeDasharray={isAvailable ? "6,4" : "0"}
+               className={isAvailable ? "animate-[pulse_2s_infinite] drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" : ""}
+             />
+             <path 
+               d="M15,115 Q15,105 50,105 Q85,105 85,115 L90,130 Q90,135 50,135 Q10,135 10,130 Z" 
+               fill="none" strokeWidth="2" strokeDasharray={isAvailable ? "4,4" : "0"}
+               className={isAvailable ? "animate-[pulse_4s_infinite]" : ""}
+             />
+          </svg>
+
+          {/* AVATAR OVERLAY */}
+          {!isAvailable && (
+            <div className={`relative w-12 h-12 rounded-full p-0.5 transition-all group-hover:scale-110 ${type === 'host' ? 'bg-gradient-to-tr from-amber-600 to-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.4)]' : 'bg-gradient-to-tr from-blue-600 to-cyan-300 shadow-[0_0_20px_rgba(59,130,246,0.4)]'}`}>
+              <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden border-2 border-slate-900">
+                {user?.avatar_url ? (
+                  <img src={user.avatar_url} alt={name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-sm font-black text-white">{name[0].toUpperCase()}</span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {isAvailable && (
+            <span className="text-[7px] font-black text-blue-400/40 uppercase tracking-widest animate-pulse">Available</span>
+          )}
+        </div>
+        <div className="text-center">
+          <p className={`text-[9px] font-black uppercase tracking-widest ${isAvailable ? 'text-white/10' : 'text-white'}`}>{name.split(' ')[0]}</p>
+          <p className="text-[7px] font-bold text-white/20 uppercase tracking-tighter mt-0.5">
+            {type === 'host' ? 'COMMANDER' : type === 'rider' ? 'TRAVELER' : 'FREE'}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) { router.push('/login'); return }
@@ -310,46 +364,25 @@ export default function RideDetailPage() {
                 </div>
               )}
 
-              {/* SOCIAL SEAT MAP - SHOWS WHO IS IN THE RIDE */}
-              <div className="bg-white/5 border border-white/5 rounded-[2rem] p-6 mb-8">
-                 <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                    <Users className="w-3 h-3" /> TRAVELER ROSTER
+              {/* SOCIAL SEAT MAP - HIGH FIDELITY */}
+              <div className="bg-white/5 border border-white/5 rounded-[3rem] p-8 mb-8 overflow-hidden relative">
+                 <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
+                 <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-10 flex items-center gap-3">
+                    <Users className="w-3 h-3 text-blue-500" /> SEAT VISUALIZATION
                  </h3>
-                 <div className="flex flex-wrap gap-4 items-center">
-                    {/* HOST SEAT */}
-                    <div className="flex flex-col items-center gap-2">
-                       <div className="w-14 h-14 rounded-full border-2 border-amber-400 p-0.5 shadow-[0_0_20px_rgba(251,191,36,0.1)]">
-                          <div className="w-full h-full rounded-full bg-slate-800 flex items-center justify-center text-sm font-black text-amber-400 overflow-hidden">
-                             {ride.user_name[0].toUpperCase()}
-                          </div>
-                       </div>
-                       <span className="text-[8px] font-black text-amber-400 uppercase tracking-widest">HOST</span>
-                    </div>
+                 
+                 <div className="flex flex-wrap justify-center gap-8 md:gap-12 py-4">
+                    {/* HOST */}
+                    <VisualSeat type="host" />
 
                     {/* CONFIRMED RIDERS */}
                     {ride.confirmed_riders && ride.confirmed_riders.map((r, i) => (
-                       <div key={i} className="group relative flex flex-col items-center gap-2">
-                          <div className="w-14 h-14 rounded-full border-2 border-blue-400/30 p-0.5 group-hover:border-blue-400 transition-all">
-                             <div className="w-full h-full rounded-full bg-slate-800 flex items-center justify-center text-sm font-black text-white overflow-hidden">
-                                {r.avatar_url ? (
-                                   <img src={r.avatar_url} alt={r.name} className="w-full h-full object-cover" />
-                                ) : (
-                                   <span>{r.name[0].toUpperCase()}</span>
-                                )}
-                             </div>
-                          </div>
-                          <span className="text-[8px] font-black text-white/30 group-hover:text-white transition-colors uppercase tracking-widest truncate w-14 text-center">{r.name.split(' ')[0]}</span>
-                       </div>
+                       <VisualSeat key={i} type="rider" user={r} />
                     ))}
 
-                    {/* EMPTY SEATS VISUAL */}
+                    {/* AVAILABLE SLOTS */}
                     {Array.from({ length: ride.available_seats }).map((_, i) => (
-                       <div key={`empty-${i}`} className="flex flex-col items-center gap-2 opacity-20">
-                          <div className="w-14 h-14 rounded-full border-2 border-white/10 border-dashed flex items-center justify-center">
-                             <div className="w-8 h-8 rounded-full bg-white/5" />
-                          </div>
-                          <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">OPEN</span>
-                       </div>
+                       <VisualSeat key={`empty-${i}`} type="available" />
                     ))}
                  </div>
               </div>
