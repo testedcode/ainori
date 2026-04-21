@@ -334,7 +334,8 @@ function RidesContent() {
 
   const handleRetract = async (rideId: number) => {
     try {
-      const req = requests.find(r => r.ride_id === rideId && r.status === 'pending')
+      const currentUserId = Number(currentUser?.id || currentUser?.userId)
+      const req = requests.find(r => Number(r.user_id) === currentUserId && r.ride_id === rideId && r.status === 'pending')
       if (req) {
          await api.delete(`/rides/${rideId}/requests/${req.id}`)
          toast.success('Retracted. Not yet.', { icon: '🛑' })
@@ -555,18 +556,21 @@ function RidesContent() {
           </div>
         ) : view === 'grid' ? (
           <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filtered.map(ride => (
-              <CardView
-                key={ride.id}
-                ride={ride}
-                onBook={handleBook}
-                onRetract={handleRetract}
-                isOwnRide={currentUser?.id === ride.user_id}
-                isRequested={requests.some(r => r.ride_id === ride.id && r.status === 'pending')}
-                isSelected={activeSelection?.rideId === ride.id ? activeSelection.seats : null}
-                onSelect={(seats) => setActiveSelection(seats === null ? null : { rideId: ride.id, seats })}
-              />
-            ))}
+            {filtered.map(ride => {
+               const currentUserId = Number(currentUser?.id || currentUser?.userId)
+               return (
+                 <CardView
+                   key={ride.id}
+                   ride={ride}
+                   onBook={handleBook}
+                   onRetract={handleRetract}
+                   isOwnRide={currentUserId === Number(ride.user_id)}
+                   isRequested={requests.some(r => Number(r.user_id) === currentUserId && r.ride_id === ride.id && r.status === 'pending')}
+                   isSelected={activeSelection?.rideId === ride.id ? activeSelection.seats : null}
+                   onSelect={(seats) => setActiveSelection(seats === null ? null : { rideId: ride.id, seats })}
+                 />
+               )
+            })}
           </div>
         ) : (
           <div className="space-y-4">

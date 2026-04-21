@@ -223,7 +223,8 @@ export default function RideDetailPage() {
 
   const handleCancelRequest = async () => {
     try {
-      const myReq = requests.find(r => r.user_id === user?.id && r.status === 'pending')
+      const currentUserId = Number(user?.id || user?.userId)
+      const myReq = requests.find(r => Number(r.user_id) === currentUserId && r.status === 'pending')
       if (myReq) {
         await api.delete(`/rides/${rideId}/requests/${myReq.id}`)
         toast.success('Request retracted.', { icon: '🛑' })
@@ -247,8 +248,9 @@ export default function RideDetailPage() {
   if (loading) return <div className="min-h-screen bg-[#020617] flex items-center justify-center text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Syncing...</div>
   if (!ride) return <div className="min-h-screen bg-[#020617] flex items-center justify-center text-white font-black">Ride not found</div>
 
-  const isOwner = user?.id === ride.user_id
-  const myRequest = requests.find(r => r.user_id === user?.id)
+  const currentUserId = Number(user?.id || user?.userId)
+  const isOwner = currentUserId === Number(ride.user_id)
+  const myRequest = requests.find(r => Number(r.user_id) === currentUserId)
   const isAccepted = myRequest?.status === 'accepted'
   const isPending = myRequest?.status === 'pending'
   const vibe = getVibe(parseInt(ride.ride_time.split(':')[0]))
@@ -538,7 +540,8 @@ export default function RideDetailPage() {
                 </div>
               ) : (
                 messages.map(msg => {
-                  const isMine = msg.user_id === user?.id
+                  const currentUserId = Number(user?.id || user?.userId)
+                  const isMine = Number(msg.user_id) === currentUserId
                   return (
                     <div key={msg.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
                       {!isMine && <span className="text-[9px] font-black text-white/20 uppercase mb-1 ml-1">{msg.user_name}</span>}
