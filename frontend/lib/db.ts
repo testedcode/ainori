@@ -213,6 +213,8 @@ class HybridPool {
           `ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS image_url TEXT`,
           `ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS total_seats INTEGER DEFAULT 4`,
           `ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS default_available_seats INTEGER DEFAULT 3`,
+          `ALTER TABLE corridors ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false`,
+          `ALTER TABLE rides ADD COLUMN IF NOT EXISTS direction TEXT CHECK (direction IN ('to_office', 'to_home'))`,
         ]
         for (const statement of statements) {
           try {

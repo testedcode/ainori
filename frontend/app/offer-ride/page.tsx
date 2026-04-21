@@ -133,6 +133,7 @@ export default function OfferRidePage() {
         available_seats: parseInt(form.available_seats),
         total_seats: parseInt(form.total_seats),
         pickup_points: pickupPoints,
+        direction: direction,
       }
 
       await api.post('/rides', payload)

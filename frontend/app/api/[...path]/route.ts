@@ -326,6 +326,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (path.length === 3 && path[0] === 'rides' && /^\d+$/.test(path[1]) && path[2] === 'requests') {
     return h.handleCreateRideRequest(pool as any, parseInt(path[1], 10), body, auth)
   }
+  if (path.length === 3 && path[0] === 'rides' && /^\d+$/.test(path[1]) && path[2] === 'reject-all') {
+    return h.handleRejectAllRequests(pool as any, parseInt(path[1], 10), auth)
+  }
+  if (pathStr === 'user/requests/cancel-all') {
+    return h.handleCancelAllUserRequests(pool as any, auth)
+  }
   if (path.length === 3 && path[0] === 'rides' && /^\d+$/.test(path[1]) && path[2] === 'messages') {
     return h.handleCreateMessage(pool as any, parseInt(path[1], 10), body, auth)
   }
@@ -424,6 +430,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   }
   if (path.length === 4 && path[0] === 'rides' && /^\d+$/.test(path[1]) && path[2] === 'requests' && /^\d+$/.test(path[3])) {
     return h.handleCancelRideRequest(pool, parseInt(path[1], 10), parseInt(path[3], 10), auth)
+  }
+  if (path.length === 2 && path[0] === 'corridors' && /^\d+$/.test(path[1])) {
+    const adminErr = requireAdmin(auth)
+    if (adminErr) return adminErr
+    const searchParams = request.nextUrl.searchParams
+    return h.handleDeleteCorridor(pool, parseInt(path[1], 10), searchParams)
   }
   return Response.json({ error: 'Not found' }, { status: 404 })
 }

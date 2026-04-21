@@ -21,7 +21,7 @@ interface Ride {
   ride_time: string; pickup_point: string; drop_point: string; route_description?: string;
   price_per_seat: number; available_seats: number; total_seats: number; status: string;
   corridor_description?: string; vehicle_make?: string; vehicle_model?: string;
-  vehicle_number?: string; phone?: string; upi_id?: string;
+  vehicle_number?: string; phone?: string; upi_id?: string; direction?: 'to_office' | 'to_home';
 }
 
 interface Message { id: number; user_id?: number; user_name: string; message: string; created_at: string }
@@ -187,7 +187,7 @@ export default function RideDetailPage() {
             <div>
               <p className="text-[48px] font-black text-white leading-none tracking-tighter">{ride.ride_time.slice(0, 5)}</p>
               <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">
-                {isOwner ? 'You are hosting' : `Host: ${ride.user_name}`}
+                {isOwner ? 'You are hosting' : `Host: ${ride.user_name}`} · {ride.direction === 'to_office' ? '🏢 To Office' : '🏠 To Home'}
               </p>
             </div>
           </div>

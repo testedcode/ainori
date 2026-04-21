@@ -9,7 +9,7 @@ import {
   ChevronRight, MapPin, Clock, RefreshCw,
   EyeOff, ChevronLeft, Info, Calendar,
   ArrowRight, Check, X, ShieldCheck,
-  Building2, Home
+  Building2, Home, Users
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import { getVibe, VIBE_THEMES, VibeState } from '@/lib/vibe-utils'
@@ -24,6 +24,7 @@ interface Ride {
   drop_point: string; price_per_seat: number; available_seats: number; total_seats: number;
   status: string; vehicle_make?: string; vehicle_model?: string; vehicle_color?: string;
   vehicle_type?: string; vehicle_number?: string;
+  direction?: string; pending_count?: number;
 }
 
 interface Corridor { id: number; name: string; image_url?: string }
@@ -82,6 +83,13 @@ function CardView({
              <p className="text-[10px] font-black text-green-400 mt-2 uppercase tracking-tight">₹{ride.price_per_seat} Seat</p>
           </div>
         </div>
+
+        {ride.pending_count ? (
+          <div className="flex items-center gap-2 mb-4 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full w-max">
+             <Users className="w-3 h-3 text-amber-500" />
+             <span className="text-[9px] font-black text-amber-500 uppercase tracking-widest">{ride.pending_count} competitors waiting</span>
+          </div>
+        ) : null}
 
         <div className="flex items-center gap-3 mb-6 bg-white/5 p-3 rounded-2xl border border-white/5">
            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-lg`}>
@@ -192,8 +200,9 @@ function RidesContent() {
   const [filter, setFilter] = useState({
     corridor: corridorParam || 'all',
     date: new Date().toISOString().split('T')[0],
-    timeRange: 'all',  // Default to 'all' so newly posted rides are always visible
-    direction: 'all'   // Default to 'all' so both directions are shown
+    timeRange: 'all',  
+    direction: 'all',
+    vibeTag: 'all'
   })
 
   useEffect(() => {
@@ -276,14 +285,21 @@ function RidesContent() {
     if (filter.corridor !== 'all' && r.corridor_id !== parseInt(filter.corridor)) return false
     
     const h = parseInt(r.ride_time.split(':')[0])
-    const rideVibe = getVibe(h)
-    if (filter.timeRange !== 'all' && filter.timeRange !== rideVibe) return false
+    
+    if (filter.vibeTag !== 'all') {
+      const [start, end] = filter.vibeTag.split('-').map(Number)
+      if (end === 24) { // 12+ or 10+ cases
+        if (h < start) return false
+      } else {
+        if (h < start || h >= end) return false
+      }
+    } else if (filter.timeRange !== 'all') {
+      const rideVibe = getVibe(h)
+      if (filter.timeRange !== rideVibe) return false
+    }
 
-    if (filter.direction !== 'all') {
-      const isToOffice = OFFICE_KEYWORDS.some(k => r.drop_point.toLowerCase().includes(k))
-      const isToHome = OFFICE_KEYWORDS.some(k => r.pickup_point.toLowerCase().includes(k))
-      if (filter.direction === 'to_office' && !isToOffice) return false
-      if (filter.direction === 'to_home' && !isToHome) return false
+    if (filter.direction !== 'all' && r.direction) {
+      if (r.direction !== filter.direction) return false
     }
     return true
   })
@@ -433,6 +449,50 @@ function RidesContent() {
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
              </button>
           </div>
+        </div>
+
+        {/* VIBE TAGS - USER SPECIFIC THEME */}
+        <div className="mb-12 overflow-x-auto scrollbar-hide">
+           <div className="flex gap-3 min-w-max pb-4">
+              <button 
+                onClick={() => setFilter(p => ({ ...p, vibeTag: 'all' }))}
+                className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all ${filter.vibeTag === 'all' ? 'bg-white text-black border-white' : 'bg-white/5 text-white/40 border-white/5'}`}
+              >
+                 All Times
+              </button>
+              {(filter.direction === 'all' || filter.direction === 'to_office') && [
+                { id: '6-7', label: 'Early Birds', sub: '6-7 AM' },
+                { id: '7-8', label: 'GM Route', sub: '7-8 AM' },
+                { id: '8-9', label: 'Rush Hour', sub: '8-9 AM' },
+                { id: '9-10', label: 'Pick Perfect', sub: '9-10 AM' },
+                { id: '10-11', label: 'Still Looking', sub: '10-11 AM' },
+                { id: '12-24', label: 'Late Join', sub: '12+ PM' },
+              ].map(v => (
+                <button 
+                  key={v.id}
+                  onClick={() => setFilter(p => ({ ...p, vibeTag: v.id }))}
+                  className={`px-6 py-3 rounded-2xl border transition-all flex flex-col items-start gap-0.5 ${filter.vibeTag === v.id ? 'bg-amber-400 text-black border-amber-400' : 'bg-white/5 text-white/40 border-white/5 hover:border-white/20'}`}
+                >
+                   <span className="text-[10px] font-black uppercase tracking-widest">{v.label}</span>
+                   <span className={`text-[8px] font-bold ${filter.vibeTag === v.id ? 'text-black/60' : 'text-white/20'}`}>{v.sub}</span>
+                </button>
+              ))}
+              {(filter.direction === 'all' || filter.direction === 'to_home') && [
+                { id: '16-18', label: 'On Time', sub: '4-6 PM' },
+                { id: '18-20', label: 'Traffic Fighters', sub: '6-8 PM' },
+                { id: '20-22', label: 'Late Comers', sub: '8-10 PM' },
+                { id: '22-24', label: 'Homebound', sub: '10+ PM' },
+              ].map(v => (
+                <button 
+                  key={v.id}
+                  onClick={() => setFilter(p => ({ ...p, vibeTag: v.id }))}
+                  className={`px-6 py-3 rounded-2xl border transition-all flex flex-col items-start gap-0.5 ${filter.vibeTag === v.id ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white/5 text-white/40 border-white/5 hover:border-white/20'}`}
+                >
+                   <span className="text-[10px] font-black uppercase tracking-widest">{v.label}</span>
+                   <span className={`text-[8px] font-bold ${filter.vibeTag === v.id ? 'text-white/60' : 'text-white/20'}`}>{v.sub}</span>
+                </button>
+              ))}
+           </div>
         </div>
 
         {loading ? (

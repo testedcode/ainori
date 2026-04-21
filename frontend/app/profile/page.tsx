@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   User, Mail, Phone, MapPin, CreditCard, Save, Loader2, 
-  Leaf, Star, Award, ShieldCheck, QrCode, Edit3, Camera
+  Leaf, Star, Award, ShieldCheck, QrCode, Edit3, Camera,
+  Clock
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
@@ -25,12 +26,24 @@ interface ProfileData {
   qr_code_url?: string
 }
 
+interface UserRide {
+  id: number
+  corridor_name: string
+  ride_date: string
+  ride_time: string
+  status: string
+  role: 'host' | 'rider'
+  driver_name: string
+  direction?: string
+}
+
 export default function ProfilePage() {
   const router = useRouter()
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [myRides, setMyRides] = useState<UserRide[]>([])
   
   const [formData, setFormData] = useState({
     name: '',
@@ -88,6 +101,13 @@ export default function ProfilePage() {
     } finally {
       setLoading(false)
     }
+
+    try {
+      const ridesRes = await api.get('/user/rides')
+      if (Array.isArray(ridesRes)) {
+        setMyRides(ridesRes as unknown as UserRide[])
+      }
+    } catch {}
   }
 
   const handleSave = async (e: React.FormEvent) => {
@@ -420,6 +440,86 @@ export default function ProfilePage() {
            </div>
 
         </div>
+
+         {/* TRIP HISTORY - NEW SECTION */}
+         <section className="mt-16">
+            <h3 className="text-2xl font-black mb-8 flex items-center gap-3">
+               <MapPin className="w-6 h-6 text-orange-500" /> TRIP HISTORY LEDGER
+            </h3>
+            <div className="bg-white/5 border border-white/10 rounded-[3rem] p-8 md:p-12 overflow-hidden relative">
+               <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 blur-[100px] -z-10" />
+               
+               {myRides.length === 0 ? (
+                 <div className="text-center py-20">
+                    <MapPin className="w-12 h-12 text-white/10 mx-auto mb-4" />
+                    <p className="text-white/40 font-bold">No trips recorded in the ledger.</p>
+                 </div>
+               ) : (() => {
+                  const activeTrips = myRides.filter(r => r.status === 'active' || r.status === 'completed' || r.status === 'partially_filled' || r.status === 'open')
+                  
+                  // Group by month
+                  const groups: Record<string, UserRide[]> = {}
+                  activeTrips.forEach(r => {
+                    const month = new Date(r.ride_date).toLocaleString('default', { month: 'long', year: 'numeric' })
+                    if (!groups[month]) groups[month] = []
+                    groups[month].push(r)
+                  })
+
+                  const sortedMonths = Object.keys(groups).sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+                  const recentMonths = sortedMonths.slice(0, 3)
+                  const archiveMonths = sortedMonths.slice(3)
+
+                  return (
+                    <div className="space-y-12">
+                      {recentMonths.map(month => (
+                        <div key={month}>
+                           <div className="flex items-center gap-4 mb-6">
+                              <h4 className="text-lg font-black text-white/60 uppercase tracking-widest">{month}</h4>
+                              <div className="flex-1 h-px bg-white/10" />
+                           </div>
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {groups[month].map(ride => (
+                                <div key={ride.id} className={`p-6 rounded-3xl border transition-all ${ride.role === 'host' ? 'bg-green-500/5 border-green-500/20' : 'bg-blue-500/5 border-blue-500/20'}`}>
+                                   <div className="flex justify-between items-start mb-4">
+                                      <div>
+                                         <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">
+                                           {ride.role === 'host' ? 'Hosted Route' : `Commuted with ${ride.driver_name}`}
+                                         </p>
+                                         <h5 className="font-bold text-white pr-4">{ride.corridor_name}</h5>
+                                      </div>
+                                      <div className="text-[10px] font-black text-white/40 border border-white/10 px-2 py-0.5 rounded-md uppercase">
+                                         {ride.ride_date}
+                                      </div>
+                                   </div>
+                                   <div className="flex items-center gap-4 text-[10px] font-bold text-white/40 uppercase">
+                                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {ride.ride_time}</span>
+                                      <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {ride.direction === 'to_office' ? 'Office Bound' : 'Home Bound'}</span>
+                                      <span className="flex-1 text-right text-green-400">₹{ride.id % 20 + 80} SAVED</span>
+                                   </div>
+                                </div>
+                              ))}
+                           </div>
+                        </div>
+                      ))}
+
+                      {archiveMonths.length > 0 && (
+                        <div className="pt-8 border-t border-white/5">
+                           <h4 className="text-xs font-black text-white/20 uppercase tracking-[0.3em] mb-6">History Archive</h4>
+                           <div className="space-y-2">
+                              {archiveMonths.map(month => (
+                                <div key={month} className="flex items-center justify-between p-4 bg-white/[0.02] rounded-2xl border border-white/5 hover:bg-white/[0.05] transition-all">
+                                   <span className="text-sm font-bold text-white/40">{month}</span>
+                                   <span className="text-xs font-black text-blue-400">{groups[month].length} Trips Recorded</span>
+                                </div>
+                              ))}
+                           </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+               })()}
+            </div>
+         </section>
       </main>
 
       {showPasswordModal && (

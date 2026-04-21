@@ -75,6 +75,8 @@ export default function AdminPage() {
   const [newCorridor, setNewCorridor] = useState({ city_id: 1, name: '', location_from: '', location_to: '', description: '', image_url: '' })
   const [showAddCity, setShowAddCity] = useState(false)
   const [newCity, setNewCity] = useState('')
+  const [corridorToDelete, setCorridorToDelete] = useState<number | null>(null)
+  const [isPermanentDelete, setIsPermanentDelete] = useState(false)
   const [tickets, setTickets] = useState<SupportTicket[]>([])
   const [feedback, setFeedback] = useState<Feedback[]>([])
   const [inboxTab, setInboxTab] = useState<'tickets' | 'feedback'>('tickets')
@@ -152,7 +154,7 @@ export default function AdminPage() {
         api.get('/corridors').catch(() => DEMO_CORRIDORS),
         api.get('/cities').catch(() => DEMO_CITIES),
         api.get('/admin/users').catch(() => []),
-        api.get('/rides').catch(() => [])
+        api.get('/rides?status=all').catch(() => [])
       ])
       if (a && typeof a === 'object' && 'total_users' in (a as object)) setAnalytics(a as Analytics)
       if (Array.isArray(cor) && cor.length > 0) setCorridors(cor as Corridor[])
@@ -193,6 +195,21 @@ export default function AdminPage() {
     setCities(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c))
     try { await api.put(`/cities/${id}/status`, { status: newStatus }) } catch {}
     toast.success(`${newStatus === 'active' ? 'Opened' : 'Locked'} city ecosystem.`)
+  }
+  const deleteCorridor = async (isPermanent = false) => {
+    if (!corridorToDelete) return
+    const id = corridorToDelete
+    try {
+      const url = isPermanent ? `/corridors/${id}?permanent=true` : `/corridors/${id}`
+      await api.delete(url)
+      setCorridors(prev => prev.filter(c => c.id !== id))
+      toast.success(isPermanent ? 'Corridor permanently deleted' : 'Corridor archived. History preserved.')
+    } catch {
+      toast.error(isPermanent ? 'Failed to delete corridor' : 'Failed to archive corridor')
+    } finally {
+      setCorridorToDelete(null)
+      setIsPermanentDelete(false)
+    }
   }
   const addCorridor = async () => {
     if (!newCorridor.name || !newCorridor.location_from || !newCorridor.location_to || !newCorridor.city_id) {
@@ -545,6 +562,9 @@ export default function AdminPage() {
                         <button onClick={() => toggleCorridor(c.id, c.is_active)} className={`p-4 rounded-2xl transition-all ${c.is_active ? 'bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white' : 'bg-green-600/10 text-green-500 hover:bg-green-600 hover:text-white'}`}>
                            {c.is_active ? <Lock className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
                         </button>
+                        <button onClick={() => setCorridorToDelete(c.id)} className="p-4 rounded-2xl bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white transition-all">
+                           <XCircle className="w-5 h-5" />
+                        </button>
                       </div>
                    </div>
                    {c.description && <p className="mb-6 text-sm text-white/60 bg-[#0f172a] p-4 rounded-xl border border-white/5">{c.description}</p>}
@@ -877,6 +897,53 @@ export default function AdminPage() {
            </div>
         </div>
       )}
+
+        {/* DELETE CONFIRMATION MODAL */}
+        {corridorToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 backdrop-blur-2xl bg-black/60">
+            <div className={`bg-slate-900/90 border rounded-[2.5rem] p-10 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-300 ${isPermanentDelete ? 'border-red-500/50 shadow-red-500/20' : 'border-white/10'}`}>
+               <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 ${isPermanentDelete ? 'bg-red-600 shadow-[0_0_30px_rgba(220,38,38,0.4)]' : 'bg-red-500/20'}`}>
+                  <AlertTriangle className={`w-10 h-10 ${isPermanentDelete ? 'text-white' : 'text-red-500'}`} />
+               </div>
+               
+               <h3 className="text-2xl font-black text-center mb-4">
+                 {isPermanentDelete ? 'Permanent Delete?' : 'Archive Corridor?'}
+               </h3>
+               
+               <p className="text-white/40 text-center font-medium mb-8 leading-relaxed">
+                 {isPermanentDelete 
+                   ? <>This will <span className="text-red-500 font-bold uppercase underline">permanently remove</span> the route and all its metadata from the system. This cannot be undone.</>
+                   : <>Archiving will hide this route from new rides. Previous rides and history will be <span className="text-white font-bold">preserved</span> for analytics.</>
+                 }
+               </p>
+               
+               <div className="flex flex-col gap-3">
+                  {!isPermanentDelete ? (
+                    <>
+                      <button onClick={() => deleteCorridor(false)} className="w-full py-4 bg-white text-black hover:bg-red-600 hover:text-white rounded-2xl font-black transition-all active:scale-95 shadow-xl">
+                         CONFIRM ARCHIVE
+                      </button>
+                      <button onClick={() => setIsPermanentDelete(true)} className="w-full py-4 bg-red-600/10 border border-red-600/20 text-red-500 hover:bg-red-600 hover:text-white rounded-2xl text-xs font-black transition-all">
+                         SKIP ARCHIVE & DELETE PERMANENTLY
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button onClick={() => deleteCorridor(true)} className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black transition-all active:scale-95 shadow-2xl shadow-red-600/30">
+                         YES, DELETE FOREVER
+                      </button>
+                      <button onClick={() => setIsPermanentDelete(false)} className="w-full py-4 bg-white/5 text-white/40 hover:bg-white/10 rounded-2xl font-black transition-all uppercase text-[10px] tracking-widest">
+                         Back to Archive
+                      </button>
+                    </>
+                  )}
+                  <button onClick={() => { setCorridorToDelete(null); setIsPermanentDelete(false); }} className="w-full py-2 text-white/20 hover:text-white/40 text-[10px] font-black uppercase tracking-widest mt-2 transition-all">
+                     Abort Action
+                  </button>
+               </div>
+            </div>
+          </div>
+        )}
 
       </main>
     </div>

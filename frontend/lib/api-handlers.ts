@@ -263,7 +263,7 @@ export async function handleGetCorridors(pool: Pool, searchParams: URLSearchPara
   
   let query = `
     SELECT c.id, c.city_id, ci.name as city_name, c.name, c.location_from, c.location_to, c.is_active, c.image_url
-    FROM corridors c LEFT JOIN cities ci ON c.city_id = ci.id WHERE 1=1
+    FROM corridors c LEFT JOIN cities ci ON c.city_id = ci.id WHERE c.is_deleted = false
   `
   const args: unknown[] = []
   let i = 1
@@ -435,7 +435,8 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
     SELECT r.id, r.user_id, u.name as user_name, r.corridor_id, c.name as corridor_name,
            r.vehicle_id, r.ride_date, r.ride_time, r.pickup_point, r.drop_point,
            r.route_description, c.description as corridor_description, r.price_per_seat, r.available_seats, r.total_seats,
-           r.status, r.created_at, r.updated_at
+           r.status, r.direction, r.created_at, r.updated_at,
+           (SELECT count(*) FROM ride_requests WHERE ride_id = r.id AND status = 'pending') as pending_count
     FROM rides r JOIN users u ON r.user_id = u.id JOIN corridors c ON r.corridor_id = c.id WHERE 1=1
   `
   const args: unknown[] = []
@@ -447,14 +448,14 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
   if (date) {
     query += ` AND r.ride_date = $${i++}`
     args.push(date)
-  } else {
+  } else if (status !== 'all') {
     query += ` AND r.ride_date IN ($${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++})`
     args.push(today, day1, day2, day3, day4, day5)
   }
-  if (status) {
+  if (status && status !== 'all') {
     query += ` AND r.status = $${i++}`
     args.push(status)
-  } else {
+  } else if (!status) {
     query += ` AND r.status IN ('open', 'partially_filled')`
   }
   if (userId) {
@@ -477,22 +478,39 @@ export async function handleGetUserRides(pool: Pool, auth: Auth) {
     SELECT DISTINCT r.id, r.user_id, u.name as user_name, u.avatar_url, r.corridor_id, c.name as corridor_name,
            c.description as corridor_description,
            r.ride_date, r.ride_time, r.pickup_point, r.drop_point,
-           r.price_per_seat, r.available_seats, r.total_seats, r.status,
-           CASE WHEN r.user_id = $1 THEN 'host' ELSE 'co-commuter' END as role
+           r.price_per_seat, r.available_seats, r.total_seats, r.status, r.direction,
+           CASE WHEN r.user_id = $1 THEN 'host' ELSE 'rider' END as role
     FROM rides r 
     JOIN users u ON r.user_id = u.id 
     JOIN corridors c ON r.corridor_id = c.id
-    LEFT JOIN ride_requests req ON r.id = req.ride_id AND req.status = 'accepted'
-    WHERE r.user_id = $1 OR req.user_id = $1
+    LEFT JOIN ride_requests rr ON r.id = rr.ride_id
+    WHERE r.user_id = $1 OR (rr.user_id = $1 AND rr.status = 'accepted')
     ORDER BY r.ride_date DESC, r.ride_time DESC
   `
-  const r = await pool.query(query, [auth.userId])
+  const rides = await pool.query(query, [auth.userId])
   
-  const formatted = r.rows.map((row: any) => ({
-    ...row,
-    driver_name: row.user_name // map user_name to driver_name for frontend compatibility
+  const enrichedRides = await Promise.all(rides.rows.map(async (ride) => {
+    // Confirmed riders
+    const riders = await pool.query(`
+      SELECT rr.id, rr.user_id, u.name, u.avatar_url, rr.seats_requested 
+      FROM ride_requests rr JOIN users u ON rr.user_id = u.id 
+      WHERE rr.ride_id = $1 AND rr.status = 'accepted'
+    `, [ride.id])
+    
+    // Pending requests (only if host)
+    let pending = []
+    if (ride.role === 'host') {
+      const p = await pool.query(`
+        SELECT rr.id, rr.user_id, u.name, u.avatar_url, rr.seats_requested, rr.created_at
+        FROM ride_requests rr JOIN users u ON rr.user_id = u.id 
+        WHERE rr.ride_id = $1 AND rr.status = 'pending'
+      `, [ride.id])
+      pending = p.rows
+    }
+    
+    return { ...ride, confirmed_riders: riders.rows, pending_requests: pending }
   }))
-  return jsonResponse(formatted)
+  return jsonResponse(enrichedRides)
 }
 
 
@@ -519,9 +537,11 @@ export async function handleGetRide(pool: Pool, id: number) {
 }
 
 export async function handleCreateRide(pool: Pool, body: unknown, auth: Auth) {
-  const b = body as { corridor_id?: number; vehicle_id?: number; ride_date?: string; ride_time?: string; pickup_point?: string; drop_point?: string; route_description?: string; price_per_seat?: number; available_seats?: number }
+  const b = body as { corridor_id?: number; vehicle_id?: number; ride_date?: string; ride_time?: string; pickup_point?: string; drop_point?: string; route_description?: string; price_per_seat?: number; available_seats?: number; direction?: string }
   if (!b?.corridor_id || !b?.vehicle_id || !b?.ride_date || !b?.ride_time || !b?.pickup_point || !b?.drop_point || b?.price_per_seat == null || b?.available_seats == null)
     return errResponse('corridor_id, vehicle_id, ride_date, ride_time, pickup_point, drop_point, price_per_seat, available_seats required', 400)
+  
+  const direction = b.direction || 'to_office' 
   const rideDate = b.ride_date  // Already a string like '2026-04-12'
   const today = new Date().toISOString().slice(0, 10)
   const maxDate = new Date(Date.now() + 6 * 86400000).toISOString().slice(0, 10)
@@ -561,15 +581,20 @@ export async function handleCreateRide(pool: Pool, body: unknown, auth: Auth) {
 
   // 3) Insert Ride into Live Database
   const r = await pool.query(
-    `INSERT INTO rides (user_id, corridor_id, vehicle_id, ride_date, ride_time, pickup_point, drop_point, route_description, price_per_seat, available_seats, total_seats, status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'open') RETURNING id`,
-    [auth.userId, actualCorridorId, actualVehicleId, b.ride_date, b.ride_time, b.pickup_point, b.drop_point, b.route_description || null, b.price_per_seat, b.available_seats, totalSeats]
+    `INSERT INTO rides (user_id, corridor_id, vehicle_id, ride_date, ride_time, pickup_point, drop_point, route_description, price_per_seat, available_seats, total_seats, status, direction)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'open', $12) RETURNING id`,
+    [auth.userId, actualCorridorId, actualVehicleId, b.ride_date, b.ride_time, b.pickup_point, b.drop_point, b.route_description || null, b.price_per_seat, b.available_seats, totalSeats, direction]
   )
   return jsonResponse({ id: r.rows[0].id, message: 'Ride created' }, 201)
 }
 
 export async function handleUpdateRide(pool: Pool, id: number, body: unknown, auth: Auth) {
   const b = body as Record<string, unknown>
+  
+  // Constraint: Only edit if no seats are booked (accepted requests)
+  const bookings = await pool.query(`SELECT id FROM ride_requests WHERE ride_id = $1 AND status = 'accepted'`, [id])
+  if (bookings.rows.length > 0) return errResponse('Cannot edit ride details after seats are confirmed. Please contact support.', 403)
+
   const updates: string[] = []
   const args: unknown[] = []
   let i = 1
@@ -681,7 +706,7 @@ export async function handleUpdateRideRequest(pool: Pool, rideId: number, reques
       [rideId, rider.rows[0].user_id, auth.userId, amount]
     )
 
-    // Auto-Deny Logic
+    // Auto-Deny Logic (Others on this specific ride)
     const finalSeats = await pool.query(`SELECT available_seats FROM rides WHERE id = $1`, [rideId])
     if (finalSeats.rows[0].available_seats === 0) {
       await pool.query(`
@@ -689,6 +714,20 @@ export async function handleUpdateRideRequest(pool: Pool, rideId: number, reques
         WHERE ride_id = $1 AND status = 'pending'
       `, [rideId])
     }
+
+    // Auto-Cancel seeker's other pending requests for SAME corridor/direction/day
+    const rideInfo = await pool.query(`SELECT corridor_id, direction, ride_date FROM rides WHERE id = $1`, [rideId])
+    const { corridor_id, direction, ride_date } = rideInfo.rows[0]
+    await pool.query(`
+      UPDATE ride_requests 
+      SET status = 'rejected', comment = 'Auto-cancelled: You were accepted for another ride on this route', updated_at = CURRENT_TIMESTAMP 
+      WHERE user_id = $1 
+      AND id != $2 
+      AND status = 'pending'
+      AND ride_id IN (
+        SELECT id FROM rides WHERE corridor_id = $3 AND direction = $4 AND ride_date = $5
+      )
+    `, [rider.rows[0].user_id, requestId, corridor_id, direction, ride_date])
   } else if (b.status === 'rejected' && currentStatus === 'accepted') {
     await pool.query(`UPDATE rides SET available_seats = available_seats + $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`, [seats_requested, rideId])
   }
@@ -703,6 +742,25 @@ export async function handleCancelRideRequest(pool: Pool, rideId: number, reques
   
   await pool.query(`DELETE FROM ride_requests WHERE id = $1`, [requestId])
   return jsonResponse({ message: 'Ride request cancelled' })
+}
+
+export async function handleRejectAllRequests(pool: Pool, rideId: number, auth: Auth) {
+  const ride = await pool.query(`SELECT user_id FROM rides WHERE id = $1`, [rideId])
+  if (ride.rows.length === 0 || ride.rows[0].user_id !== auth.userId) return errResponse("You don't own this ride", 403)
+  
+  await pool.query(`
+    UPDATE ride_requests SET status = 'rejected', comment = 'Rejected by host', updated_at = CURRENT_TIMESTAMP 
+    WHERE ride_id = $1 AND status = 'pending'
+  `, [rideId])
+  return jsonResponse({ message: 'All pending requests rejected' })
+}
+
+export async function handleCancelAllUserRequests(pool: Pool, auth: Auth) {
+  await pool.query(`
+    DELETE FROM ride_requests 
+    WHERE user_id = $1 AND status = 'pending'
+  `, [auth.userId])
+  return jsonResponse({ message: 'All your pending requests have been cancelled' })
 }
 
 export async function handleGetMessages(pool: Pool, rideId: number, searchParams: URLSearchParams) {
@@ -897,9 +955,14 @@ export async function handleUpdateCorridor(pool: Pool, id: number, body: unknown
   return jsonResponse({ message: 'Corridor updated' })
 }
 
-export async function handleDeleteCorridor(pool: Pool, id: number) {
-  await pool.query(`DELETE FROM corridors WHERE id = $1`, [id])
-  return jsonResponse({ message: 'Corridor deleted' })
+export async function handleDeleteCorridor(pool: Pool, id: number, searchParams?: URLSearchParams) {
+  const isPermanent = searchParams?.get('permanent') === 'true'
+  if (isPermanent) {
+    await pool.query(`DELETE FROM corridors WHERE id = $1`, [id])
+    return jsonResponse({ message: 'Corridor permanently deleted from database' })
+  }
+  await pool.query(`UPDATE corridors SET is_deleted = true, is_active = false WHERE id = $1`, [id])
+  return jsonResponse({ message: 'Corridor archived and hidden from new rides' })
 }
 
 export async function handleAssignCorridor(pool: Pool, body: unknown) {

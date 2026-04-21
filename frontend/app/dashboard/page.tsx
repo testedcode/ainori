@@ -43,6 +43,9 @@ interface Ride {
   status: string
   driver_name?: string
   role?: 'host' | 'co-commuter' | 'driver' | 'rider'
+  direction?: 'to_office' | 'to_home'
+  confirmed_riders?: { id: number; user_id: number; name: string; avatar_url: string; seats_requested: number }[]
+  pending_requests?: { id: number; user_id: number; name: string; avatar_url: string; seats_requested: number; created_at: string }[]
 }
 
 const DEMO_MY_RIDES: Ride[] = [
@@ -152,6 +155,34 @@ export default function DashboardPage() {
     fetchData()
   }, [router])
 
+  const handleUpdateStatus = async (rideId: number, requestId: number, status: 'accepted' | 'rejected') => {
+    try {
+      await api.put(`/rides/${rideId}/requests/${requestId}`, { status })
+      toast.success(status === 'accepted' ? 'Rider confirmed!' : 'Request declined.')
+      // Refresh data
+      const ridesRes = await api.get('/user/rides')
+      if (Array.isArray(ridesRes)) setMyRides(ridesRes as unknown as Ride[])
+    } catch { toast.error('Update failed') }
+  }
+
+  const handleRejectAll = async (rideId: number) => {
+    try {
+      await api.post(`/rides/${rideId}/reject-all`)
+      toast.success('All pending requests cleared.')
+      const ridesRes = await api.get('/user/rides')
+      if (Array.isArray(ridesRes)) setMyRides(ridesRes as unknown as Ride[])
+    } catch { toast.error('Action failed') }
+  }
+
+  const handleClearAllRequests = async () => {
+    try {
+      await api.post('/user/requests/cancel-all')
+      toast.success('All your pending requests retracted.')
+      const reqRes = await api.get('/user/requests')
+      if (Array.isArray(reqRes)) setMyRequests(reqRes as any[])
+    } catch { toast.error('Action failed') }
+  }
+
   const todayStr = new Date().toISOString().split('T')[0]
   const currentHour = new Date().getHours()
   const isMorning = currentHour >= 5 && currentHour < 14
@@ -258,7 +289,15 @@ export default function DashboardPage() {
                   </span>
                 )}
               </div>
-              <Link href="/rides" className="text-xs font-black text-blue-400 uppercase tracking-widest">Find More →</Link>
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={handleClearAllRequests}
+                  className="text-[10px] font-black text-red-400 border border-red-500/20 px-3 py-1.5 rounded-xl hover:bg-red-500 hover:text-white transition-all uppercase tracking-widest"
+                >
+                  Clear All Pending
+                </button>
+                <Link href="/rides" className="text-xs font-black text-blue-400 uppercase tracking-widest">Find More →</Link>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {myRequests.slice(0, 6).map(req => (
@@ -362,30 +401,135 @@ export default function DashboardPage() {
                   <Link href="/offer-ride" className="text-green-400 text-xs font-bold mt-2 inline-block uppercase tracking-wider">Share a ride →</Link>
                 </div>
               ) : (
-                offeredRides.map(ride => (
-                  <Link key={ride.id} href={`/rides/${ride.id}`} className="block bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-all border-l-4 border-l-green-500">
-                    <div className="flex justify-between items-start mb-4">
+                offeredRides.map(ride => {
+                  const hasPending = (ride.pending_requests?.length || 0) > 1
+                  const isLeavingSoon = () => {
+                    const now = new Date()
+                    const [h, m] = ride.ride_time.split(':').map(Number)
+                    const rd = new Date(ride.ride_date)
+                    rd.setHours(h, m, 0)
+                    const diff = (rd.getTime() - now.getTime()) / (1000 * 60)
+                    return diff > 0 && diff < 60
+                  }
+                  const isLastSeat = ride.available_seats === 1
+
+                  return (
+                  <div key={ride.id} className="block bg-white/5 border border-white/10 rounded-[2.5rem] p-8 hover:bg-white/[0.07] transition-all border-l-4 border-l-green-500 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-8 flex flex-col items-end gap-2">
+                       {isLeavingSoon() && (
+                         <div className="bg-amber-500 text-black px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 animate-pulse shadow-lg">
+                           <Timer className="w-3 h-3" /> LEAVING SOON
+                         </div>
+                       )}
+                       {isLastSeat && (
+                         <div className="bg-red-600 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg">
+                           <Users className="w-3 h-3" /> LAST SEAT
+                         </div>
+                       )}
+                    </div>
+
+                    <div className="flex justify-between items-start mb-8">
                       <div>
-                        <h4 className="font-bold text-lg text-white">{ride.corridor_name}</h4>
-                        <div className="flex items-center gap-2 mt-1 text-slate-400 text-xs">
-                          <CheckCircle2 className="w-3 h-3 text-green-400" />
-                          {ride.total_seats - ride.available_seats} passengers joined
+                        <div className="flex items-center gap-3 mb-1">
+                          <h4 className="font-black text-2xl text-white tracking-tight">{ride.corridor_name}</h4>
+                          <span className="text-[10px] font-black opacity-20 uppercase tracking-widest">{ride.direction === 'to_office' ? 'To Office' : 'To Home'}</span>
+                        </div>
+                        <div className="flex items-center gap-4 text-slate-400 text-sm">
+                           <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4 text-white/20" /> 
+                              <span className="font-bold">{ride.ride_date}</span>
+                           </div>
+                           <div className="flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-white/20" /> 
+                              <span className="font-bold">{ride.ride_time}</span>
+                           </div>
                         </div>
                       </div>
-                      <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${ride.available_seats === 0 ? 'bg-slate-500/20 text-slate-400' : 'bg-green-500/10 text-green-400'}`}>
-                        {ride.available_seats === 0 ? 'FULL' : `${ride.available_seats} SEATS LEFT`}
-                      </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center gap-2 text-slate-300 text-sm">
-                        <Calendar className="w-4 h-4 text-white/20" /> {ride.ride_date}
-                      </div>
-                      <div className="flex items-center gap-2 text-slate-300 text-sm">
-                        <Timer className="w-4 h-4 text-white/20" /> {ride.ride_time}
-                      </div>
+
+                    {/* Confirmed Riders Visualization */}
+                    <div className="mb-8">
+                       <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-4">Confirmed Crew</p>
+                       <div className="flex items-center gap-2">
+                          {ride.confirmed_riders?.map(rider => (
+                            <div key={rider.id} className="relative group/avatar" title={rider.name}>
+                               <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-green-500/50 bg-slate-800 transition-transform group-hover/avatar:scale-110">
+                                  {rider.avatar_url ? (
+                                    <img src={rider.avatar_url} alt={rider.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-white font-black text-xs">
+                                      {rider.name[0]}
+                                    </div>
+                                  )}
+                               </div>
+                               <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-[#1e293b] flex items-center justify-center">
+                                  <CheckCircle2 className="w-3 h-3 text-white" />
+                               </div>
+                            </div>
+                          ))}
+                          {Array.from({ length: ride.available_seats }).map((_, i) => (
+                            <div key={`empty-${i}`} className="w-12 h-12 rounded-2xl border-2 border-white/5 border-dashed flex items-center justify-center bg-white/5">
+                               <User className="w-4 h-4 text-white/10" />
+                            </div>
+                          ))}
+                       </div>
                     </div>
-                  </Link>
-                ))
+
+                    {/* Host Command Center - Requests */}
+                    {ride.pending_requests && ride.pending_requests.length > 0 ? (
+                      <div className="bg-amber-500/10 border border-amber-500/20 rounded-3xl p-6 relative overflow-hidden">
+                         <div className="flex items-center justify-between mb-6">
+                            <h5 className="text-sm font-black text-amber-500 uppercase tracking-widest flex items-center gap-2">
+                               <Users className="w-4 h-4" /> Pending Clearances ({ride.pending_requests.length})
+                            </h5>
+                            {hasPending && (
+                              <button 
+                                onClick={() => handleRejectAll(ride.id)}
+                                className="text-[9px] font-black text-white/40 hover:text-red-500 transition-colors uppercase tracking-widest"
+                              >
+                                Reject All
+                              </button>
+                            )}
+                         </div>
+                         <div className="space-y-4">
+                            {ride.pending_requests.map(req => (
+                              <div key={req.id} className="flex items-center justify-between bg-black/20 p-4 rounded-2xl border border-white/5">
+                                 <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-800">
+                                       {req.avatar_url ? <img src={req.avatar_url} alt={req.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs font-black">{req.name[0]}</div>}
+                                    </div>
+                                    <div>
+                                       <p className="text-xs font-black text-white">{req.name}</p>
+                                       <p className="text-[10px] font-bold text-white/30">{req.seats_requested} Seat{req.seats_requested > 1 ? 's' : ''}</p>
+                                    </div>
+                                 </div>
+                                 <div className="flex gap-2">
+                                    <button onClick={() => handleUpdateStatus(ride.id, req.id, 'accepted')} className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center text-white hover:bg-green-500 transition-all shadow-lg active:scale-90">
+                                       <CheckCircle2 className="w-5 h-5" />
+                                    </button>
+                                    <button onClick={() => handleUpdateStatus(ride.id, req.id, 'rejected')} className="w-10 h-10 bg-white/5 hover:bg-red-600 rounded-xl flex items-center justify-center text-white/40 hover:text-white transition-all active:scale-90">
+                                       <AlertCircle className="w-5 h-5" />
+                                    </button>
+                                 </div>
+                              </div>
+                            ))}
+                         </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/5">
+                         <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">System Status</span>
+                         <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                            <span className="text-[10px] font-black text-green-500 uppercase tracking-widest">{ride.available_seats === 0 ? 'Full Load' : 'Awaiting Riders'}</span>
+                         </div>
+                      </div>
+                    )}
+                    
+                    <Link href={`/rides/${ride.id}`} className="block w-full text-center mt-6 text-[9px] font-black text-white/10 hover:text-blue-400 uppercase tracking-[0.3em] transition-all">
+                       OPEN COMMAND CENTER ↗
+                    </Link>
+                  </div>
+                )})
               )}
             </div>
           </div>
