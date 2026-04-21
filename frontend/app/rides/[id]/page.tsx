@@ -46,6 +46,8 @@ export default function RideDetailPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [requests, setRequests] = useState<RideRequest[]>([])
   const [newMessage, setNewMessage] = useState('')
+  const [selectedSeats, setSelectedSeats] = useState<number>(0)
+  const [joining, setJoining] = useState(false)
   const [loading, setLoading] = useState(true)
   const [sendingMsg, setSendingMsg] = useState(false)
   const [user, setUser] = useState<any>(null)
@@ -54,61 +56,71 @@ export default function RideDetailPage() {
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   // ─── HIGH-FIDELITY COMPONENTS ─────────────────────────────────────────────
-  const VisualSeat = ({ type, user, status }: { type: 'host' | 'rider' | 'available', user?: any, status?: string }) => {
+  // ─── HIGH-FIDELITY SOCIAL SEATS ──────────────────────────────────────────
+  const VisualSeat = ({ 
+    type, 
+    user, 
+    isSelected, 
+    onClick 
+  }: { 
+    type: 'host' | 'rider' | 'available', 
+    user?: any, 
+    isSelected?: boolean,
+    onClick?: () => void
+  }) => {
     const isAvailable = type === 'available'
     const name = user?.name || (type === 'host' ? ride?.user_name : 'Available')
     
     return (
       <div className="flex flex-col items-center gap-4 group">
-        <div className="relative w-24 h-32 flex items-center justify-center">
+        <button 
+          onClick={onClick}
+          disabled={!isAvailable}
+          className={`relative w-24 h-32 flex items-center justify-center transition-all ${isAvailable ? 'hover:scale-105 active:scale-95' : 'cursor-default'}`}
+        >
           {/* CAR SEAT OUTLINE - HIGH FIDELITY WITH DEPTH */}
-          <svg viewBox="0 0 100 140" className={`absolute inset-0 w-full h-full transition-all duration-700 ${isAvailable ? 'drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]' : ''}`}>
+          <svg viewBox="0 0 100 140" className={`absolute inset-0 w-full h-full transition-all duration-700 ${isSelected ? 'drop-shadow-[0_0_20px_rgba(34,197,94,0.4)]' : isAvailable ? 'drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]' : ''}`}>
              <defs>
-                <radialGradient id="seatCushion" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                <radialGradient id="seatCushionDet" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
                    <stop offset="0%" stopColor="rgba(255,255,255,0.05)" />
                    <stop offset="100%" stopColor="rgba(255,255,255,0)" />
                 </radialGradient>
-                <filter id="neonGlow">
-                   <feGaussianBlur stdDeviation="3" result="blur" />
-                   <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                </filter>
              </defs>
 
              {/* HEADREST */}
              <path 
                d="M30,20 Q30,10 50,10 Q70,10 70,20 L70,30 Q70,40 50,40 Q30,40 30,30 Z" 
-               fill={isAvailable ? "none" : "url(#seatCushion)"} 
-               stroke={isAvailable ? "rgba(59,130,246,0.5)" : "rgba(255,255,255,0.1)"}
-               strokeWidth={isAvailable ? "3" : "1.5"} 
-               strokeDasharray={isAvailable ? "4,4" : "0"} 
-               className={isAvailable ? "animate-[pulse_4s_infinite]" : ""}
+               fill={isAvailable ? "none" : "url(#seatCushionDet)"} 
+               stroke={isSelected ? "#4ade80" : isAvailable ? "rgba(59,130,246,0.5)" : "rgba(255,255,255,0.1)"}
+               strokeWidth={isAvailable || isSelected ? "3" : "1.5"} 
+               strokeDasharray={isAvailable && !isSelected ? "4,4" : "0"} 
+               className={isAvailable && !isSelected ? "animate-[pulse_4s_infinite]" : ""}
              />
              
-             {/* BACKREST - THE CORE VISUAL */}
+             {/* BACKREST */}
              <path 
                d="M20,45 Q20,35 50,35 Q80,35 80,45 L85,90 Q85,110 50,110 Q15,110 15,90 Z" 
-               fill={isAvailable ? "rgba(59,130,246,0.03)" : "url(#seatCushion)"}
-               stroke={isAvailable ? "rgba(59,130,246,0.8)" : "rgba(255,255,255,0.1)"}
-               strokeWidth={isAvailable ? "3.5" : "1.5"} 
-               strokeDasharray={isAvailable ? "6,4" : "0"}
-               className={isAvailable ? "animate-[pulse_2s_infinite]" : ""}
-               filter={isAvailable ? "url(#neonGlow)" : ""}
+               fill={isSelected ? "rgba(74,222,128,0.1)" : isAvailable ? "rgba(59,130,246,0.03)" : "url(#seatCushionDet)"}
+               stroke={isSelected ? "#4ade80" : isAvailable ? "rgba(59,130,246,0.8)" : "rgba(255,255,255,0.1)"}
+               strokeWidth={isAvailable || isSelected ? "3.5" : "1.5"} 
+               strokeDasharray={isAvailable && !isSelected ? "6,4" : "0"}
+               className={isAvailable && !isSelected ? "animate-[pulse_2s_infinite]" : ""}
              />
 
              {/* SEAT BASE */}
              <path 
                d="M15,115 Q15,105 50,105 Q85,105 85,115 L90,130 Q90,135 50,135 Q10,135 10,130 Z" 
-               fill={isAvailable ? "none" : "url(#seatCushion)"}
-               stroke={isAvailable ? "rgba(59,130,246,0.5)" : "rgba(255,255,255,0.1)"}
-               strokeWidth={isAvailable ? "3" : "1.5"} 
-               strokeDasharray={isAvailable ? "4,4" : "0"}
-               className={isAvailable ? "animate-[pulse_5s_infinite]" : ""}
+               fill={isAvailable ? "none" : "url(#seatCushionDet)"}
+               stroke={isSelected ? "#4ade80" : isAvailable ? "rgba(59,130,246,0.5)" : "rgba(255,255,255,0.1)"}
+               strokeWidth={isAvailable || isSelected ? "3" : "1.5"} 
+               strokeDasharray={isAvailable && !isSelected ? "4,4" : "0"}
+               className={isAvailable && !isSelected ? "animate-[pulse_5s_infinite]" : ""}
              />
           </svg>
 
-          {/* AVATAR OVERLAY - PREMIUM GRADIENTS */}
+          {/* AVATAR OVERLAY */}
           {!isAvailable && (
-            <div className={`relative w-16 h-16 rounded-full p-1 transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-1 ${type === 'host' ? 'bg-gradient-to-tr from-amber-600 via-amber-400 to-yellow-200 shadow-[0_0_30px_rgba(251,191,36,0.6)] animate-pulse' : 'bg-gradient-to-tr from-blue-600 via-cyan-400 to-indigo-200 shadow-[0_0_30px_rgba(59,130,246,0.6)]'}`}>
+            <div className={`relative w-16 h-16 rounded-full p-1 transition-all duration-500 group-hover:scale-110 ${type === 'host' ? 'bg-gradient-to-tr from-amber-600 via-amber-400 to-yellow-200 shadow-[0_0_30px_rgba(251,191,36,0.5)]' : 'bg-gradient-to-tr from-blue-600 via-cyan-400 to-indigo-200 shadow-[0_0_30px_rgba(59,130,246,0.5)]'}`}>
               <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden border-2 border-slate-900 relative">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-10" />
                 {user?.avatar_url ? (
@@ -117,24 +129,26 @@ export default function RideDetailPage() {
                   <span className="text-lg font-black text-white relative z-20">{name[0].toUpperCase()}</span>
                 )}
               </div>
-              {/* NEON RING PULSE */}
               <div className={`absolute inset-0 rounded-full animate-ping opacity-20 ${type === 'host' ? 'bg-amber-400' : 'bg-blue-400'}`} style={{ animationDuration: '3s' }} />
             </div>
           )}
 
-          {isAvailable && (
-            <div className="flex flex-col items-center animate-pulse">
-               <span className="text-[8px] font-black text-blue-400 uppercase tracking-[0.2em] mb-1">Vacancy</span>
-               <div className="w-1 h-1 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,1)]" />
+          {isSelected && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+               <div className="bg-green-500 text-black w-8 h-8 rounded-full flex items-center justify-center shadow-lg transform scale-110 animate-bounce">
+                  <span className="text-xs font-black">✔</span>
+               </div>
             </div>
           )}
-        </div>
-        <div className="text-center group-hover:translate-y-1 transition-all duration-300">
-          <p className={`text-[10px] font-black uppercase tracking-[0.1em] ${isAvailable ? 'text-white/10' : 'text-white'}`}>{name}</p>
-          <p className={`text-[7px] font-bold uppercase tracking-widest mt-1 px-2 py-0.5 rounded-full border ${isAvailable ? 'text-white/5 border-white/5' : type === 'host' ? 'text-amber-400 border-amber-400/20 bg-amber-400/5' : 'text-blue-400 border-blue-400/20 bg-blue-400/5'}`}>
-            {type === 'host' ? 'RIDE COMMANDER' : type === 'rider' ? 'CO-PILOT' : 'UNASSIGNED'}
-          </p>
-        </div>
+
+          {isAvailable && !isSelected && (
+            <div className="flex flex-col items-center animate-pulse">
+               <span className="text-[8px] font-black text-blue-400 uppercase tracking-[0.2em] mb-1">VACANT</span>
+               <Check className="w-5 h-5 text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,1)] animate-bounce" />
+            </div>
+          )}
+        </button>
+        <span className={`text-[6px] font-black uppercase tracking-widest ${isSelected ? 'text-green-400' : isAvailable ? 'text-white/10' : 'text-white/40'}`}>{name.split(' ')[0]}</span>
       </div>
     )
   }
@@ -182,12 +196,29 @@ export default function RideDetailPage() {
     finally { setSendingMsg(false) }
   }
 
-  const handleRequest = async () => {
+  const handleSeatClick = (index: number) => {
+    if (isOwner) return
+    setSelectedSeats(index + 1)
+  }
+
+  const handleJoin = async () => {
+    if (isOwner) {
+       toast.error('You are the commander of this unit!')
+       return
+    }
+    if (selectedSeats === 0) {
+      toast.error('Choose your seat first!', { icon: '💺' })
+      return
+    }
+    setJoining(true)
     try {
-      await api.post(`/rides/${rideId}/requests`, { seats_requested: seatsToBook })
-      toast.success('Lets Go! Request sent to host.', { icon: '🚀' })
+      await api.post(`/rides/${rideId}/requests`, { seats_requested: selectedSeats })
+      toast.success(`Broadcasting ${selectedSeats} seat request!`, { icon: '🚀' })
       fetchAll()
-    } catch { toast.error('Request failed') }
+    } catch (e: any) { 
+      toast.error(e.response?.data?.error || 'Launch failed')
+    }
+    finally { setJoining(false) }
   }
 
   const handleCancelRequest = async () => {
@@ -201,13 +232,12 @@ export default function RideDetailPage() {
     } catch { toast.error('Retraction failed') }
   }
 
-  // Host: accept or reject a request
   const handleAcceptReject = async (reqId: number, action: 'accepted' | 'rejected') => {
     setHandlingReq(reqId)
     try {
       await api.put(`/rides/${rideId}/requests/${reqId}`, { status: action })
       toast.success(action === 'accepted' ? '✅ Seat confirmed! Ride updated.' : '❌ Request declined.')
-      fetchAll() // Refreshes ride (available_seats) + requests list
+      fetchAll()
     } catch { toast.error('Action failed') }
     finally { setHandlingReq(null) }
   }
@@ -234,7 +264,7 @@ export default function RideDetailPage() {
 
       <main className="max-w-4xl mx-auto px-6 mt-12 space-y-6">
 
-        {/* HEADER — Ride ID + corridor + report button */}
+        {/* HEADER */}
         <div className="flex items-start justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
             <Link href="/rides" className="p-3 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-all active:scale-95">
@@ -255,7 +285,6 @@ export default function RideDetailPage() {
             </div>
           </div>
 
-          {/* Report button — visible to BOTH host and rider */}
           <Link
             href={`/support?tab=ticket&trip_id=${rideId}&issue=${isOwner ? 'ride' : 'payment'}`}
             className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl text-xs font-black hover:bg-red-500/20 transition-all flex-shrink-0"
@@ -306,9 +335,6 @@ export default function RideDetailPage() {
                   </p>
                 </div>
               </div>
-              {ride.available_seats === 0 && (
-                <span className="px-3 py-1 bg-red-500/20 border border-red-500/30 text-red-400 text-[10px] font-black uppercase rounded-full">Full</span>
-              )}
             </div>
 
             {requests.length === 0 ? (
@@ -375,78 +401,77 @@ export default function RideDetailPage() {
           </GlassPanel>
         )}
 
-        {/* ─── RIDER: JOIN / RETRACT ─────────────────────────────────────────── */}
+        {/* ─── RIDER: COMPACT JOIN STRIP (SQUEEZED) ───────────────────────── */}
         {!isOwner && (
-          <GlassPanel className={`transition-all duration-500 ${isAccepted ? 'border-green-500/20' : isPending ? 'border-amber-500/20' : 'border-white/5'}`}>
-            <div className="flex flex-col items-center gap-6">
-              {!isPending && !isAccepted && (
-                <div className="w-full">
-                  <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] text-center mb-6">Select Seats</p>
-                  <div className="flex justify-center gap-4 mb-8">
-                    {Array.from({ length: ride.available_seats }, (_, i) => i + 1).map(n => (
-                      <button
-                        key={n}
-                        onClick={() => setSeatsToBook(n)}
-                        className={`w-14 h-14 rounded-3xl border-2 font-black text-lg transition-all ${seatsToBook === n ? 'bg-blue-600 border-blue-500 text-white shadow-xl scale-110' : 'bg-white/5 border-white/5 text-white/20 hover:border-white/15'}`}
-                      >
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+          <GlassPanel className={`transition-all duration-500 border-white/5`}>
+              <div className="flex flex-col items-center gap-6">
+                 {/* SQUEEZED SOCIAL CABIN STRIP */}
+                 <div className="w-full flex items-center justify-between gap-4 px-4 py-3 bg-white/[0.03] border border-white/5 rounded-[2rem] relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent pointer-events-none" />
+                    
+                    <div className="flex -space-x-2">
+                       {/* Host */}
+                       <div className="w-8 h-8 rounded-full border border-amber-400 bg-slate-900 flex items-center justify-center text-[10px] font-black text-amber-400 z-10">{ride.user_name[0]}</div>
+                       {/* Accepted Riders */}
+                       {ride.confirmed_riders?.map(r => (
+                          <div key={r.id} className="w-8 h-8 rounded-full border border-blue-400 bg-slate-900 flex items-center justify-center overflow-hidden z-10">
+                             {r.avatar_url ? <img src={r.avatar_url} className="w-full h-full object-cover" /> : <span className="text-[10px] font-black text-blue-400">{r.name[0]}</span>}
+                          </div>
+                       ))}
+                    </div>
 
-              {/* SOCIAL SEAT MAP - HIGH FIDELITY */}
-              <div className="bg-white/5 border border-white/5 rounded-[3rem] p-8 mb-8 overflow-hidden relative">
-                 <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
-                 <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-10 flex items-center gap-3">
-                    <Users className="w-3 h-3 text-blue-500" /> SEAT VISUALIZATION
-                 </h3>
-                 
-                 <div className="flex flex-wrap justify-center gap-8 md:gap-12 py-4">
-                    {/* HOST */}
-                    <VisualSeat type="host" />
+                    <div className="flex-1 flex justify-center gap-3">
+                       {Array.from({ length: ride.available_seats }).map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => handleSeatClick(i)}
+                            className={`w-10 h-10 rounded-xl border transition-all flex items-center justify-center ${selectedSeats > i ? 'bg-green-500 border-green-400 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-white/5 border-white/10'}`}
+                          >
+                             {selectedSeats > i ? <Check className="w-4 h-4 text-black" /> : <div className="w-1 h-1 bg-white/20 rounded-full" />}
+                          </button>
+                       ))}
+                    </div>
 
-                    {/* CONFIRMED RIDERS */}
-                    {ride.confirmed_riders && ride.confirmed_riders.map((r, i) => (
-                       <VisualSeat key={i} type="rider" user={r} />
-                    ))}
-
-                    {/* AVAILABLE SLOTS */}
-                    {Array.from({ length: ride.available_seats }).map((_, i) => (
-                       <VisualSeat key={`empty-${i}`} type="available" />
-                    ))}
+                    <div className="text-right min-w-[60px]">
+                       <p className="text-[14px] font-black text-white leading-none italic">₹{ride.price_per_seat}</p>
+                       <p className="text-[7px] font-black text-white/20 uppercase tracking-widest mt-1">per seat</p>
+                    </div>
                  </div>
+
+                 {!myRequest ? (
+                    <button
+                      onClick={handleJoin}
+                      disabled={joining || ride.available_seats === 0}
+                      className={`w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${
+                        selectedSeats > 0 
+                         ? 'bg-white text-black shadow-[0_20px_40px_rgba(255,255,255,0.2)] scale-102 active:scale-95' 
+                         : 'bg-white/5 text-white/20 border border-white/5'
+                      }`}
+                    >
+                       {selectedSeats > 0 && <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 via-transparent to-green-400/20 animate-pulse" />}
+                       {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+                       {selectedSeats > 0 ? `REQUEST ${selectedSeats} SEAT${selectedSeats > 1 ? 'S' : ''}` : 'SELECT SEATS'}
+                    </button>
+                 ) : (
+                    <div className="w-full h-16 rounded-[2rem] border-2 border-dashed border-white/10 flex items-center justify-center gap-4 group">
+                       {isAccepted ? (
+                          <div className="flex items-center gap-2 text-green-400 font-extrabold text-xs uppercase tracking-widest">
+                             <CheckCircle2 className="w-5 h-5" /> Seat Confirmed
+                          </div>
+                       ) : (
+                          <button
+                            onClick={handleCancelRequest}
+                            className="flex items-center gap-2 text-blue-400 font-extrabold text-xs uppercase tracking-widest hover:text-red-400 transition-colors"
+                          >
+                             <Timer className="w-5 h-5 group-hover:hidden" />
+                             <span className="group-hover:hidden">Pending {myRequest.seats_requested} Seats</span>
+                             <X className="w-5 h-5 hidden group-hover:block" />
+                             <span className="hidden group-hover:block">Cancel Request</span>
+                          </button>
+                       )}
+                    </div>
+                 )}
               </div>
-
-              <button
-                onClick={isPending ? handleCancelRequest : isAccepted ? undefined : handleRequest}
-                className={`w-full py-6 rounded-[2.5rem] font-black text-xl uppercase tracking-[0.2em] transition-all active:scale-[0.98] flex items-center justify-center gap-4 ${
-                  isAccepted ? 'bg-green-600/10 border border-green-500/20 text-green-400 cursor-default' :
-                  isPending ? 'bg-amber-500 shadow-[0_20px_40px_rgba(245,158,11,0.2)] text-white hover:bg-red-500 group' :
-                  ride.available_seats === 0 ? 'bg-white/5 text-white/20 cursor-not-allowed' :
-                  'bg-blue-600 shadow-[0_20px_40px_rgba(37,99,235,0.3)] text-white hover:bg-blue-500'
-                }`}
-              >
-                {isAccepted ? <><CheckCircle2 className="w-6 h-6" /> CONFIRMED — YOU'RE IN</> :
-                 isPending ? <><Timer className="w-6 h-6 group-hover:hidden" /><span className="group-hover:hidden">PENDING APPROVAL</span><X className="w-6 h-6 hidden group-hover:block" /><span className="hidden group-hover:block uppercase">CANCEL REQUEST</span></> :
-                 ride.available_seats === 0 ? <>RIDE FULL</> :
-                 <>REQUEST SEAT <ArrowRight className="w-6 h-6" /></>}
-              </button>
-
-              {isAccepted && (
-                <p className="text-[10px] font-black text-green-400/50 uppercase tracking-widest animate-pulse">Host confirmed your seat</p>
-              )}
-
-              {myRequest && (
-                <div className="w-full bg-black/20 border border-white/5 rounded-2xl p-4 text-center">
-                  <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Your request status</p>
-                  <p className={`text-sm font-black uppercase ${isAccepted ? 'text-green-400' : isPending ? 'text-amber-400' : 'text-red-400'}`}>
-                    {myRequest.status} · {myRequest.seats_requested} seat{myRequest.seats_requested > 1 ? 's' : ''}
-                  </p>
-                </div>
-              )}
-            </div>
           </GlassPanel>
         )}
 
@@ -495,35 +520,29 @@ export default function RideDetailPage() {
               <MessageSquare className="w-5 h-5 text-blue-400" />
               <h3 className="font-black text-sm uppercase tracking-widest">Ride Chat</h3>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,1)]" />
-              <span className="text-[9px] font-black text-green-400 uppercase">Live</span>
-            </div>
           </div>
-
           <div className="flex-1 overflow-y-auto p-8 space-y-6 scrollbar-hide">
-            {messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center opacity-10">
-                <Sparkles className="w-12 h-12 mb-4" />
-                <p className="text-[10px] font-black uppercase tracking-[0.5em]">No messages yet</p>
-              </div>
-            ) : (
-              messages.map(msg => {
-                const isMine = msg.user_id === user?.id
-                return (
-                  <div key={msg.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                    {!isMine && <span className="text-[9px] font-black text-white/20 uppercase mb-1 ml-1">{msg.user_name}</span>}
-                    <div className={`px-5 py-3 rounded-2xl text-sm font-medium ${isMine ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white/5 text-white/70 border border-white/5 rounded-bl-none'}`}>
-                      {msg.message}
+             {messages.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center opacity-10">
+                  <Sparkles className="w-12 h-12 mb-4" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.5em]">No messages yet</p>
+                </div>
+              ) : (
+                messages.map(msg => {
+                  const isMine = msg.user_id === user?.id
+                  return (
+                    <div key={msg.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                      {!isMine && <span className="text-[9px] font-black text-white/20 uppercase mb-1 ml-1">{msg.user_name}</span>}
+                      <div className={`px-5 py-3 rounded-2xl text-sm font-medium ${isMine ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white/5 text-white/70 border border-white/5 rounded-bl-none'}`}>
+                        {msg.message}
+                      </div>
+                      <span className="text-[9px] text-white/10 mt-1 uppercase font-black">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
-                    <span className="text-[9px] text-white/10 mt-1 uppercase font-black">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                  </div>
-                )
-              })
-            )}
-            <div ref={chatEndRef} />
+                  )
+                })
+              )}
+              <div ref={chatEndRef} />
           </div>
-
           <div className="p-6 bg-white/5 border-t border-white/5">
             <div className="flex gap-3">
               <input
@@ -532,12 +551,12 @@ export default function RideDetailPage() {
                 onKeyDown={e => e.key === 'Enter' && sendMessage()}
                 disabled={!isOwner && !isAccepted && !isPending}
                 placeholder={(isOwner || isAccepted || isPending) ? "Send a message..." : "Join to enable chat"}
-                className="flex-1 bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-sm font-medium focus:outline-none focus:border-blue-600 transition-all placeholder:text-white/10"
+                className="flex-1 bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-sm font-medium focus:outline-none focus:border-blue-600 transition-all"
               />
               <button
                 onClick={sendMessage}
                 disabled={!newMessage.trim() || sendingMsg}
-                className="bg-white text-black hover:bg-blue-600 hover:text-white px-6 py-4 rounded-2xl transition-all shadow-xl active:scale-90"
+                className="bg-white text-black hover:bg-blue-600 hover:text-white px-6 py-4 rounded-2xl transition-all"
               >
                 <Send className="w-5 h-5" />
               </button>

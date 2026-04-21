@@ -18,6 +18,21 @@ import toast from 'react-hot-toast'
 import JoolNav from '../components/JoolNav'
 import VibeCanvas from '../components/VibeCanvas'
 
+// ─── HIGH-FIDELITY CONFIG ──────────────────────────────────────────────────
+const VIBE_CONFIG: Record<string, { label: string, icon: any, sub: string, classes: string, glow: string }> = {
+  'all': { label: 'All Signals', icon: <Zap />, sub: 'Full Grid', classes: 'bg-white text-black border-white', glow: 'shadow-white/20' },
+  '6-7': { label: 'Early Birds', icon: <Sun />, sub: '6-7 AM', classes: 'border-cyan-400 text-cyan-400', glow: 'shadow-cyan-400/30 shadow-[0_0_15px_rgba(34,211,238,0.3)]' },
+  '7-8': { label: 'GM Route', icon: <Sunrise />, sub: '7-8 AM', classes: 'border-amber-400 text-amber-400', glow: 'shadow-amber-400/30 shadow-[0_0_15px_rgba(251,191,36,0.3)]' },
+  '8-9': { label: 'Rush Hour', icon: <Navigation2 />, sub: '8-9 AM', classes: 'border-red-400 text-red-400', glow: 'shadow-red-400/30 shadow-[0_0_15px_rgba(248,113,113,0.3)]' },
+  '9-10': { label: 'Pick Perfect', icon: <CheckCircle2 />, sub: '9-10 AM', classes: 'border-green-400 text-green-400', glow: 'shadow-green-400/30 shadow-[0_0_15px_rgba(74,222,128,0.3)]' },
+  '10-11': { label: 'Still Looking', icon: <Search />, sub: '10-11 AM', classes: 'border-white/40 text-white/40', glow: 'shadow-white/10' },
+  '12-24': { label: 'Late Join', icon: <Timer />, sub: '12+ PM', classes: 'border-indigo-400 text-indigo-400', glow: 'shadow-indigo-400/30 shadow-[0_0_15px_rgba(129,140,248,0.3)]' },
+  '16-18': { label: 'On Time', icon: <Clock />, sub: '4-6 PM', classes: 'border-emerald-400 text-emerald-400', glow: 'shadow-emerald-400/30 shadow-[0_0_15px_rgba(52,211,153,0.3)]' },
+  '18-20': { label: 'Traffic Fighters', icon: <Zap />, sub: '6-8 PM', classes: 'border-orange-400 text-orange-400', glow: 'shadow-orange-400/30 shadow-[0_0_15px_rgba(251,146,60,0.3)]' },
+  '20-22': { label: 'Late Comers', icon: <Moon />, sub: '8-10 PM', classes: 'border-blue-400 text-blue-400', glow: 'shadow-blue-400/30 shadow-[0_0_15px_rgba(96,165,250,0.3)]' },
+  '22-24': { label: 'Homebound', icon: <Home />, sub: '10+ PM', classes: 'border-purple-400 text-purple-400', glow: 'shadow-purple-400/30 shadow-[0_0_15px_rgba(192,132,252,0.3)]' }
+}
+
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 interface Ride {
   id: number; user_id: number; user_name: string; corridor_name: string; corridor_id: number;
@@ -53,147 +68,161 @@ function CardView({
   onSelect: (seats: number | null) => void;
   isOwnRide?: boolean;
 }) {
-  const initials = ride.user_name?.split(' ').map(n => n[0]).join('').toUpperCase()
-  const isMorning = parseInt(ride.ride_time.split(':')[0]) < 12
+  const [isHovered, setIsHovered] = useState(false)
+  
+  // High-Fidelity SeatPlot Component inside Card
+  const SeatPlot = () => {
+    const total = ride.total_seats || 4
+    const confirmed = ride.confirmed_riders || []
+    const available = ride.available_seats
+    
+    return (
+      <div className="grid grid-cols-4 gap-3 py-6 px-2">
+         {/* Host Seat (Always 1st) */}
+         <div className="flex flex-col items-center gap-2">
+            <div className="relative w-14 h-20 flex items-center justify-center">
+               <svg viewBox="0 0 100 140" className="absolute inset-0 w-full h-full stroke-white/10 fill-white/5">
+                 <path d="M20,45 Q20,35 50,35 Q80,35 80,45 L85,90 Q85,110 50,110 Q15,110 15,90 Z" strokeWidth="2" />
+               </svg>
+               <div className="relative w-10 h-10 rounded-full bg-slate-900 border-2 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.5)] overflow-hidden">
+                  <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-amber-400 uppercase tracking-tighter">{ride.user_name[0]}</div>
+               </div>
+            </div>
+            <span className="text-[7px] font-black text-amber-400 uppercase tracking-widest">HOST</span>
+         </div>
+
+         {/* Confirmed Rider Seats */}
+         {confirmed.map((r, i) => (
+           <div key={i} className="flex flex-col items-center gap-2">
+              <div className="relative w-14 h-20 flex items-center justify-center">
+                 <svg viewBox="0 0 100 140" className="absolute inset-0 w-full h-full stroke-white/10 fill-white/5">
+                   <path d="M20,45 Q20,35 50,35 Q80,35 80,45 L85,90 Q85,110 50,110 Q15,110 15,90 Z" strokeWidth="2" />
+                 </svg>
+                 <div className="relative w-10 h-10 rounded-full bg-slate-900 border-2 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)] overflow-hidden">
+                    {r.avatar_url ? <img src={r.avatar_url} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-blue-400">{r.name[0]}</div>}
+                 </div>
+              </div>
+              <span className="text-[7px] font-black text-blue-400/60 uppercase tracking-widest truncate w-12 text-center">{r.name.split(' ')[0]}</span>
+           </div>
+         ))}
+
+         {/* Vacant/Selected Seats */}
+         {Array.from({ length: available }).map((_, i) => {
+           const seatNum = i + 1
+           const active = isSelected !== null && seatNum <= isSelected
+           return (
+             <button 
+               key={`empty-${i}`} 
+               onClick={() => onSelect(active ? (i === 0 ? null : i) : seatNum)}
+               className="flex flex-col items-center gap-2 group/seat"
+             >
+                <div className="relative w-14 h-20 flex items-center justify-center">
+                   <svg viewBox="0 0 100 140" className={`absolute inset-0 w-full h-full transition-all duration-300 ${active ? 'stroke-green-400 shadow-[0_0_15px_rgba(74,222,128,0.5)]' : 'stroke-blue-500/30'}`}>
+                      <path d="M20,45 Q20,35 50,35 Q80,35 80,45 L85,90 Q85,110 50,110 Q15,110 15,90 Z" strokeWidth="3" strokeDasharray={active ? "0" : "6,4"} />
+                   </svg>
+                   <span className={`text-[9px] font-black tracking-widest transition-all ${active ? 'text-green-400 animate-pulse' : 'text-blue-500/20 group-hover/seat:text-blue-400/40'}`}>
+                      {active ? 'READY' : 'VACANT'}
+                   </span>
+                </div>
+                <span className={`text-[7px] font-black uppercase tracking-widest transition-colors ${active ? 'text-green-400' : 'text-white/10'}`}>SELECT</span>
+             </button>
+           )
+         })}
+      </div>
+    )
+  }
 
   return (
-    <div className={`relative bg-white/5 border backdrop-blur-md rounded-[2.5rem] overflow-hidden transition-all duration-500 group flex flex-col ${
-      isSelected ? 'border-green-500/50 scale-[1.02] shadow-[0_20px_50px_rgba(34,197,94,0.1)]' : isRequested ? 'border-blue-500/50' : 'border-white/10'
-    }`}>
-      {/* Dynamic Header Glow */}
-      <div className={`h-1.5 w-full transition-colors duration-1000 ${isSelected ? 'bg-green-500' : isMorning ? 'bg-amber-400' : 'bg-blue-600'}`} />
-      
-      {isOwnRide && (
-        <div className="absolute top-4 right-4 px-3 py-1 bg-amber-400 text-black text-[9px] font-black uppercase tracking-widest rounded-full shadow-lg z-10 animate-pulse">
-           Your Ride
-        </div>
-      )}
-      
-      <div className="p-6 flex flex-col flex-1">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex flex-col">
-             <span className="text-[36px] font-black text-white leading-none tracking-tighter">
-               {ride.ride_time?.slice(0, 5)}
-             </span>
-             <span className="text-[10px] font-black text-white/30 uppercase tracking-widest mt-1">Departure Point</span>
-          </div>
-          <div className="flex flex-col items-end">
-             <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 border border-white/10 rounded-full">
-                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                <span className="text-[10px] text-white font-black">4.9</span>
-             </div>
-             <p className="text-[10px] font-black text-green-400 mt-2 uppercase tracking-tight">₹{ride.price_per_seat} Seat</p>
-          </div>
-        </div>
+    <div 
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="group relative"
+    >
+      <div className={`relative bg-[#0f172a]/80 backdrop-blur-3xl border rounded-[3rem] overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] ${isSelected ? 'border-green-500/50 scale-[1.02]' : 'border-white/10 hover:border-white/20'}`}>
+         {/* HEADER - MOCKUP STYLE */}
+         <div className="p-8 pb-4 flex justify-between items-start">
+            <div>
+               <h2 className="text-5xl font-black text-white tracking-tighter italic mb-1">{ride.ride_time}</h2>
+               <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] pl-1">Departure Point</p>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+               <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${isOwnRide ? 'bg-amber-400 text-black shadow-[0_0_15px_rgba(251,191,36,0.4)]' : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'}`}>
+                  {isOwnRide ? 'YOUR RIDE' : 'HOSTED UNIT'}
+                  {!isOwnRide && <span className="flex items-center gap-0.5 ml-1 opacity-60"><Star className="w-2.5 h-2.5 fill-current" /> 4.9</span>}
+               </div>
+               <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full">
+                  <IndianRupee className="w-3 h-3 text-green-400" />
+                  <span className="text-lg font-black text-white tracking-widest">{ride.price_per_seat}</span>
+                  <span className="text-[8px] font-black text-white/20 uppercase tracking-tighter">SEAT</span>
+               </div>
+            </div>
+         </div>
 
-        {ride.pending_count ? (
-          <div className="flex items-center gap-2 mb-4 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full w-max">
-             <Users className="w-3 h-3 text-amber-500" />
-             <span className="text-[9px] font-black text-amber-500 uppercase tracking-widest">{ride.pending_count} competitors waiting</span>
-          </div>
-        ) : null}
-
-        <div className="flex items-center gap-3 mb-6 bg-white/5 p-3 rounded-2xl border border-white/5">
-           <div className={`w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-lg`}>
-              {initials}
-           </div>
-           <div className="flex-1 min-w-0">
-              <p className="font-black text-white text-sm truncate leading-none mb-1">{ride.user_name}</p>
-              <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest truncate">{ride.corridor_name}</p>
-           </div>
-        </div>
-
-        <div className="space-y-3 mb-8">
-           <div className="flex items-start gap-3">
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
-              <p className="text-white font-bold text-xs truncate flex-1">{ride.pickup_point}</p>
-           </div>
-           
-           {/* TRAVELER AVATARS */}
-           <div className="flex items-center gap-1 min-h-[24px]">
-              {ride.confirmed_riders && ride.confirmed_riders.length > 0 ? (
-                <div className="flex -space-x-2 overflow-hidden">
-                  {ride.confirmed_riders.slice(0, 3).map((r, i) => (
-                    <div key={r.id} className="inline-block h-6 w-6 rounded-full ring-2 ring-[#1e293b] bg-slate-800 flex items-center justify-center text-[8px] font-black overflow-hidden">
-                      {r.avatar_url ? (
-                        <img src={r.avatar_url} alt={r.name} className="h-full w-full object-cover" />
-                      ) : (
-                        <span>{r.name[0].toUpperCase()}</span>
-                      )}
+         {/* STATS STRIP */}
+         <div className="px-8 mb-4">
+            <div className="flex items-center gap-3 py-3 px-5 bg-amber-400/5 border border-amber-400/20 rounded-2xl">
+               <div className="flex -space-x-1">
+                  {ride.confirmed_riders?.slice(0, 3).map((r, i) => (
+                    <div key={i} className="w-5 h-5 rounded-full border border-slate-900 bg-slate-800 flex items-center justify-center text-[6px] font-black overflow-hidden">
+                       {r.avatar_url ? <img src={r.avatar_url} className="w-full h-full object-cover" /> : r.name[0]}
                     </div>
                   ))}
-                  {ride.confirmed_riders.length > 3 && (
-                    <div className="inline-block h-6 w-6 rounded-full ring-2 ring-[#1e293b] bg-white/5 flex items-center justify-center text-[7px] font-black text-white/40">
-                      +{ride.confirmed_riders.length - 3}
-                    </div>
-                  )}
-                  <span className="ml-4 text-[9px] font-black text-white/30 uppercase tracking-widest self-center">Joined</span>
+               </div>
+               <span className="text-[9px] font-extrabold text-amber-400 uppercase tracking-widest underline decoration-amber-400/30 underline-offset-4">
+                  {ride.confirmed_riders?.length || 0} COMPETITORS WAITING
+               </span>
+            </div>
+         </div>
+
+         {/* SEAT VISUALIZATION SECTION */}
+         <div className="px-6 mb-4">
+            <div className="bg-white/5 border border-white/5 rounded-[2.5rem] relative overflow-hidden group/viz">
+               <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+               <SeatPlot />
+            </div>
+         </div>
+
+         {/* ROUTE INFO */}
+         <div className="px-8 pb-4">
+            <div className="flex items-center gap-4 text-white/40 mb-6">
+                <div className="flex items-center gap-2 group/pin">
+                  <MapPin className="w-3.5 h-3.5 text-blue-500 group-hover/pin:scale-110 transition-transform" />
+                  <span className="text-[10px] font-black uppercase tracking-widest truncate max-w-[100px]">{ride.pickup_point}</span>
                 </div>
-              ) : (
-                <span className="text-[9px] font-black text-white/10 uppercase tracking-widest italic">Solo Explorer</span>
-              )}
-           </div>
+                <ArrowRight className="w-3 h-3 text-white/5" />
+                <div className="flex items-center gap-2 group/pin">
+                  <MapPin className="w-3.5 h-3.5 text-blue-500 group-hover/pin:scale-110 transition-transform" />
+                  <span className="text-[10px] font-black uppercase tracking-widest truncate max-w-[100px]">{ride.drop_point}</span>
+                </div>
+            </div>
 
-           <div className="flex items-start gap-3">
-              <div className="w-1.5 h-1.5 rounded-full bg-white/10 mt-1.5" />
-              <p className="text-white/40 font-medium text-[11px] truncate flex-1">{ride.drop_point}</p>
-           </div>
-        </div>
-
-        {/* Action Zone */}
-        <div className="mt-auto pt-6 border-t border-white/5">
-           {!isRequested ? (
-             <>
-               <div className="flex items-center justify-between mb-4 px-1">
-                  <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Select Capacity</p>
-                  <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">{ride.available_seats} Available</p>
-               </div>
-               <div className="flex gap-2 mb-6">
-                  {[1, 2, 3, 4].map(n => {
-                    const available = n <= ride.available_seats
-                    return (
-                      <button
-                        key={n}
-                        disabled={!available}
-                        onClick={() => onSelect(isSelected === n ? null : n)}
-                        className={`flex-1 py-3 rounded-xl text-[11px] font-black transition-all border ${
-                          isSelected === n 
-                            ? 'bg-green-600 border-green-400 text-white shadow-lg' 
-                            : available 
-                            ? 'bg-white/5 text-white/40 border-white/5 hover:border-white/20' 
-                            : 'bg-white/5 text-white/10 border-transparent opacity-20 cursor-not-allowed'
-                        }`}
-                      >
-                        {n}
-                      </button>
-                    )
-                  })}
-               </div>
+            {/* ACTION SECTION */}
+            {!isRequested ? (
                <button 
-                 onClick={() => isSelected && onBook(ride.id, isSelected)}
-                 disabled={!isSelected}
-                 className={`w-full py-4 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 ${
-                   isSelected 
-                    ? 'bg-green-600 hover:bg-green-500 text-white shadow-[0_15px_30px_rgba(34,197,94,0.3)]' 
-                    : 'bg-white/5 text-white/20 cursor-not-allowed'
-                 }`}
+                  onClick={() => isSelected && onBook(ride.id, isSelected)}
+                  disabled={!isSelected}
+                  className={`w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${
+                    isSelected 
+                     ? 'bg-white text-black shadow-[0_20px_40px_rgba(255,255,255,0.2)] scale-102' 
+                     : 'bg-white/5 text-white/20 border border-white/5 cursor-not-allowed'
+                  }`}
                >
-                 {isSelected ? <>LETS GO <ArrowRight className="w-4 h-4" /></> : 'CHOOSE SEATS'}
+                  {isSelected && <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 via-transparent to-green-400/20 animate-pulse pointer-events-none" />}
+                  {isSelected ? <>REQUEST SEAT <ArrowRight className="w-4 h-4" /></> : 'CHOOSE SEATS'}
                </button>
-             </>
-           ) : (
-             <button 
-               onClick={() => onRetract(ride.id)}
-               className="w-full py-4 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] bg-blue-600/10 border border-blue-500/30 text-blue-400 hover:bg-blue-600 hover:text-white transition-all group flex items-center justify-center gap-3"
-             >
-               <span className="group-hover:hidden flex items-center gap-2"><Check className="w-4 h-4" /> REQUESTED</span>
-               <span className="hidden group-hover:flex items-center gap-2 text-white"><X className="w-4 h-4" /> NOT YET</span>
-             </button>
-           )}
-           <Link href={`/rides/${ride.id}`} className="block w-full text-center mt-4 text-[9px] font-black text-white/20 hover:text-white uppercase tracking-widest transition-colors">
-              VIEW RIDE DETAILS
-           </Link>
-        </div>
+            ) : (
+               <button 
+                onClick={() => onRetract(ride.id)}
+                className="w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] bg-blue-600/10 border border-blue-500/30 text-blue-400 hover:bg-blue-600 hover:text-white transition-all group flex items-center justify-center gap-3"
+              >
+                <Check className="w-4 h-4" /> BROADCASTING...
+              </button>
+            )}
+
+            <Link href={`/rides/${ride.id}`} className="block w-full text-center mt-4 text-[9px] font-black text-white/20 hover:text-white uppercase tracking-widest transition-colors mb-2">
+               VIEW ROSTER DETAILS
+            </Link>
+         </div>
       </div>
     </div>
   )
@@ -479,63 +508,31 @@ function RidesContent() {
           </div>
         </div>
 
-        {/* VIBE TAGS - USER SPECIFIC THEME */}
-        <div className="mb-12 overflow-x-auto scrollbar-hide py-4">
-           <div className="flex gap-3 min-w-max">
-              <button 
-                onClick={() => setFilter(p => ({ ...p, vibeTag: 'all' }))}
-                className={`px-8 py-4 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.2em] border transition-all ${filter.vibeTag === 'all' ? 'bg-white text-black border-white shadow-xl shadow-white/10 scale-105' : 'bg-white/5 text-white/40 border-white/5 hover:border-white/20'}`}
-              >
-                 All Signals
-              </button>
-              
-              {/* MORNING SLOTS: ONLY SHOW EARLY OR IF NOT LATE AFTERNOON */}
-              {(hour < 14 || filter.vibeTag.includes('6-7') || filter.vibeTag.includes('9-10')) && (filter.direction === 'all' || filter.direction === 'to_office') && [
-                { id: '6-7', label: 'Early Birds', icon: <Sun className="w-3.5 h-3.5" />, sub: '6-7 AM', color: 'border-cyan-400 text-cyan-400 shadow-cyan-400/20' },
-                { id: '7-8', label: 'GM Route', icon: <Sunrise className="w-3.5 h-3.5" />, sub: '7-8 AM', color: 'border-amber-400 text-amber-400 shadow-amber-400/20' },
-                { id: '8-9', label: 'Rush Hour', icon: <Navigation2 className="w-3.5 h-3.5" />, sub: '8-9 AM', color: 'border-red-400 text-red-400 shadow-red-400/20' },
-                { id: '9-10', label: 'Pick Perfect', icon: <CheckCircle2 className="w-3.5 h-3.5" />, sub: '9-10 AM', color: 'border-green-400 text-green-400 shadow-green-400/20' },
-                { id: '10-11', label: 'Still Looking', icon: <Search className="w-3.5 h-3.5" />, sub: '10-11 AM', color: 'border-white/40 text-white/40 shadow-white/10' },
-                { id: '12-24', label: 'Late Join', icon: <Timer className="w-3.5 h-3.5" />, sub: '12+ PM', color: 'border-indigo-400 text-indigo-400 shadow-indigo-400/20' },
-              ].map(v => (
-                <button 
-                  key={v.id}
-                  onClick={() => setFilter(p => ({ ...p, vibeTag: v.id }))}
-                  className={`px-6 py-4 rounded-full border-2 transition-all flex items-center gap-3 relative group ${filter.vibeTag === v.id ? `bg-black/40 ${v.color} shadow-[0_0_25px_rgba(0,0,0,0.5),0_0_15px_currentColor] scale-105` : `bg-white/[0.03] border-white/5 hover:border-white/20 hover:bg-white/[0.07] ${v.color.replace('border-', 'border-').replace('text-', 'text-').replace('shadow-', 'shadow-').split(' ').filter(c => c.startsWith('border-')).map(c => c.replace('border-', 'border-').replace('400', '400/20')).join(' ')}`}`}
-                >
-                   <div className={`transition-all duration-300 ${filter.vibeTag === v.id ? 'opacity-100 scale-110' : 'opacity-40 group-hover:opacity-100'}`}>
-                      {v.icon}
-                   </div>
-                   <div className="flex flex-col items-start leading-none transition-all duration-300">
-                      <span className={`text-[10px] font-black uppercase tracking-widest ${filter.vibeTag === v.id ? '' : 'text-white/40 group-hover:text-white'}`}>{v.label}</span>
-                      <span className={`text-[8px] font-bold mt-1 ${filter.vibeTag === v.id ? 'opacity-60' : 'opacity-20 group-hover:opacity-40'}`}>{v.sub}</span>
-                   </div>
-                </button>
-              ))}
+               {/* USER THEMED VIBE SIGNALS */}
+               {Object.entries(VIBE_CONFIG).map(([id, v]) => {
+                  const active = filter.vibeTag === id
+                  const isVisible = id === 'all' || 
+                                   (hour < 14 && ['6-7','7-8','8-9','9-10','10-11','12-24'].includes(id)) ||
+                                   (hour >= 12 && ['16-18','18-20','20-22','22-24'].includes(id))
+                  
+                  if (!isVisible) return null
 
-              {/* EVENING SLOTS */}
-              {(hour >= 12 || filter.vibeTag.includes('16-18') || filter.vibeTag.includes('20-22')) && (filter.direction === 'all' || filter.direction === 'to_home') && [
-                { id: '16-18', label: 'On Time', icon: <Clock className="w-3.5 h-3.5" />, sub: '4-6 PM', color: 'border-emerald-400 text-emerald-400 shadow-emerald-400/20' },
-                { id: '18-20', label: 'Traffic Fighters', icon: <Zap className="w-3.5 h-3.5" />, sub: '6-8 PM', color: 'border-orange-400 text-orange-400 shadow-orange-400/20' },
-                { id: '20-22', label: 'Late Comers', icon: <Moon className="w-3.5 h-3.5" />, sub: '8-10 PM', color: 'border-blue-400 text-blue-400 shadow-blue-400/20' },
-                { id: '22-24', label: 'Homebound', icon: <Home className="w-3.5 h-3.5" />, sub: '10+ PM', color: 'border-purple-400 text-purple-400 shadow-purple-400/20' },
-              ].map(v => (
-                <button 
-                  key={v.id}
-                  onClick={() => setFilter(p => ({ ...p, vibeTag: v.id }))}
-                  className={`px-6 py-4 rounded-full border-2 transition-all flex items-center gap-3 relative group ${filter.vibeTag === v.id ? `bg-black/40 ${v.color} shadow-[0_0_25px_rgba(0,0,0,0.5),0_0_15px_currentColor] scale-105` : `bg-white/[0.03] border-white/5 hover:border-white/20 hover:bg-white/[0.07] ${v.color.replace('border-', 'border-').replace('text-', 'text-').replace('shadow-', 'shadow-').split(' ').filter(c => c.startsWith('border-')).map(c => c.replace('border-', 'border-').replace('400', '400/20')).join(' ')}`}`}
-                >
-                   <div className={`transition-all duration-300 ${filter.vibeTag === v.id ? 'opacity-100 scale-110' : 'opacity-40 group-hover:opacity-100'}`}>
-                      {v.icon}
-                   </div>
-                   <div className="flex flex-col items-start leading-none transition-all duration-300">
-                      <span className={`text-[10px] font-black uppercase tracking-widest ${filter.vibeTag === v.id ? '' : 'text-white/40 group-hover:text-white'}`}>{v.label}</span>
-                      <span className={`text-[8px] font-bold mt-1 ${filter.vibeTag === v.id ? 'opacity-60' : 'opacity-20 group-hover:opacity-40'}`}>{v.sub}</span>
-                   </div>
-                </button>
-              ))}
-           </div>
-        </div>
+                  return (
+                    <button 
+                      key={id}
+                      onClick={() => setFilter(p => ({ ...p, vibeTag: id }))}
+                      className={`px-8 py-4 rounded-full border-2 transition-all flex items-center gap-3 relative group ${active ? `bg-black/40 ${v.classes} ${v.glow} scale-105 shadow-[0_0_20px_currentColor]` : `bg-white/[0.03] border-white/5 text-white/30 hover:border-white/20 hover:bg-white/[0.07] ${v.classes.replace('border-', 'border-').split(' ').filter(c => c.startsWith('border-')).map(c => c+'/20').join(' ')}`}`}
+                    >
+                       <div className={`transition-all duration-300 ${active ? 'opacity-100 scale-110' : 'opacity-40 group-hover:opacity-100'}`}>
+                          {v.icon}
+                       </div>
+                       <div className="flex flex-col items-start leading-none transition-all duration-300">
+                          <span className={`text-[10px] font-black uppercase tracking-widest ${active ? '' : 'text-white/40 group-hover:text-white'}`}>{v.label}</span>
+                          <span className={`text-[8px] font-bold mt-1 ${active ? 'opacity-60' : 'opacity-20 group-hover:opacity-40'}`}>{v.sub}</span>
+                       </div>
+                    </button>
+                  )
+               })}
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 opacity-20">
