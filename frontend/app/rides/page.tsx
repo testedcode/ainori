@@ -501,14 +501,14 @@ function RidesContent() {
                 <button 
                   key={v.id}
                   onClick={() => setFilter(p => ({ ...p, vibeTag: v.id }))}
-                  className={`px-6 py-4 rounded-full border-2 transition-all flex items-center gap-3 relative group ${filter.vibeTag === v.id ? `bg-black/40 ${v.color} shadow-[0_0_25px_rgba(0,0,0,0.5),0_0_15px_currentColor] scale-105` : 'bg-white/5 text-white/30 border-white/5 hover:border-white/20'}`}
+                  className={`px-6 py-4 rounded-full border-2 transition-all flex items-center gap-3 relative group ${filter.vibeTag === v.id ? `bg-black/40 ${v.color} shadow-[0_0_25px_rgba(0,0,0,0.5),0_0_15px_currentColor] scale-105` : `bg-white/[0.03] border-white/5 hover:border-white/20 hover:bg-white/[0.07] ${v.color.replace('border-', 'border-').replace('text-', 'text-').replace('shadow-', 'shadow-').split(' ').filter(c => c.startsWith('border-')).map(c => c.replace('border-', 'border-').replace('400', '400/20')).join(' ')}`}`}
                 >
-                   <div className={`${filter.vibeTag === v.id ? 'opacity-100' : 'opacity-40'}`}>
+                   <div className={`transition-all duration-300 ${filter.vibeTag === v.id ? 'opacity-100 scale-110' : 'opacity-40 group-hover:opacity-100'}`}>
                       {v.icon}
                    </div>
-                   <div className="flex flex-col items-start leading-none">
-                      <span className="text-[10px] font-black uppercase tracking-widest">{v.label}</span>
-                      <span className={`text-[8px] font-bold mt-1 ${filter.vibeTag === v.id ? 'opacity-60' : 'opacity-20'}`}>{v.sub}</span>
+                   <div className="flex flex-col items-start leading-none transition-all duration-300">
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${filter.vibeTag === v.id ? '' : 'text-white/40 group-hover:text-white'}`}>{v.label}</span>
+                      <span className={`text-[8px] font-bold mt-1 ${filter.vibeTag === v.id ? 'opacity-60' : 'opacity-20 group-hover:opacity-40'}`}>{v.sub}</span>
                    </div>
                 </button>
               ))}
@@ -523,14 +523,14 @@ function RidesContent() {
                 <button 
                   key={v.id}
                   onClick={() => setFilter(p => ({ ...p, vibeTag: v.id }))}
-                  className={`px-6 py-4 rounded-full border-2 transition-all flex items-center gap-3 relative group ${filter.vibeTag === v.id ? `bg-black/40 ${v.color} shadow-[0_0_25px_rgba(0,0,0,0.5),0_0_15px_currentColor] scale-105` : 'bg-white/5 text-white/30 border-white/5 hover:border-white/20'}`}
+                  className={`px-6 py-4 rounded-full border-2 transition-all flex items-center gap-3 relative group ${filter.vibeTag === v.id ? `bg-black/40 ${v.color} shadow-[0_0_25px_rgba(0,0,0,0.5),0_0_15px_currentColor] scale-105` : `bg-white/[0.03] border-white/5 hover:border-white/20 hover:bg-white/[0.07] ${v.color.replace('border-', 'border-').replace('text-', 'text-').replace('shadow-', 'shadow-').split(' ').filter(c => c.startsWith('border-')).map(c => c.replace('border-', 'border-').replace('400', '400/20')).join(' ')}`}`}
                 >
-                   <div className={`${filter.vibeTag === v.id ? 'opacity-100' : 'opacity-40'}`}>
+                   <div className={`transition-all duration-300 ${filter.vibeTag === v.id ? 'opacity-100 scale-110' : 'opacity-40 group-hover:opacity-100'}`}>
                       {v.icon}
                    </div>
-                   <div className="flex flex-col items-start leading-none">
-                      <span className="text-[10px] font-black uppercase tracking-widest">{v.label}</span>
-                      <span className={`text-[8px] font-bold mt-1 ${filter.vibeTag === v.id ? 'opacity-60' : 'opacity-20'}`}>{v.sub}</span>
+                   <div className="flex flex-col items-start leading-none transition-all duration-300">
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${filter.vibeTag === v.id ? '' : 'text-white/40 group-hover:text-white'}`}>{v.label}</span>
+                      <span className={`text-[8px] font-bold mt-1 ${filter.vibeTag === v.id ? 'opacity-60' : 'opacity-20 group-hover:opacity-40'}`}>{v.sub}</span>
                    </div>
                 </button>
               ))}

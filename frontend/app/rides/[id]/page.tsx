@@ -60,47 +60,79 @@ export default function RideDetailPage() {
     
     return (
       <div className="flex flex-col items-center gap-4 group">
-        <div className="relative w-20 h-28 flex items-center justify-center">
-          {/* CAR SEAT OUTLINE */}
-          <svg viewBox="0 0 100 140" className={`absolute inset-0 w-full h-full transition-all duration-500 ${isAvailable ? 'stroke-blue-500/40' : 'stroke-white/10'}`}>
+        <div className="relative w-24 h-32 flex items-center justify-center">
+          {/* CAR SEAT OUTLINE - HIGH FIDELITY WITH DEPTH */}
+          <svg viewBox="0 0 100 140" className={`absolute inset-0 w-full h-full transition-all duration-700 ${isAvailable ? 'drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]' : ''}`}>
+             <defs>
+                <radialGradient id="seatCushion" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                   <stop offset="0%" stopColor="rgba(255,255,255,0.05)" />
+                   <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+                </radialGradient>
+                <filter id="neonGlow">
+                   <feGaussianBlur stdDeviation="3" result="blur" />
+                   <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+             </defs>
+
+             {/* HEADREST */}
              <path 
                d="M30,20 Q30,10 50,10 Q70,10 70,20 L70,30 Q70,40 50,40 Q30,40 30,30 Z" 
-               fill="none" strokeWidth="2" strokeDasharray={isAvailable ? "4,4" : "0"} 
-               className={isAvailable ? "animate-[pulse_3s_infinite]" : ""}
+               fill={isAvailable ? "none" : "url(#seatCushion)"} 
+               stroke={isAvailable ? "rgba(59,130,246,0.5)" : "rgba(255,255,255,0.1)"}
+               strokeWidth={isAvailable ? "3" : "1.5"} 
+               strokeDasharray={isAvailable ? "4,4" : "0"} 
+               className={isAvailable ? "animate-[pulse_4s_infinite]" : ""}
              />
+             
+             {/* BACKREST - THE CORE VISUAL */}
              <path 
                d="M20,45 Q20,35 50,35 Q80,35 80,45 L85,90 Q85,110 50,110 Q15,110 15,90 Z" 
-               fill="none" strokeWidth="2" strokeDasharray={isAvailable ? "6,4" : "0"}
-               className={isAvailable ? "animate-[pulse_2s_infinite] drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" : ""}
+               fill={isAvailable ? "rgba(59,130,246,0.03)" : "url(#seatCushion)"}
+               stroke={isAvailable ? "rgba(59,130,246,0.8)" : "rgba(255,255,255,0.1)"}
+               strokeWidth={isAvailable ? "3.5" : "1.5"} 
+               strokeDasharray={isAvailable ? "6,4" : "0"}
+               className={isAvailable ? "animate-[pulse_2s_infinite]" : ""}
+               filter={isAvailable ? "url(#neonGlow)" : ""}
              />
+
+             {/* SEAT BASE */}
              <path 
                d="M15,115 Q15,105 50,105 Q85,105 85,115 L90,130 Q90,135 50,135 Q10,135 10,130 Z" 
-               fill="none" strokeWidth="2" strokeDasharray={isAvailable ? "4,4" : "0"}
-               className={isAvailable ? "animate-[pulse_4s_infinite]" : ""}
+               fill={isAvailable ? "none" : "url(#seatCushion)"}
+               stroke={isAvailable ? "rgba(59,130,246,0.5)" : "rgba(255,255,255,0.1)"}
+               strokeWidth={isAvailable ? "3" : "1.5"} 
+               strokeDasharray={isAvailable ? "4,4" : "0"}
+               className={isAvailable ? "animate-[pulse_5s_infinite]" : ""}
              />
           </svg>
 
-          {/* AVATAR OVERLAY */}
+          {/* AVATAR OVERLAY - PREMIUM GRADIENTS */}
           {!isAvailable && (
-            <div className={`relative w-12 h-12 rounded-full p-0.5 transition-all group-hover:scale-110 ${type === 'host' ? 'bg-gradient-to-tr from-amber-600 to-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.4)]' : 'bg-gradient-to-tr from-blue-600 to-cyan-300 shadow-[0_0_20px_rgba(59,130,246,0.4)]'}`}>
-              <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden border-2 border-slate-900">
+            <div className={`relative w-16 h-16 rounded-full p-1 transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-1 ${type === 'host' ? 'bg-gradient-to-tr from-amber-600 via-amber-400 to-yellow-200 shadow-[0_0_30px_rgba(251,191,36,0.6)] animate-pulse' : 'bg-gradient-to-tr from-blue-600 via-cyan-400 to-indigo-200 shadow-[0_0_30px_rgba(59,130,246,0.6)]'}`}>
+              <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden border-2 border-slate-900 relative">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-10" />
                 {user?.avatar_url ? (
                   <img src={user.avatar_url} alt={name} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-sm font-black text-white">{name[0].toUpperCase()}</span>
+                  <span className="text-lg font-black text-white relative z-20">{name[0].toUpperCase()}</span>
                 )}
               </div>
+              {/* NEON RING PULSE */}
+              <div className={`absolute inset-0 rounded-full animate-ping opacity-20 ${type === 'host' ? 'bg-amber-400' : 'bg-blue-400'}`} style={{ animationDuration: '3s' }} />
             </div>
           )}
 
           {isAvailable && (
-            <span className="text-[7px] font-black text-blue-400/40 uppercase tracking-widest animate-pulse">Available</span>
+            <div className="flex flex-col items-center animate-pulse">
+               <span className="text-[8px] font-black text-blue-400 uppercase tracking-[0.2em] mb-1">Vacancy</span>
+               <div className="w-1 h-1 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,1)]" />
+            </div>
           )}
         </div>
-        <div className="text-center">
-          <p className={`text-[9px] font-black uppercase tracking-widest ${isAvailable ? 'text-white/10' : 'text-white'}`}>{name.split(' ')[0]}</p>
-          <p className="text-[7px] font-bold text-white/20 uppercase tracking-tighter mt-0.5">
-            {type === 'host' ? 'COMMANDER' : type === 'rider' ? 'TRAVELER' : 'FREE'}
+        <div className="text-center group-hover:translate-y-1 transition-all duration-300">
+          <p className={`text-[10px] font-black uppercase tracking-[0.1em] ${isAvailable ? 'text-white/10' : 'text-white'}`}>{name}</p>
+          <p className={`text-[7px] font-bold uppercase tracking-widest mt-1 px-2 py-0.5 rounded-full border ${isAvailable ? 'text-white/5 border-white/5' : type === 'host' ? 'text-amber-400 border-amber-400/20 bg-amber-400/5' : 'text-blue-400 border-blue-400/20 bg-blue-400/5'}`}>
+            {type === 'host' ? 'RIDE COMMANDER' : type === 'rider' ? 'CO-PILOT' : 'UNASSIGNED'}
           </p>
         </div>
       </div>
