@@ -323,13 +323,26 @@ function RidesContent() {
   }, [filter.date, filter.corridor])
 
   const handleBook = async (rideId: number, seats: number) => {
+    const isOwnRide = rides.find(r => r.id === rideId)?.user_id === Number(currentUser?.id || currentUser?.userId)
+    
+    console.log('[BOOKING_DEBUG] Discovery Book Attempt:', { rideId, seats, isOwnRide })
+
+    if (isOwnRide) {
+       toast.error('Error: You are the host of this ride. Manage it from the dashboard.', { icon: '🛡️' })
+       return
+    }
+
     try {
       await api.post(`/rides/${rideId}/requests`, { seats_requested: seats })
-      toast.success('Lets Go! Request broadcasted.', { icon: '🚀' })
+      toast.success('Launch successful! Request broadcasted.', { icon: '🚀' })
       setActiveSelection(null)
       fetchUserRequests()
       fetchRides()
-    } catch { toast.error('Launch failed') }
+    } catch (e: any) { 
+      const serverError = e.response?.data?.error || e.message || 'Launch failed'
+      console.error('[BOOKING_ERROR] Discovery request failed:', serverError)
+      toast.error(serverError, { duration: 5000 })
+    }
   }
 
   const handleRetract = async (rideId: number) => {

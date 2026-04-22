@@ -168,15 +168,19 @@ export default function RideDetailPage() {
   }, [messages.length])
 
   const fetchAll = async () => {
+    // 1. Fetch Core Ride Data (Blocks the page render)
     try {
-      const [r, m, req] = await Promise.all([
-        api.get(`/rides/${rideId}`) as unknown as Promise<Ride>,
-        api.get(`/rides/${rideId}/messages`) as unknown as Promise<Message[]>,
-        api.get(`/rides/${rideId}/requests`) as unknown as Promise<RideRequest[]>
-      ])
-      setRide(r); setMessages(m); setRequests(req)
-    } catch { toast.error('Check mission link') }
-    finally { setLoading(false) }
+      const r = await api.get(`/rides/${rideId}`) as unknown as Ride
+      setRide(r)
+      setLoading(false) // Core data is in, show the page!
+    } catch { 
+      toast.error('Mission link severed.')
+      setLoading(false)
+    }
+
+    // 2. Fetch Supporting Data (Non-blocking)
+    api.get(`/rides/${rideId}/messages`).then((m: any) => { if (Array.isArray(m)) setMessages(m) }).catch(() => {})
+    api.get(`/rides/${rideId}/requests`).then((req: any) => { if (Array.isArray(req)) setRequests(req) }).catch(() => {})
   }
 
   const fetchMessages = async () => {
@@ -201,6 +205,16 @@ export default function RideDetailPage() {
   const myRequest = requests.find(r => Number(r.user_id) === currentUserId)
   const isAccepted = myRequest?.status === 'accepted'
   const isPending = myRequest?.status === 'pending'
+
+  const handleSeatClick = (index: number) => {
+    if (isOwner) return
+    setSelectedSeats(index + 1)
+  }
+
+  const handleSeatClick = (index: number) => {
+    if (isOwner) return
+    setSelectedSeats(index + 1)
+  }
 
   const handleJoin = async () => {
     if (!ride) return
@@ -253,24 +267,30 @@ export default function RideDetailPage() {
 
   const copyId = () => { navigator.clipboard.writeText(String(rideId)); toast.success('Ride ID copied!') }
 
-  if (loading) return <div className="min-h-screen bg-[#020617] flex items-center justify-center text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Syncing...</div>
-  if (!ride) return <div className="min-h-screen bg-[#020617] flex items-center justify-center text-white font-black">Ride not found</div>
-
-  if (loading) return <div className="min-h-screen bg-[#020617] flex items-center justify-center text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Syncing...</div>
-  if (!ride) return <div className="min-h-screen bg-[#020617] flex items-center justify-center text-white font-black">Ride not found</div>
-
-  const vibe = getVibe(parseInt(ride.ride_time.split(':')[0]))
+  const vibe = getVibe(ride ? parseInt(ride.ride_time.split(':')[0]) : hour)
+  const theme = VIBE_THEMES[vibe]
 
   const pendingRequests = requests.filter(r => r.status === 'pending')
   const acceptedRequests = requests.filter(r => r.status === 'accepted')
   const totalAcceptedSeats = acceptedRequests.reduce((s, r) => s + r.seats_requested, 0)
 
   return (
-    <div className={`min-h-screen font-sans pb-32 transition-all duration-1000 ${VIBE_THEMES[vibe].bg}`}>
+    <div className={`min-h-screen font-sans pb-32 transition-all duration-1000 ${theme.bg}`}>
       <VibeCanvas vibe={vibe} />
       <JoolNav />
 
-      <main className="max-w-4xl mx-auto px-6 mt-12 space-y-6">
+      {loading ? (
+        <div className="max-w-4xl mx-auto px-6 mt-12 flex flex-col items-center justify-center py-32 opacity-20">
+           <div className="w-12 h-12 border-2 border-white border-t-transparent rounded-full animate-spin mb-4" />
+           <p className="text-[10px] font-black uppercase tracking-[0.5em]">Syncing_Mission_Data...</p>
+        </div>
+      ) : !ride ? (
+        <div className="max-w-4xl mx-auto px-6 mt-32 text-center py-20 bg-white/5 rounded-[3rem] border border-white/5">
+           <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Ride Terminal Not Found</h2>
+           <Link href="/rides" className="text-blue-400 font-bold mt-4 block text-xs uppercase tracking-widest">Return to Roster</Link>
+        </div>
+      ) : (
+        <main className="max-w-4xl mx-auto px-6 mt-12 space-y-6 animate-in fade-in duration-700">
 
         {/* HEADER */}
         <div className="flex items-start justify-between gap-4 mb-8">
