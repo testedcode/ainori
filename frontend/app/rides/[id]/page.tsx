@@ -262,6 +262,7 @@ export default function RideDetailPage() {
 
   const copyId = () => { navigator.clipboard.writeText(String(rideId)); toast.success('Ride ID copied!') }
 
+  const hour = new Date().getHours()
   const vibe = getVibe(ride ? parseInt(ride.ride_time.split(':')[0]) : hour)
   const theme = VIBE_THEMES[vibe]
 
