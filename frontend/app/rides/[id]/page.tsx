@@ -196,12 +196,14 @@ export default function RideDetailPage() {
     finally { setSendingMsg(false) }
   }
 
-  const handleSeatClick = (index: number) => {
-    if (isOwner) return
-    setSelectedSeats(index + 1)
-  }
+  const currentUserId = Number(user?.id || user?.userId)
+  const isOwner = ride && currentUserId === Number(ride.user_id)
+  const myRequest = requests.find(r => Number(r.user_id) === currentUserId)
+  const isAccepted = myRequest?.status === 'accepted'
+  const isPending = myRequest?.status === 'pending'
 
   const handleJoin = async () => {
+    if (!ride) return
     const payload = { seats_requested: selectedSeats }
     console.log('[BOOKING_DEBUG] Attempting join with payload:', payload)
     console.log('[BOOKING_DEBUG] Ownership Check:', { currentUserId, rideOwnerId: ride.user_id, isOwner })
@@ -254,11 +256,9 @@ export default function RideDetailPage() {
   if (loading) return <div className="min-h-screen bg-[#020617] flex items-center justify-center text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Syncing...</div>
   if (!ride) return <div className="min-h-screen bg-[#020617] flex items-center justify-center text-white font-black">Ride not found</div>
 
-  const currentUserId = Number(user?.id || user?.userId)
-  const isOwner = currentUserId === Number(ride.user_id)
-  const myRequest = requests.find(r => Number(r.user_id) === currentUserId)
-  const isAccepted = myRequest?.status === 'accepted'
-  const isPending = myRequest?.status === 'pending'
+  if (loading) return <div className="min-h-screen bg-[#020617] flex items-center justify-center text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Syncing...</div>
+  if (!ride) return <div className="min-h-screen bg-[#020617] flex items-center justify-center text-white font-black">Ride not found</div>
+
   const vibe = getVibe(parseInt(ride.ride_time.split(':')[0]))
 
   const pendingRequests = requests.filter(r => r.status === 'pending')
