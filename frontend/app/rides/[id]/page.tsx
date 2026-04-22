@@ -211,11 +211,6 @@ export default function RideDetailPage() {
     setSelectedSeats(index + 1)
   }
 
-  const handleSeatClick = (index: number) => {
-    if (isOwner) return
-    setSelectedSeats(index + 1)
-  }
-
   const handleJoin = async () => {
     if (!ride) return
     const payload = { seats_requested: selectedSeats }
@@ -602,7 +597,8 @@ export default function RideDetailPage() {
           </div>
         </GlassPanel>
 
-      </main>
+        </main>
+      )}
 
       <style jsx global>{`
         .scrollbar-hide::-webkit-scrollbar { display: none; }
