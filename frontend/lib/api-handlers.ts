@@ -687,12 +687,12 @@ export async function handleGetRideRequests(pool: Pool, rideId: number) {
 
 export async function handleCreateRideRequest(pool: Pool, rideId: number, body: unknown, auth: Auth) {
   const b = body as { seats_requested?: number; comment?: string }
-  if (!b?.seats_requested || b.seats_requested < 1) return errResponse('seats_requested required (min 1)', 400)
+  if (!b?.seats_requested || b.seats_requested < 1) return errResponse('Error: seats_requested must be 1 or more', 400)
   const ride = await pool.query(`SELECT available_seats, user_id FROM rides WHERE id = $1 AND status IN ('open', 'partially_filled')`, [rideId])
   if (ride.rows.length === 0) return errResponse('Ride not found or not available', 404)
   const { available_seats, user_id: rideUserId } = ride.rows[0]
-  if (rideUserId === auth.userId) return errResponse('Cannot request your own ride', 400)
-  if (b.seats_requested > available_seats) return errResponse('Not enough available seats', 400)
+  if (rideUserId === auth.userId) return errResponse('Error: You are the host of this ride', 400)
+  if (b.seats_requested > available_seats) return errResponse('Error: Not enough seats available', 400)
   const existing = await pool.query(`SELECT status FROM ride_requests WHERE ride_id = $1 AND user_id = $2`, [rideId, auth.userId])
   if (existing.rows.length > 0 && (existing.rows[0].status === 'pending' || existing.rows[0].status === 'accepted'))
     return errResponse('You already have a request for this ride', 409)
@@ -705,7 +705,7 @@ export async function handleCreateRideRequest(pool: Pool, rideId: number, body: 
     AND r.ride_date = (SELECT ride_date FROM rides WHERE id = $2)
     AND rr.status = 'accepted'
   `, [auth.userId, rideId])
-  if (sameDay.rows.length > 0) return errResponse('You already have an accepted ride for this corridor today', 400)
+  if (sameDay.rows.length > 0) return errResponse('Error: You already have a confirmed ride on this corridor today', 400)
   const r = await pool.query(
     `INSERT INTO ride_requests (ride_id, user_id, seats_requested, comment, status) VALUES ($1, $2, $3, $4, 'pending') RETURNING id`,
     [rideId, auth.userId, b.seats_requested, b.comment || null]

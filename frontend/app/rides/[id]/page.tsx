@@ -202,21 +202,27 @@ export default function RideDetailPage() {
   }
 
   const handleJoin = async () => {
+    const payload = { seats_requested: selectedSeats }
+    console.log('[BOOKING_DEBUG] Attempting join with payload:', payload)
+    console.log('[BOOKING_DEBUG] Ownership Check:', { currentUserId, rideOwnerId: ride.user_id, isOwner })
+
     if (isOwner) {
-       toast.error('You are the commander of this unit!')
+       toast.error('You are the host! Manage this ride from your dashboard.', { icon: '🛡️' })
        return
     }
     if (selectedSeats === 0) {
-      toast.error('Choose your seat first!', { icon: '💺' })
+      toast.error('Please select your seats on the diagram first.', { icon: '💺' })
       return
     }
     setJoining(true)
     try {
-      await api.post(`/rides/${rideId}/requests`, { seats_requested: selectedSeats })
+      await api.post(`/rides/${rideId}/requests`, payload)
       toast.success(`Broadcasting ${selectedSeats} seat request!`, { icon: '🚀' })
       fetchAll()
     } catch (e: any) { 
-      toast.error(e.response?.data?.error || 'Launch failed')
+      const serverError = e.response?.data?.error || e.message || 'Connection failed'
+      console.error('[BOOKING_ERROR] Server returned:', serverError)
+      toast.error(serverError, { duration: 5000 })
     }
     finally { setJoining(false) }
   }
