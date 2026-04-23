@@ -727,7 +727,7 @@ export async function handleGetUserRequests(pool: Pool, auth: Auth) {
 
 export async function handleGetRideRequests(pool: Pool, rideId: number) {
   const r = await pool.query(
-    `SELECT rr.id, rr.ride_id, rr.user_id, u.name as user_name, rr.seats_requested, rr.comment, rr.status, rr.created_at, rr.updated_at
+    `SELECT rr.id, rr.ride_id, rr.user_id, u.name as user_name, u.avatar_url, rr.seats_requested, rr.comment, rr.status, rr.created_at, rr.updated_at
      FROM ride_requests rr JOIN users u ON rr.user_id = u.id WHERE rr.ride_id = $1 ORDER BY rr.created_at DESC`,
     [rideId]
   )

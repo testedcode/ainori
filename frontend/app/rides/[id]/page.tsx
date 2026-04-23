@@ -7,7 +7,7 @@ import {
   ArrowLeft, MapPin, Clock, Users, IndianRupee, Car, Star, Shield,
   MessageSquare, Send, Check, X, Loader2, Navigation,
   AlertCircle, Sparkles, CheckCircle2, Banknote, QrCode,
-  Timer, ArrowRight, Ticket, Copy, UserCheck, XCircle
+  Timer, ArrowRight, Ticket, Copy, UserCheck, XCircle, Zap, ExternalLink
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
@@ -27,7 +27,7 @@ interface Ride {
 }
 
 interface Message { id: number; user_id?: number; user_name: string; message: string; created_at: string }
-interface RideRequest { id: number; user_id: number; rider_name: string; user_name: string; status: string; seats_requested: number; created_at: string }
+interface RideRequest { id: number; user_id: number; rider_name: string; user_name: string; avatar_url?: string; status: string; seats_requested: number; created_at: string }
 
 // ─── COMPONENTS ──────────────────────────────────────────────────────────────
 function GlassPanel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -157,6 +157,29 @@ export default function RideDetailPage() {
     )
   }
 
+  const StarRating = ({ rideId, rateeId, current, label, onRate }: { rideId: number, rateeId: number, current: number | null, label: string, onRate: (rating: number) => void }) => {
+    const [hover, setHover] = useState(0)
+    return (
+      <div className="flex flex-col gap-1">
+        <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em]">{label}</span>
+        <div className="flex items-center gap-1.5">
+          {[1, 2, 3, 4, 5].map(star => (
+            <button
+              key={star}
+              onMouseEnter={() => setHover(star)}
+              onMouseLeave={() => setHover(0)}
+              onClick={() => onRate(star)}
+              className="transition-all active:scale-125"
+            >
+              <Star className={`w-4 h-4 ${star <= (hover || (current || 0)) ? 'text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]' : 'text-white/10'}`} />
+            </button>
+          ))}
+          {current && <span className="text-[10px] font-black text-amber-400 ml-1">{current}.0</span>}
+        </div>
+      </div>
+    )
+  }
+
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) { router.push('/login'); return }
@@ -202,9 +225,18 @@ export default function RideDetailPage() {
       const payload = asGiver ? { giver_status: 'received' } : { rider_status: 'done' }
       await api.put(`/rides/${rideId}/payments/${riderId}`, payload)
       toast.success(asGiver ? '✅ Payment marked as received!' : '✅ Payment marked as done!')
+      fetchAll() // Refresh to show updated status
     } catch (e: any) {
       toast.error(e?.response?.data?.error || 'Failed')
     } finally { setMarkingPayment(false) }
+  }
+
+  const handleRate = async (rating: number, rateeId: number) => {
+    try {
+      await api.post(`/rides/${rideId}/rate`, { rating, ratee_id: rateeId })
+      toast.success('Rating synchronized', { icon: '⭐' })
+      fetchAll()
+    } catch { toast.error('Rating failed') }
   }
 
   const fetchMessages = async () => {
@@ -339,6 +371,52 @@ export default function RideDetailPage() {
           </Link>
         </div>
 
+        {/* ─── RATINGS (FOR PAST RIDES) ────────────────────────────────────── */}
+        {(new Date(ride.ride_date + 'T' + ride.ride_time) < new Date()) && (
+          <GlassPanel className="border-amber-400/30 bg-amber-400/[0.02]">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                 <div className="w-12 h-12 bg-amber-400/10 rounded-2xl flex items-center justify-center">
+                    <Star className="w-6 h-6 text-amber-400 animate-pulse" />
+                 </div>
+                 <div>
+                    <h3 className="text-lg font-black text-white">Rate your trip</h3>
+                    <p className="text-xs text-white/40 font-bold uppercase tracking-widest">Help others by sharing your experience</p>
+                 </div>
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-8 bg-white/5 p-4 rounded-3xl border border-white/5">
+                 {/* Rider rates Host */}
+                 {!isOwner && isAccepted && (
+                   <StarRating 
+                     rideId={ride.id} 
+                     rateeId={ride.user_id} 
+                     current={(ride as any).user_rating} 
+                     label={`Rate Host (${ride.user_name})`} 
+                     onRate={(r) => handleRate(r, ride.user_id)} 
+                   />
+                 )}
+                 
+                 {/* Host rates each Rider */}
+                 {isOwner && ride.confirmed_riders?.map(r => (
+                   <StarRating 
+                     key={r.user_id}
+                     rideId={ride.id} 
+                     rateeId={r.user_id} 
+                     current={(r as any).user_rating} 
+                     label={`Rate ${r.name.split(' ')[0]}`} 
+                     onRate={(rating) => handleRate(rating, r.user_id)} 
+                   />
+                 ))}
+                 
+                 {isOwner && (!ride.confirmed_riders || ride.confirmed_riders.length === 0) && (
+                   <p className="text-[10px] font-black text-white/20 uppercase tracking-widest italic">No confirmed riders to rate</p>
+                 )}
+              </div>
+            </div>
+          </GlassPanel>
+        )}
+
         {/* RIDE SUMMARY PANEL */}
         <GlassPanel className="border-blue-500/20 !p-0 overflow-hidden">
           {/* Vehicle image as glossy background */}
@@ -468,12 +546,16 @@ export default function RideDetailPage() {
                     }`}
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-sm flex-shrink-0">
-                        {(req.user_name || req.rider_name || '?')[0]}
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-white font-black text-sm flex-shrink-0 border-2 border-white/10 overflow-hidden">
+                        {req.avatar_url ? (
+                          <img src={req.avatar_url} className="w-full h-full object-cover" alt="" />
+                        ) : (
+                          (req.user_name || req.rider_name || '?')[0]
+                        )}
                       </div>
                       <div className="min-w-0">
                         <p className="font-black text-white text-sm truncate">{req.user_name || req.rider_name}</p>
-                        <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">
+                        <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest mt-0.5">
                           {req.seats_requested} seat{req.seats_requested > 1 ? 's' : ''} · {new Date(req.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
@@ -630,31 +712,54 @@ export default function RideDetailPage() {
           </div>
         </div>
 
-        {/* ─── VEHICLE CARD ─────────────────────────────────────────────────── */}
+        {/* ─── PREMIUM VEHICLE CARD ─────────────────────────────────────────── */}
         {ride.vehicle_info && (
-          <GlassPanel className="!p-0 overflow-hidden border-white/10">
-            {ride.vehicle_info.image_url && (
-              <div className="absolute inset-0">
-                <img src={ride.vehicle_info.image_url} alt="" className="w-full h-full object-cover opacity-20" />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#0f172a] via-[#0f172a]/90 to-[#0f172a]/60" />
-              </div>
-            )}
-            <div className="relative p-6 flex items-center justify-between gap-6">
-              <div className="flex items-center gap-5">
-                <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-3xl flex-shrink-0">
-                  {ride.vehicle_info.vehicle_type === 'bike' ? '🏍️' : ride.vehicle_info.vehicle_type === 'suv' ? '🚙' : ride.vehicle_info.vehicle_type === 'muv' ? '🚐' : '🚗'}
-                </div>
-                <div>
-                  <p className="font-black text-white text-lg">{ride.vehicle_info.make} {ride.vehicle_info.model}</p>
-                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">{ride.vehicle_info.color} · {ride.vehicle_info.total_seats} Seater</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="inline-block bg-yellow-400/10 border border-yellow-400/30 px-4 py-2 rounded-xl font-mono font-black text-yellow-400 tracking-[0.2em]">
-                  ···· {ride.vehicle_info.vehicle_number.slice(-4)}
-                </div>
-                <p className="text-[9px] text-white/20 uppercase font-black mt-1 tracking-widest">Registration</p>
-              </div>
+          <GlassPanel className="!p-0 overflow-hidden border-white/10 group/car">
+            <div className="grid grid-cols-1 md:grid-cols-2">
+               {/* Left: Info */}
+               <div className="p-8 relative z-10 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                        <Car className="w-5 h-5 text-blue-400" />
+                      </div>
+                      <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Vehicle Details</span>
+                    </div>
+                    <h2 className="text-3xl font-black text-white leading-tight mb-2">
+                      {ride.vehicle_info.make} <span className="text-blue-400 italic">{ride.vehicle_info.model}</span>
+                    </h2>
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-black text-white/40 uppercase tracking-widest">{ride.vehicle_info.color}</span>
+                      <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-black text-white/40 uppercase tracking-widest">{ride.vehicle_info.vehicle_type}</span>
+                      <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-black text-white/40 uppercase tracking-widest">{ride.vehicle_info.total_seats} Seats</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-2">Plate Number</p>
+                    <div className="inline-flex flex-col">
+                      <div className="px-6 py-3 bg-white text-black rounded-xl font-mono font-black text-xl tracking-[0.2em] shadow-[0_10px_30px_rgba(255,255,255,0.1)] border-4 border-slate-200">
+                        {ride.vehicle_info.vehicle_number}
+                      </div>
+                      <div className="h-2 bg-blue-600 rounded-b-xl w-full" />
+                    </div>
+                  </div>
+               </div>
+
+               {/* Right: Visual */}
+               <div className="relative min-h-[300px] md:min-h-full overflow-hidden bg-slate-900 flex items-center justify-center">
+                  {ride.vehicle_info.image_url ? (
+                    <img 
+                      src={ride.vehicle_info.image_url} 
+                      className="absolute inset-0 w-full h-full object-cover group-hover/car:scale-110 transition-transform duration-1000" 
+                      alt="" 
+                    />
+                  ) : (
+                    <Car className="w-24 h-24 text-white/5" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-transparent to-transparent hidden md:block" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent md:hidden" />
+               </div>
             </div>
           </GlassPanel>
         )}

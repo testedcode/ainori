@@ -3,12 +3,16 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Car, LayoutDashboard, Search, Plus, Wrench, Shield, LogOut, Menu, X, Bell, User, Leaf, LifeBuoy } from 'lucide-react'
+import { 
+  Car, LayoutDashboard, Search, Plus, Wrench, Shield, LogOut, Menu, X, 
+  Bell, User, Leaf, LifeBuoy, History as HistoryIcon 
+} from 'lucide-react'
 
 const NAV_LINKS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/rides', label: 'Find Ride', icon: Search },
   { href: '/offer-ride', label: 'Share Ride', icon: Plus },
+  { href: '/history', label: 'History', icon: HistoryIcon },
   { href: '/vehicles', label: 'Garage', icon: Wrench },
   { href: '/profile', label: 'Profile', icon: User },
 ]

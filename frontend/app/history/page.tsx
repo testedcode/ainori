@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   ArrowLeft, Calendar, Clock, IndianRupee,
   ChevronRight, Car, User, Search, History as HistoryIcon,
-  CheckCircle2, Loader2, Star, Zap, ExternalLink
+  CheckCircle2, Loader2, Star, Zap, ExternalLink, Sparkles
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
@@ -279,9 +279,13 @@ function HistoryCard({
           : 'bg-blue-500/10 text-blue-400'
         }`}>{ride.status}</span>
         {/* Payment badge */}
-        {myPayDone && (
+        {myPayDone ? (
           <span className="flex items-center gap-1 text-[8px] font-black text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">
             <CheckCircle2 className="w-3 h-3" /> Paid
+          </span>
+        ) : (isRecent || isPast) && (
+          <span className="flex items-center gap-1 text-[8px] font-black text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full animate-pulse">
+            <Sparkles className="w-3 h-3" /> Settle Now
           </span>
         )}
       </div>
