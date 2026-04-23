@@ -56,7 +56,7 @@ export default function JoolFooter() {
           <div>
             <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Community</p>
             <ul className="space-y-2.5">
-              {[['Safety Policy', '#'], ['Terms of Service', '#'], ['Privacy Policy', '#'], ['Support', '/support']].map(([label, href]) => (
+              {[['Safety Policy', '/safety'], ['Terms of Service', '/terms'], ['Privacy Policy', '/privacy'], ['Support', '/support']].map(([label, href]) => (
                 <li key={label}>
                   <Link href={href} className="text-sm text-slate-400 hover:text-white transition-colors">{label}</Link>
                 </li>
