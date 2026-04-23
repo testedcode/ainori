@@ -370,12 +370,28 @@ export default function RideDetailPage() {
                     {ride.direction === 'to_office' ? '🏢 To Office' : '🏠 To Home'}
                   </span>
                 </p>
+                {/* Vehicle Badge */}
+                {ride.vehicle_info && (
+                  <div className="mt-3 flex items-center gap-2 p-2 bg-white/5 border border-white/5 rounded-xl w-fit">
+                    <span className="text-sm">
+                      {ride.vehicle_info.vehicle_type === 'bike' ? '🏍️' : ride.vehicle_info.vehicle_type === 'suv' ? '🚙' : '🚗'}
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-white/60 leading-none uppercase tracking-tighter">
+                        {ride.vehicle_info.make} {ride.vehicle_info.model}
+                      </span>
+                      <span className="text-[8px] font-black text-white/30 leading-none uppercase tracking-widest mt-0.5">
+                        {ride.vehicle_info.color} · {ride.vehicle_info.vehicle_number || 'REG: PRIVATE'}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             {/* Right: Date + seats */}
             <div className="text-center md:text-right space-y-3">
               <p className="text-sm font-black text-white/60 uppercase tracking-widest">
-                {new Date(ride.ride_date).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}
+                {new Date(ride.ride_date.includes('T') ? ride.ride_date : ride.ride_date + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
               </p>
               <div className="flex items-center gap-2 justify-end">
                 <IndianRupee className="w-4 h-4 text-green-400" />

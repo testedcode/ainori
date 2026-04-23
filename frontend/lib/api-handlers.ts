@@ -501,13 +501,14 @@ export async function handleGetUserRides(pool: Pool, auth: Auth) {
   `
   const rides = await pool.query(query, [auth.userId])
   
-  const enrichedRides = await Promise.all(rides.rows.map(async (ride) => {
-    // Confirmed riders
-    const riders = await pool.query(`
-      SELECT rr.id, rr.user_id, u.name, u.avatar_url, rr.seats_requested 
-      FROM ride_requests rr JOIN users u ON rr.user_id = u.id 
-      WHERE rr.ride_id = $1 AND rr.status = 'accepted'
-    `, [ride.id])
+    const enrichedRides = await Promise.all(rides.rows.map(async (ride) => {
+      // Confirmed riders + ratings given to them by current user (if host)
+      const riders = await pool.query(`
+        SELECT rr.id, rr.user_id, u.name, u.avatar_url, rr.seats_requested,
+               (SELECT rating FROM ride_ratings WHERE ride_id = rr.ride_id AND rater_id = $2 AND ratee_id = rr.user_id) as user_rating
+        FROM ride_requests rr JOIN users u ON rr.user_id = u.id 
+        WHERE rr.ride_id = $1 AND rr.status = 'accepted'
+      `, [ride.id, auth.userId])
     
     // Pending requests (only if host)
     let pending: any[] = []
@@ -1206,9 +1207,13 @@ async function ensureRatingsTable(pool: Pool) {
       rater_id INTEGER NOT NULL,
       ratee_id INTEGER NOT NULL,
       rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      UNIQUE (ride_id, rater_id)
+      created_at TIMESTAMPTZ DEFAULT NOW()
     )
+  `).catch(() => {})
+  // Fix the unique constraint to include ratee_id
+  await pool.query(`
+    ALTER TABLE ride_ratings DROP CONSTRAINT IF EXISTS ride_ratings_ride_id_rater_id_key;
+    ALTER TABLE ride_ratings ADD CONSTRAINT ride_ratings_triple_unique UNIQUE (ride_id, rater_id, ratee_id);
   `).catch(() => {})
 }
 
@@ -1226,7 +1231,7 @@ export async function handleRateRide(pool: Pool, rideId: number, body: unknown, 
   await pool.query(
     `INSERT INTO ride_ratings (ride_id, rater_id, ratee_id, rating)
      VALUES ($1, $2, $3, $4)
-     ON CONFLICT (ride_id, rater_id) DO UPDATE SET rating = $4, created_at = NOW()`,
+     ON CONFLICT (ride_id, rater_id, ratee_id) DO UPDATE SET rating = $4, created_at = NOW()`,
     [rideId, auth.userId, b.ratee_id, b.rating]
   )
   return jsonResponse({ message: 'Rating submitted' }, 201)

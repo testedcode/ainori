@@ -18,6 +18,14 @@ import toast from 'react-hot-toast'
 import JoolNav from '../components/JoolNav'
 import VibeCanvas from '../components/VibeCanvas'
 
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+const fmtTime = (raw: string) => raw ? raw.slice(0, 5) : ''
+const fmtDate = (raw: string) => {
+  if (!raw) return ''
+  const d = new Date(raw.includes('T') ? raw : raw + 'T00:00:00')
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+}
+
 // ─── HIGH-FIDELITY CONFIG ──────────────────────────────────────────────────
 const VIBE_CONFIG: Record<string, { label: string, icon: any, sub: string, classes: string, glow: string }> = {
   'all': { label: 'All Signals', icon: <Zap />, sub: 'Full Grid', classes: 'bg-white text-black border-white', glow: 'shadow-white/20' },
@@ -149,9 +157,11 @@ function CardView({
          {/* HEADER - MOCKUP STYLE */}
          <div className="p-8 pb-4 flex justify-between items-start relative">
             <div>
-               <h2 className="text-5xl font-black text-white tracking-tighter italic mb-1">{ride.ride_time}</h2>
-               <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] pl-1">
-                 {ride.direction === 'to_office' ? '🏢 To Office' : ride.direction === 'to_home' ? '🏠 To Home' : ride.pickup_point}
+               <h2 className="text-5xl font-black text-white tracking-tighter italic mb-1">{fmtTime(ride.ride_time)}</h2>
+               <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] pl-1 flex items-center gap-2">
+                 <span className="flex items-center gap-1"><Calendar className="w-2.5 h-2.5" />{fmtDate(ride.ride_date)}</span>
+                 <span className="opacity-20">|</span>
+                 <span>{ride.direction === 'to_office' ? '🏢 To Office' : ride.direction === 'to_home' ? '🏠 To Home' : ride.pickup_point}</span>
                </p>
             </div>
             <div className="flex flex-col items-end gap-2">
@@ -202,7 +212,7 @@ function CardView({
 
          {/* ROUTE INFO */}
          <div className="px-8 pb-4">
-            <div className="flex items-center gap-4 text-white/40 mb-6">
+            <div className="flex items-center gap-4 text-white/40 mb-4">
                 <div className="flex items-center gap-2 group/pin">
                   <MapPin className="w-3.5 h-3.5 text-blue-500 group-hover/pin:scale-110 transition-transform" />
                   <span className="text-[10px] font-black uppercase tracking-widest truncate max-w-[100px]">{ride.pickup_point}</span>
@@ -213,6 +223,16 @@ function CardView({
                   <span className="text-[10px] font-black uppercase tracking-widest truncate max-w-[100px]">{ride.drop_point}</span>
                 </div>
             </div>
+            {/* Vehicle info strip */}
+            {(ride.vehicle_make || ride.vehicle_model) && (
+              <div className="flex items-center gap-2 mb-4 p-2.5 bg-white/[0.03] border border-white/5 rounded-2xl">
+                <span className="text-base">
+                  {ride.vehicle_type === 'bike' ? '🏍️' : ride.vehicle_type === 'suv' ? '🚙' : ride.vehicle_type === 'muv' ? '🚐' : '🚗'}
+                </span>
+                <span className="text-xs font-black text-white/50">{[ride.vehicle_make, ride.vehicle_model].filter(Boolean).join(' ')}</span>
+                {ride.vehicle_type && <span className="text-[8px] font-black text-white/20 uppercase tracking-widest ml-auto">{ride.vehicle_type}</span>}
+              </div>
+            )}
 
             {/* ACTION SECTION */}
                {isOwnRide ? (
@@ -616,7 +636,7 @@ function RidesContent() {
                    <div className="hidden md:block h-8 w-px bg-white/10 mx-4" />
                    <div className="flex flex-col">
                       <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Departure</span>
-                      <span className="font-black flex items-center gap-2"><Clock className="w-3 h-3 text-amber-400" /> {ride.ride_time}</span>
+                       <span className="font-black flex items-center gap-2"><Clock className="w-3 h-3 text-amber-400" /> {fmtTime(ride.ride_time)}</span>
                    </div>
                 </div>
                 
