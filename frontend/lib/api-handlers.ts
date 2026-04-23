@@ -436,8 +436,10 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
            r.vehicle_id, r.ride_date, r.ride_time, r.pickup_point, r.drop_point,
            r.route_description, c.description as corridor_description, r.price_per_seat, r.available_seats, r.total_seats,
            r.status, r.direction, r.created_at, r.updated_at,
+           v.image_url as vehicle_image_url, v.make as vehicle_make, v.model as vehicle_model, v.vehicle_type,
            (SELECT count(*) FROM ride_requests WHERE ride_id = r.id AND status = 'pending') as pending_count
-    FROM rides r JOIN users u ON r.user_id = u.id JOIN corridors c ON r.corridor_id = c.id WHERE 1=1
+    FROM rides r JOIN users u ON r.user_id = u.id JOIN corridors c ON r.corridor_id = c.id
+    LEFT JOIN vehicles v ON r.vehicle_id = v.id WHERE 1=1
   `
   const args: unknown[] = []
   let i = 1
@@ -508,7 +510,7 @@ export async function handleGetUserRides(pool: Pool, auth: Auth) {
     `, [ride.id])
     
     // Pending requests (only if host)
-    let pending = []
+    let pending: any[] = []
     if (ride.role === 'host') {
       const p = await pool.query(`
         SELECT rr.id, rr.user_id, u.name, u.avatar_url, rr.seats_requested, rr.created_at
@@ -517,8 +519,31 @@ export async function handleGetUserRides(pool: Pool, auth: Auth) {
       `, [ride.id])
       pending = p.rows
     }
+
+    // Payment info for this user on this ride
+    let paymentInfo: any = null
+    try {
+      const payCol = ride.role === 'host'
+        ? `WHERE p.ride_id = $1 AND p.ride_giver_id = $2`
+        : `WHERE p.ride_id = $1 AND p.rider_id = $2`
+      const pay = await pool.query(
+        `SELECT p.id, p.rider_id, p.ride_giver_id, p.amount, p.rider_status, p.giver_status FROM payments p ${payCol} LIMIT 1`,
+        [ride.id, auth.userId]
+      )
+      if (pay.rows.length > 0) paymentInfo = pay.rows[0]
+    } catch {}
     
-    return { ...ride, confirmed_riders: riders.rows, pending_requests: pending }
+    // Rating info (if rider, check if already rated)
+    let userRating: number | null = null
+    try {
+      const rat = await pool.query(
+        `SELECT rating FROM ride_ratings WHERE ride_id = $1 AND rater_id = $2 LIMIT 1`,
+        [ride.id, auth.userId]
+      )
+      if (rat.rows.length > 0) userRating = rat.rows[0].rating
+    } catch {}
+    
+    return { ...ride, confirmed_riders: riders.rows, pending_requests: pending, payment_info: paymentInfo, user_rating: userRating }
   }))
   return jsonResponse(enrichedRides)
 }
@@ -526,11 +551,13 @@ export async function handleGetUserRides(pool: Pool, auth: Auth) {
 
 export async function handleGetRide(pool: Pool, id: number) {
   const r = await pool.query(
-    `SELECT r.id, r.user_id, u.name as user_name, u.upi_id as upi_id, u.phone as phone, r.corridor_id, c.name as corridor_name,
+    `SELECT r.id, r.user_id, u.name as user_name, u.upi_id as upi_id, u.phone as phone,
+            u.avatar_url as host_avatar_url, u.qr_code_url as host_qr_code_url,
+            r.corridor_id, c.name as corridor_name,
             c.description as corridor_description,
             r.vehicle_id, r.ride_date, r.ride_time, r.pickup_point, r.drop_point,
             r.route_description, r.price_per_seat, r.available_seats, r.total_seats,
-            r.status, r.created_at, r.updated_at
+            r.status, r.direction, r.created_at, r.updated_at
      FROM rides r JOIN users u ON r.user_id = u.id JOIN corridors c ON r.corridor_id = c.id WHERE r.id = $1`,
     [id]
   )
@@ -618,9 +645,21 @@ export async function handleCreateRide(pool: Pool, body: unknown, auth: Auth) {
 export async function handleUpdateRide(pool: Pool, id: number, body: unknown, auth: Auth) {
   const b = body as Record<string, unknown>
   
-  // Constraint: Only edit if no seats are booked (accepted requests)
-  const bookings = await pool.query(`SELECT id FROM ride_requests WHERE ride_id = $1 AND status = 'accepted'`, [id])
-  if (bookings.rows.length > 0) return errResponse('Cannot edit ride details after seats are confirmed. Please contact support.', 403)
+  // Verify ownership
+  const rideOwner = await pool.query(`SELECT user_id FROM rides WHERE id = $1`, [id])
+  if (rideOwner.rows.length === 0 || rideOwner.rows[0].user_id !== auth.userId) {
+    return errResponse("You don't own this ride", 403)
+  }
+
+  // Field-specific guard: block editing time/route/price once bookings exist, but ALWAYS allow available_seats changes
+  if (b.available_seats === undefined) {
+    const bookings = await pool.query(`SELECT id FROM ride_requests WHERE ride_id = $1 AND status = 'accepted'`, [id])
+    if (bookings.rows.length > 0) {
+      const restrictedFields = ['ride_time', 'pickup_point', 'drop_point', 'price_per_seat']
+      const hasRestricted = restrictedFields.some(f => b[f] !== undefined)
+      if (hasRestricted) return errResponse('Cannot edit time/route/price after seats are confirmed. Only seat count can be adjusted.', 403)
+    }
+  }
 
   const updates: string[] = []
   const args: unknown[] = []
@@ -647,6 +686,7 @@ export async function handleUpdateRide(pool: Pool, id: number, body: unknown, au
     `UPDATE rides SET ${updates.join(', ')} WHERE id = $${i} AND user_id = $${i + 1}`,
     args
   )
+  // Auto-update ride status based on seats
   await pool.query(`
     UPDATE rides SET status = CASE
       WHEN available_seats = 0 THEN 'full'
@@ -654,6 +694,14 @@ export async function handleUpdateRide(pool: Pool, id: number, body: unknown, au
       ELSE 'open'
     END WHERE id = $1
   `, [id])
+  // If ride is now full, auto-reject remaining pending requests
+  const finalSeats = await pool.query(`SELECT available_seats FROM rides WHERE id = $1`, [id])
+  if (finalSeats.rows[0]?.available_seats === 0) {
+    await pool.query(`
+      UPDATE ride_requests SET status = 'rejected', comment = 'Ride is now full - host adjusted capacity', updated_at = CURRENT_TIMESTAMP
+      WHERE ride_id = $1 AND status = 'pending'
+    `, [id])
+  }
   return jsonResponse({ message: 'Ride updated' })
 }
 
@@ -1147,4 +1195,39 @@ export async function handleReplyFeedback(pool: Pool, id: number, body: unknown)
   )
   if (r.rows.length === 0) return errResponse('Feedback not found', 404)
   return jsonResponse({ message: 'Updated' })
+}
+
+// ─── RATINGS ─────────────────────────────────────────────────────────────────
+async function ensureRatingsTable(pool: Pool) {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ride_ratings (
+      id SERIAL PRIMARY KEY,
+      ride_id INTEGER NOT NULL,
+      rater_id INTEGER NOT NULL,
+      ratee_id INTEGER NOT NULL,
+      rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      UNIQUE (ride_id, rater_id)
+    )
+  `).catch(() => {})
+}
+
+export async function handleRateRide(pool: Pool, rideId: number, body: unknown, auth: Auth) {
+  await ensureRatingsTable(pool)
+  const b = body as { rating?: number; ratee_id?: number }
+  if (!b?.rating || b.rating < 1 || b.rating > 5) return errResponse('Rating must be 1-5', 400)
+  if (!b?.ratee_id) return errResponse('ratee_id required', 400)
+  const check = await pool.query(
+    `SELECT 1 FROM ride_requests WHERE ride_id = $1 AND user_id = $2 AND status = 'accepted'
+     UNION SELECT 1 FROM rides WHERE id = $1 AND user_id = $2`,
+    [rideId, auth.userId]
+  )
+  if (check.rows.length === 0) return errResponse('You were not part of this ride', 403)
+  await pool.query(
+    `INSERT INTO ride_ratings (ride_id, rater_id, ratee_id, rating)
+     VALUES ($1, $2, $3, $4)
+     ON CONFLICT (ride_id, rater_id) DO UPDATE SET rating = $4, created_at = NOW()`,
+    [rideId, auth.userId, b.ratee_id, b.rating]
+  )
+  return jsonResponse({ message: 'Rating submitted' }, 201)
 }

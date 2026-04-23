@@ -338,6 +338,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (path.length === 3 && path[0] === 'rides' && /^\d+$/.test(path[1]) && path[2] === 'payments') {
     return h.handleCreatePayment(pool as any, parseInt(path[1], 10), body, auth)
   }
+  if (path.length === 3 && path[0] === 'rides' && /^\d+$/.test(path[1]) && path[2] === 'rate') {
+    return h.handleRateRide(pool as any, parseInt(path[1], 10), body, auth)
+  }
   return Response.json({ error: 'Not found' }, { status: 404 })
 }
 

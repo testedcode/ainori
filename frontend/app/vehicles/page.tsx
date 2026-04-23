@@ -74,8 +74,12 @@ function VehicleTypeCard({ type, selected, onClick }: { type: typeof VEHICLE_TYP
 export default function VehiclesPage() {
   const router = useRouter()
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editForm, setEditForm] = useState<Partial<Vehicle> & { image_url?: string }>({})
+  const [savingEdit, setSavingEdit] = useState(false)
   const [form, setForm] = useState({
     vehicle_type: 'sedan',
     make: '',
@@ -126,6 +130,22 @@ export default function VehiclesPage() {
       setVehicles(prev => prev.filter(v => v.id !== id))
       toast.success('Vehicle removed successfully.')
     } catch { toast.error('Failed to remove vehicle.') }
+  }
+
+  const handleEditSubmit = async (id: number) => {
+    setSavingEdit(true)
+    try {
+      await api.put(`/vehicles/${id}`, {
+        ...editForm,
+        total_seats: editForm.total_seats ? parseInt(String(editForm.total_seats)) : undefined,
+        default_available_seats: editForm.default_available_seats ? parseInt(String(editForm.default_available_seats)) : undefined,
+      })
+      toast.success('Vehicle updated!')
+      setEditingId(null)
+      fetchVehicles()
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || 'Update failed')
+    } finally { setSavingEdit(false) }
   }
 
   const setMake = (make: string) => setForm(prev => ({ ...prev, make }))
@@ -360,17 +380,75 @@ export default function VehiclesPage() {
                     <span className="text-[10px] font-black text-white/20 uppercase tracking-widest flex items-center gap-2"><Settings className="w-3 h-3" /> Vehicle Payload</span>
                     <span className="text-sm font-bold text-white uppercase tracking-tighter">{v.total_seats} SEATER {v.vehicle_type}</span>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between pb-3 border-b border-white/5">
                     <span className="text-[10px] font-black text-white/20 uppercase tracking-widest flex items-center gap-2"><Star className="w-3 h-3" /> Auto-Offer</span>
                     <span className="text-sm font-black text-green-400 uppercase tracking-tighter">{v.default_available_seats} SEATS</span>
                   </div>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-white/5 relative z-10">
-                  <Link href="/offer-ride" className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-2xl text-sm font-black transition-all group-hover:scale-[1.02]">
-                    START RIDE SHARING <ChevronRight className="w-4 h-4" />
+                <div className="mt-8 pt-6 border-t border-white/5 relative z-10 flex gap-3">
+                  <button
+                    onClick={() => { setEditingId(editingId === v.id ? null : v.id); setEditForm({ make: v.make, model: v.model, color: v.color, total_seats: v.total_seats, default_available_seats: v.default_available_seats, image_url: v.image_url || '' }) }}
+                    className="flex items-center justify-center gap-2 flex-1 bg-white/5 border border-white/10 hover:bg-white/10 py-3 rounded-2xl text-xs font-black transition-all"
+                  >
+                    <Settings className="w-4 h-4" /> {editingId === v.id ? 'CANCEL' : 'EDIT'}
+                  </button>
+                  <Link href="/offer-ride" className="flex items-center justify-center gap-2 flex-1 bg-blue-600 hover:bg-blue-700 py-3 rounded-2xl text-xs font-black transition-all">
+                    SHARE RIDE <ChevronRight className="w-4 h-4" />
                   </Link>
                 </div>
+
+                {/* Inline Edit Drawer */}
+                {editingId === v.id && (
+                  <div className="mt-4 p-5 bg-white/5 border border-white/10 rounded-2xl space-y-3 relative z-10">
+                    <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-3">Edit Vehicle</p>
+                    {[
+                      { label: 'Make', field: 'make' as const },
+                      { label: 'Model', field: 'model' as const },
+                      { label: 'Color', field: 'color' as const },
+                    ].map(({ label, field }) => (
+                      <div key={field}>
+                        <label className="text-[9px] font-black text-white/30 uppercase tracking-widest">{label}</label>
+                        <input
+                          value={String(editForm[field] || '')}
+                          onChange={e => setEditForm(p => ({ ...p, [field]: e.target.value }))}
+                          className="w-full mt-1 bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white font-bold focus:outline-none focus:border-blue-500 transition-all"
+                        />
+                      </div>
+                    ))}
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { label: 'Total Seats', field: 'total_seats' as const },
+                        { label: 'Offer Seats', field: 'default_available_seats' as const },
+                      ].map(({ label, field }) => (
+                        <div key={field}>
+                          <label className="text-[9px] font-black text-white/30 uppercase tracking-widest">{label}</label>
+                          <input type="number" min="1" max="9"
+                            value={String(editForm[field] || '')}
+                            onChange={e => setEditForm(p => ({ ...p, [field]: parseInt(e.target.value) }))}
+                            className="w-full mt-1 bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-sm text-white font-bold focus:outline-none focus:border-blue-500 transition-all"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-black text-white/30 uppercase tracking-widest">Image URL</label>
+                      <input
+                        value={editForm.image_url || ''}
+                        onChange={e => setEditForm(p => ({ ...p, image_url: e.target.value }))}
+                        placeholder="https://..."
+                        className="w-full mt-1 bg-[#0f172a] border border-white/10 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-blue-500 transition-all"
+                      />
+                    </div>
+                    <button
+                      onClick={() => handleEditSubmit(v.id)}
+                      disabled={savingEdit}
+                      className="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2"
+                    >
+                      {savingEdit ? <><span className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" /> SAVING...</> : <><CheckCircle2 className="w-4 h-4" /> SAVE CHANGES</>}
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

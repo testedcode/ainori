@@ -20,8 +20,9 @@ interface Ride {
   id: number; user_id: number; user_name: string; corridor_name: string; ride_date: string;
   ride_time: string; pickup_point: string; drop_point: string; route_description?: string;
   price_per_seat: number; available_seats: number; total_seats: number; status: string;
-  corridor_description?: string; vehicle_make?: string; vehicle_model?: string;
-  vehicle_number?: string; phone?: string; upi_id?: string; direction?: 'to_office' | 'to_home';
+  corridor_description?: string; phone?: string; upi_id?: string; direction?: 'to_office' | 'to_home';
+  host_avatar_url?: string; host_qr_code_url?: string;
+  vehicle_info?: { id: number; make: string; model: string; color: string; vehicle_number: string; vehicle_type: string; total_seats: number; image_url?: string };
   confirmed_riders?: { id: number; user_id: number; name: string; avatar_url: string; seats_requested: number }[];
 }
 
@@ -53,6 +54,9 @@ export default function RideDetailPage() {
   const [user, setUser] = useState<any>(null)
   const [seatsToBook, setSeatsToBook] = useState(1)
   const [handlingReq, setHandlingReq] = useState<number | null>(null)
+  const [updatingSeats, setUpdatingSeats] = useState(false)
+  const [markingPayment, setMarkingPayment] = useState(false)
+  const [showQrModal, setShowQrModal] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   // ─── HIGH-FIDELITY COMPONENTS ─────────────────────────────────────────────
@@ -126,7 +130,7 @@ export default function RideDetailPage() {
                 {user?.avatar_url ? (
                   <img src={user.avatar_url} alt={name} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-lg font-black text-white relative z-20">{name[0].toUpperCase()}</span>
+                  <span className="text-lg font-black text-white relative z-20">{name[0]?.toUpperCase()}</span>
                 )}
               </div>
               <div className={`absolute inset-0 rounded-full animate-ping opacity-20 ${type === 'host' ? 'bg-amber-400' : 'bg-blue-400'}`} style={{ animationDuration: '3s' }} />
@@ -168,19 +172,39 @@ export default function RideDetailPage() {
   }, [messages.length])
 
   const fetchAll = async () => {
-    // 1. Fetch Core Ride Data (Blocks the page render)
     try {
       const r = await api.get(`/rides/${rideId}`) as unknown as Ride
       setRide(r)
-      setLoading(false) // Core data is in, show the page!
+      setLoading(false)
     } catch { 
       toast.error('Mission link severed.')
       setLoading(false)
     }
-
-    // 2. Fetch Supporting Data (Non-blocking)
     api.get(`/rides/${rideId}/messages`).then((m: any) => { if (Array.isArray(m)) setMessages(m) }).catch(() => {})
     api.get(`/rides/${rideId}/requests`).then((req: any) => { if (Array.isArray(req)) setRequests(req) }).catch(() => {})
+  }
+
+  const handleUpdateAvailableSeats = async (newCount: number) => {
+    if (!ride || newCount < 0 || newCount > ride.total_seats) return
+    setUpdatingSeats(true)
+    try {
+      await api.put(`/rides/${rideId}`, { available_seats: newCount })
+      toast.success(`Seats updated to ${newCount}`)
+      fetchAll()
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || 'Update failed')
+    } finally { setUpdatingSeats(false) }
+  }
+
+  const handleMarkPayment = async (riderId: number, asGiver: boolean) => {
+    setMarkingPayment(true)
+    try {
+      const payload = asGiver ? { giver_status: 'received' } : { rider_status: 'done' }
+      await api.put(`/rides/${rideId}/payments/${riderId}`, payload)
+      toast.success(asGiver ? '✅ Payment marked as received!' : '✅ Payment marked as done!')
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || 'Failed')
+    } finally { setMarkingPayment(false) }
   }
 
   const fetchMessages = async () => {
@@ -316,28 +340,65 @@ export default function RideDetailPage() {
         </div>
 
         {/* RIDE SUMMARY PANEL */}
-        <GlassPanel className="flex flex-col md:flex-row items-center justify-between gap-8 border-blue-500/20">
-          <div className="flex items-center gap-6">
-            <div className="w-20 h-20 bg-blue-600 rounded-[2rem] flex items-center justify-center text-3xl shadow-2xl shadow-blue-600/30">
-              {ride.user_name[0].toUpperCase()}
+        <GlassPanel className="border-blue-500/20 !p-0 overflow-hidden">
+          {/* Vehicle image as glossy background */}
+          {ride.vehicle_info?.image_url && (
+            <div className="absolute inset-0 opacity-10">
+              <img src={ride.vehicle_info.image_url} className="w-full h-full object-cover" alt="" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
             </div>
-            <div>
-              <p className="text-[48px] font-black text-white leading-none tracking-tighter">{ride.ride_time.slice(0, 5)}</p>
-              <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">
-                {isOwner ? 'You are hosting' : `Host: ${ride.user_name}`} · {ride.direction === 'to_office' ? '🏢 To Office' : '🏠 To Home'}
+          )}
+          <div className="relative p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            {/* Left: Host info */}
+            <div className="flex items-center gap-5">
+              <div className="relative flex-shrink-0">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-2xl font-black overflow-hidden border-2 border-white/10">
+                  {ride.host_avatar_url
+                    ? <img src={ride.host_avatar_url} alt={ride.user_name} className="w-full h-full object-cover" />
+                    : <span>{ride.user_name[0]?.toUpperCase()}</span>}
+                </div>
+                {isOwner && <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center"><span className="text-[8px] font-black text-black">★</span></div>}
+              </div>
+              <div>
+                <p className="text-[48px] font-black text-white leading-none tracking-tighter">{ride.ride_time.slice(0,5)}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest mt-1">
+                  <span className={isOwner ? 'text-amber-400' : 'text-blue-400'}>
+                    {isOwner ? '⭐ You are hosting' : `Host: ${ride.user_name}`}
+                  </span>
+                  <span className="text-white/20 mx-2">·</span>
+                  <span className={ride.direction === 'to_office' ? 'text-cyan-400' : 'text-green-400'}>
+                    {ride.direction === 'to_office' ? '🏢 To Office' : '🏠 To Home'}
+                  </span>
+                </p>
+              </div>
+            </div>
+            {/* Right: Date + seats */}
+            <div className="text-center md:text-right space-y-3">
+              <p className="text-sm font-black text-white/60 uppercase tracking-widest">
+                {new Date(ride.ride_date).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}
               </p>
+              <div className="flex items-center gap-2 justify-end">
+                <IndianRupee className="w-4 h-4 text-green-400" />
+                <span className="text-xl font-black text-white">{ride.price_per_seat}</span>
+                <span className="text-[10px] text-white/30 font-black uppercase">/seat</span>
+              </div>
+              {/* Seat progress bar */}
+              <div className="w-full md:w-40">
+                <div className="flex justify-between mb-1">
+                  <span className="text-[9px] text-white/30 uppercase font-black">Seats</span>
+                  <span className="text-[9px] font-black text-white">{ride.available_seats} / {ride.total_seats} free</span>
+                </div>
+                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${((ride.total_seats - ride.available_seats) / ride.total_seats) * 100}%`,
+                      background: ride.available_seats === 0 ? '#ef4444' : ride.available_seats <= 1 ? '#f59e0b' : '#22c55e'
+                    }}
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="text-center md:text-right">
-            <p className="text-sm font-black text-white/40 uppercase tracking-widest mb-1">
-              {new Date(ride.ride_date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
-            </p>
-            <div className="flex items-center gap-2 text-yellow-400 font-black">
-              <Star className="w-4 h-4 fill-yellow-400" /> 4.9 <span className="text-white/20">|</span> <span className="text-white">₹{ride.price_per_seat}/seat</span>
-            </div>
-            <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mt-2">
-              {ride.available_seats} of {ride.total_seats} seats free
-            </p>
           </div>
         </GlassPanel>
 
@@ -355,6 +416,22 @@ export default function RideDetailPage() {
                     {pendingRequests.length} pending · {acceptedRequests.length} accepted · {totalAcceptedSeats}/{ride.total_seats} seats filled
                   </p>
                 </div>
+              </div>
+              {/* Seat Adjuster Widget */}
+              <div className="flex items-center gap-2 bg-white/5 border border-amber-500/20 rounded-2xl px-3 py-2">
+                <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest mr-1">Open Seats</span>
+                <button
+                  onClick={() => handleUpdateAvailableSeats(ride.available_seats - 1)}
+                  disabled={updatingSeats || ride.available_seats <= 0}
+                  className="w-7 h-7 rounded-xl bg-white/5 hover:bg-red-500/20 border border-white/10 flex items-center justify-center text-white font-black transition-all disabled:opacity-30"
+                >−</button>
+                <span className="text-lg font-black text-white w-6 text-center">{ride.available_seats}</span>
+                <button
+                  onClick={() => handleUpdateAvailableSeats(ride.available_seats + 1)}
+                  disabled={updatingSeats || ride.available_seats >= ride.total_seats}
+                  className="w-7 h-7 rounded-xl bg-white/5 hover:bg-green-500/20 border border-white/10 flex items-center justify-center text-white font-black transition-all disabled:opacity-30"
+                >+</button>
+                {updatingSeats && <Loader2 className="w-3 h-3 text-amber-400 animate-spin ml-1" />}
               </div>
             </div>
 
@@ -437,8 +514,8 @@ export default function RideDetailPage() {
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent pointer-events-none" />
                   
                   <div className="flex -space-x-3">
-                     {/* Host Seat */}
-                     <VisualSeat type="host" />
+                     {/* Host Seat - now passes real avatar */}
+                     <VisualSeat type="host" user={{ avatar_url: ride.host_avatar_url, name: ride.user_name }} />
                      
                      {/* Accepted Riders */}
                      {ride.confirmed_riders?.map(r => (
@@ -519,12 +596,6 @@ export default function RideDetailPage() {
                 <p className="font-black text-white/30 uppercase text-xs">{ride.drop_point}</p>
               </div>
             </div>
-            {ride.upi_id && (isAccepted || isOwner) && (
-              <div className="mt-6 p-4 bg-green-500/10 border border-green-500/20 rounded-2xl">
-                <p className="text-[10px] font-black text-green-400 uppercase tracking-widest mb-1">UPI (pay after ride)</p>
-                <p className="font-mono text-white font-bold text-sm">{ride.upi_id}</p>
-              </div>
-            )}
           </GlassPanel>
 
           <div className="h-64 rounded-[2.5rem] overflow-hidden border border-white/5 relative group">
@@ -542,6 +613,140 @@ export default function RideDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* ─── VEHICLE CARD ─────────────────────────────────────────────────── */}
+        {ride.vehicle_info && (
+          <GlassPanel className="!p-0 overflow-hidden border-white/10">
+            {ride.vehicle_info.image_url && (
+              <div className="absolute inset-0">
+                <img src={ride.vehicle_info.image_url} alt="" className="w-full h-full object-cover opacity-20" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#0f172a] via-[#0f172a]/90 to-[#0f172a]/60" />
+              </div>
+            )}
+            <div className="relative p-6 flex items-center justify-between gap-6">
+              <div className="flex items-center gap-5">
+                <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-3xl flex-shrink-0">
+                  {ride.vehicle_info.vehicle_type === 'bike' ? '🏍️' : ride.vehicle_info.vehicle_type === 'suv' ? '🚙' : ride.vehicle_info.vehicle_type === 'muv' ? '🚐' : '🚗'}
+                </div>
+                <div>
+                  <p className="font-black text-white text-lg">{ride.vehicle_info.make} {ride.vehicle_info.model}</p>
+                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">{ride.vehicle_info.color} · {ride.vehicle_info.total_seats} Seater</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="inline-block bg-yellow-400/10 border border-yellow-400/30 px-4 py-2 rounded-xl font-mono font-black text-yellow-400 tracking-[0.2em]">
+                  ···· {ride.vehicle_info.vehicle_number.slice(-4)}
+                </div>
+                <p className="text-[9px] text-white/20 uppercase font-black mt-1 tracking-widest">Registration</p>
+              </div>
+            </div>
+          </GlassPanel>
+        )}
+
+        {/* ─── PAYMENT PANEL ────────────────────────────────────────────────── */}
+        {ride.upi_id && (
+          <GlassPanel className="border-green-500/20">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center">
+                <IndianRupee className="w-4 h-4 text-green-400" />
+              </div>
+              <div>
+                <h3 className="font-black text-white text-sm">Payment</h3>
+                <p className="text-[10px] text-white/30 font-black uppercase tracking-widest">
+                  {isAccepted ? `₹${ride.price_per_seat * (myRequest?.seats_requested || 1)} due` : isOwner ? 'Payment details' : '🔒 Get confirmed to unlock full payment'}
+                </p>
+              </div>
+            </div>
+
+            {/* UPI ID always visible with copy */}
+            <div className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-2xl mb-4">
+              <span className="font-mono text-white font-bold text-sm flex-1">{ride.upi_id}</span>
+              <button
+                onClick={() => { navigator.clipboard.writeText(ride.upi_id || ''); toast.success('UPI ID copied!') }}
+                className="px-3 py-1.5 bg-green-500/20 border border-green-500/30 text-green-400 rounded-xl text-[10px] font-black hover:bg-green-500/30 transition-all flex items-center gap-1"
+              >
+                <Copy className="w-3 h-3" /> COPY
+              </button>
+            </div>
+
+            {/* QR Code - show if host has one */}
+            {(ride as any).host_qr_code_url && (
+              <div className="mb-4">
+                <button
+                  onClick={() => setShowQrModal(true)}
+                  className="w-full py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-white/60 uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                >
+                  <QrCode className="w-4 h-4" /> View Payment QR Code
+                </button>
+              </div>
+            )}
+
+            {/* UPI App deep link buttons — shown to accepted riders */}
+            {isAccepted && (
+              <div className="space-y-3">
+                <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Pay via app</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { label: 'GPay', emoji: '🟢', scheme: `gpay://upi/pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR&tn=Ainori+Ride+${rideId}` },
+                    { label: 'PhonePe', emoji: '🟣', scheme: `phonepe://pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR` },
+                    { label: 'Paytm', emoji: '🔵', scheme: `paytmmp://pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR` },
+                    { label: 'CRED', emoji: '⚫', scheme: `cred://pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR` },
+                    { label: 'BHIM', emoji: '🟠', scheme: `upi://pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR&tn=Ainori+Ride` },
+                    { label: 'Amazon', emoji: '🟡', scheme: `amazonpay://pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR` },
+                  ].map(app => (
+                    <button
+                      key={app.label}
+                      onClick={() => { window.location.href = app.scheme }}
+                      className="flex flex-col items-center gap-1.5 p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all active:scale-95"
+                    >
+                      <span className="text-xl">{app.emoji}</span>
+                      <span className="text-[9px] font-black text-white/60 uppercase tracking-wide">{app.label}</span>
+                    </button>
+                  ))}
+                </div>
+                {/* Mark payment done */}
+                <button
+                  onClick={() => handleMarkPayment(currentUserId, false)}
+                  disabled={markingPayment}
+                  className="w-full py-3 bg-green-600/20 border border-green-500/30 text-green-400 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-green-600/30 transition-all flex items-center justify-center gap-2"
+                >
+                  {markingPayment ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                  Mark Payment Done
+                </button>
+              </div>
+            )}
+
+            {/* Host: mark received per rider */}
+            {isOwner && acceptedRequests.length > 0 && (
+              <div className="space-y-2 mt-2">
+                <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-3">Mark received per rider</p>
+                {acceptedRequests.map(req => (
+                  <div key={req.id} className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-2xl">
+                    <span className="text-xs font-black text-white">{req.user_name || req.rider_name}</span>
+                    <button
+                      onClick={() => handleMarkPayment(req.user_id, true)}
+                      disabled={markingPayment}
+                      className="px-3 py-1.5 bg-green-500/20 border border-green-500/30 text-green-400 rounded-xl text-[9px] font-black hover:bg-green-500/30 transition-all"
+                    >
+                      Mark Received ✓
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </GlassPanel>
+        )}
+
+        {/* QR Modal */}
+        {showQrModal && (ride as any).host_qr_code_url && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-50 flex items-center justify-center p-6" onClick={() => setShowQrModal(false)}>
+            <div className="bg-white rounded-[2rem] p-8 max-w-xs w-full" onClick={e => e.stopPropagation()}>
+              <img src={(ride as any).host_qr_code_url} alt="Payment QR" className="w-full rounded-xl" />
+              <p className="text-center text-black font-black text-xs mt-4 tracking-widest uppercase">Scan to Pay</p>
+              <p className="text-center text-black/60 text-xs font-mono mt-1">{ride.upi_id}</p>
+            </div>
+          </div>
+        )}
 
         {/* CHAT PANEL */}
         <GlassPanel className="h-[500px] flex flex-col !p-0">

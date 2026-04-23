@@ -39,7 +39,7 @@ interface Ride {
   corridor_description?: string; ride_date: string; ride_time: string; pickup_point: string;
   drop_point: string; price_per_seat: number; available_seats: number; total_seats: number;
   status: string; vehicle_make?: string; vehicle_model?: string; vehicle_color?: string;
-  vehicle_type?: string; vehicle_number?: string;
+  vehicle_type?: string; vehicle_number?: string; vehicle_image_url?: string;
   direction?: string; pending_count?: number;
   confirmed_riders?: { id: number; user_id: number; name: string; avatar_url: string; seats_requested: number }[];
 }
@@ -139,21 +139,30 @@ function CardView({
       className="group relative"
     >
       <div className={`relative bg-[#0f172a]/80 backdrop-blur-3xl border rounded-[3rem] overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] ${isSelected ? 'border-green-500/50 scale-[1.02]' : 'border-white/10 hover:border-white/20'}`}>
+         {/* Vehicle image as subtle glassmorphism background */}
+         {ride.vehicle_image_url && (
+           <div className="absolute inset-0 pointer-events-none">
+             <img src={ride.vehicle_image_url} alt="" className="w-full h-full object-cover opacity-[0.07]" />
+             <div className="absolute inset-0 bg-gradient-to-b from-[#0f172a]/60 via-transparent to-[#0f172a]/90" />
+           </div>
+         )}
          {/* HEADER - MOCKUP STYLE */}
-         <div className="p-8 pb-4 flex justify-between items-start">
+         <div className="p-8 pb-4 flex justify-between items-start relative">
             <div>
                <h2 className="text-5xl font-black text-white tracking-tighter italic mb-1">{ride.ride_time}</h2>
-               <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] pl-1">Departure Point</p>
+               <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] pl-1">
+                 {ride.direction === 'to_office' ? '🏢 To Office' : ride.direction === 'to_home' ? '🏠 To Home' : ride.pickup_point}
+               </p>
             </div>
             <div className="flex flex-col items-end gap-2">
                <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${isOwnRide ? 'bg-amber-400 text-black shadow-[0_0_15px_rgba(251,191,36,0.4)]' : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'}`}>
                   {isOwnRide ? 'YOUR RIDE' : 'HOSTED UNIT'}
                   {!isOwnRide && <span className="flex items-center gap-0.5 ml-1 opacity-60"><Star className="w-2.5 h-2.5 fill-current" /> 4.9</span>}
                </div>
-               <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full">
+               <div className="flex items-center gap-1 px-3 py-1 bg-white/5 rounded-full">
                   <IndianRupee className="w-3 h-3 text-green-400" />
-                  <span className="text-lg font-black text-white tracking-widest">{ride.price_per_seat}</span>
-                  <span className="text-[8px] font-black text-white/20 uppercase tracking-tighter">SEAT</span>
+                  <span className="text-lg font-black text-white tracking-tight">{ride.price_per_seat}</span>
+                  <span className="text-[9px] font-black text-white/30 uppercase">/seat</span>
                </div>
             </div>
          </div>
@@ -168,9 +177,18 @@ function CardView({
                     </div>
                   ))}
                </div>
-               <span className="text-[9px] font-extrabold text-amber-400 uppercase tracking-widest underline decoration-amber-400/30 underline-offset-4">
-                  {ride.confirmed_riders?.length || 0} COMPETITORS WAITING
+               <span className="text-[9px] font-extrabold text-amber-400 uppercase tracking-widest flex-1">
+                  {(ride.confirmed_riders?.length || 0) > 0
+                    ? `${ride.confirmed_riders?.length} also requesting`
+                    : 'Be the first to join!'}
                </span>
+               {/* Vehicle info chip */}
+               {(ride.vehicle_make || ride.vehicle_type) && (
+                 <span className="flex items-center gap-1 text-[8px] font-black text-white/30 bg-white/5 px-2 py-1 rounded-lg shrink-0">
+                   {ride.vehicle_type === 'bike' ? '🏍️' : ride.vehicle_type === 'suv' ? '🚙' : ride.vehicle_type === 'muv' ? '🚐' : '🚗'}
+                   {ride.vehicle_make ? ` ${ride.vehicle_make}` : ''}
+                 </span>
+               )}
             </div>
          </div>
 
