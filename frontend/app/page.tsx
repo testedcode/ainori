@@ -6,7 +6,7 @@ import {
   Car, Shield, Leaf, Banknote, Clock, ArrowRight, 
   User, Sparkles, MapPin, ChevronRight, CheckCircle2,
   Lock, Zap, Star, Users, ShieldCheck, Gem,
-  XCircle, AlertCircle, MessageSquare
+  XCircle, AlertCircle, MessageSquare, VolumeX, Handshake, Smile, Heart
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { getVibe, VIBE_THEMES, VibeState } from '@/lib/vibe-utils';
@@ -322,28 +322,39 @@ export default function HomePage() {
 
         {/* ─── HAPPY RIDE HACKS ─────────────────────────────────────────── */}
         <section id="hacks" className="container mx-auto px-6 py-32 border-t border-white/5">
-           <div className="text-center mb-20">
-              <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] mb-4">OPTIMIZATION PROTOCOLS</p>
-              <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic">HAPPY RIDE <span className="text-blue-500">HACKS.</span></h2>
+           <div className="flex flex-col md:flex-row items-end justify-between gap-10 mb-20">
+              <div className="md:w-2/3">
+                 <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] mb-4">OPTIMIZATION PROTOCOLS</p>
+                 <h2 className="text-4xl md:text-7xl font-black tracking-tighter uppercase italic leading-none">
+                    HAPPY RIDE<br /><span className="text-blue-500 italic">HACKS.</span>
+                 </h2>
+              </div>
+              <Link href="/hacks" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors flex items-center gap-2 group">
+                 View Full Playbook <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
            </div>
 
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
-                { title: 'Single Seat Strategy', d: 'Request exact seats to avoid multi-approval bottlenecks.', icon: Users },
-                { title: 'In-App Confirms', d: 'Always post confirmation messages in the ride chat for record.', icon: MessageSquare },
-                { title: 'Live Settle', d: 'Pay during the ride to ensure a smooth, zero-friction exit.', icon: Banknote },
-                { title: 'Time Discipline', d: 'Follow departure nodes strictly or use secure chat to update.', icon: Clock },
-                { title: 'Privacy First', d: 'Never share personal numbers in open corridor discussions.', icon: Lock },
-                { title: 'Fair Share', d: 'Ride providers maintain fixed price standards for fair commute.', icon: ShieldCheck },
-                { title: 'No Spam Policy', d: 'Zero tolerance for promotions or unnecessary celebrations.', icon: XCircle },
-                { title: 'Verified Nodes', d: 'Only trust rides with the blue checkmark for maximum security.', icon: CheckCircle2 }
+                { title: 'Treat with Greet', d: 'A smile is the best commute start. Be the energy you want to ride with.', icon: Smile, color: 'bg-blue-500/10 text-blue-400' },
+                { title: 'The Silent Node', d: 'Respect "No Yelling" and low volume. Use headphones for calls.', icon: VolumeX, color: 'bg-purple-500/10 text-purple-400' },
+                { title: 'In-Ride Settle', d: 'Settle via UPI during the ride. Zero debt, zero friction.', icon: Banknote, color: 'bg-green-500/10 text-green-400' },
+                { title: 'Nexus Integrity', d: 'Never share personal numbers in groups. Keep it secure in JOOL.', icon: ShieldCheck, color: 'bg-red-500/10 text-red-400' },
+                { title: 'Time Discipline', d: 'Departure nodes are strict. Follow time or update via chat.', icon: Clock, color: 'bg-amber-500/10 text-amber-400' },
+                { title: 'Social Respect', d: 'Respect personal space. No unauthorized recordings or photos.', icon: Lock, color: 'bg-indigo-500/10 text-indigo-400' },
+                { title: 'Zero Spam Signal', d: 'Signal only. No promotions or unnecessary group celebrations.', icon: Zap, color: 'bg-yellow-500/10 text-yellow-400' },
+                { title: 'The Punctual Shake', d: 'Early is on time. Respect the ride provider\'s corridor schedule.', icon: Handshake, color: 'bg-cyan-500/10 text-cyan-400' }
               ].map((hack, i) => (
-                <div key={i} className="bg-white/[0.03] border border-white/5 p-8 rounded-[2rem] hover:bg-blue-600/5 transition-all group">
-                   <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                      <hack.icon className="w-5 h-5 text-blue-400" />
+                <div key={i} className="group bg-white/[0.02] border border-white/5 p-10 rounded-[3rem] hover:bg-white/[0.05] transition-all relative overflow-hidden">
+                   <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform ${hack.color}`}>
+                      <hack.icon className="w-7 h-7" />
                    </div>
-                   <h4 className="font-black text-white text-sm uppercase tracking-tight mb-2">{hack.title}</h4>
-                   <p className="text-[10px] text-slate-500 font-medium leading-relaxed">{hack.d}</p>
+                   <h4 className="font-black text-white text-lg uppercase tracking-tight mb-4">{hack.title}</h4>
+                   <p className="text-xs text-slate-500 font-medium leading-relaxed">{hack.d}</p>
+                   {/* Abstract pictorial element */}
+                   <div className="absolute -bottom-4 -right-4 opacity-[0.03] group-hover:opacity-10 transition-opacity">
+                      <hack.icon className="w-24 h-24" />
+                   </div>
                 </div>
               ))}
            </div>
@@ -379,10 +390,11 @@ export default function HomePage() {
               </div>
               <span className="text-sm font-black tracking-widest uppercase">JOOL TECHNOLOGY SYNDICATE</span>
            </div>
-           <div className="flex gap-10 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-              <span>Security Protocols</span>
-              <span>Terms of Commute</span>
-              <span>Syndicate Nodes</span>
+           <div className="flex flex-wrap justify-center md:justify-start gap-10 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+              <Link href="/protocols" className="hover:text-white transition-colors">Security Protocols</Link>
+              <Link href="/terms" className="hover:text-white transition-colors">Terms of Commute</Link>
+              <Link href="/nodes" className="hover:text-white transition-colors">Syndicate Nodes</Link>
+              <Link href="/hacks" className="hover:text-white transition-colors">Ride Hacks</Link>
            </div>
            <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">© 2026 JOOL • CRAFTED IN INDIA FOR THE GLOBE • V4.5</p>
         </div>
