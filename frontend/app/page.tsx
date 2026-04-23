@@ -5,18 +5,20 @@ import Link from 'next/link';
 import { 
   Car, Shield, Leaf, Banknote, Clock, ArrowRight, 
   User, Sparkles, MapPin, ChevronRight, CheckCircle2,
-  Lock, Zap, Star, Users, ShieldCheck, Gem
+  Lock, Zap, Star, Users, ShieldCheck, Gem,
+  XCircle, AlertCircle, MessageSquare
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { getVibe, VIBE_THEMES, VibeState } from '@/lib/vibe-utils';
 
 export default function HomePage() {
   const [stats, setStats] = useState({
-    rides_today: 12,
-    live_users: 154,
-    carbon_saved: '1.2 Tons',
-    money_saved: '₹45,000',
-    time_saved: '120 Hours'
+    rides_today: 0,
+    live_users: 0,
+    carbon_saved: '0 Tons',
+    money_saved: '₹0',
+    time_saved: '0 Hours',
+    trees_saved: 0
   });
 
   const [scrolled, setScrolled] = useState(false);
@@ -54,7 +56,7 @@ export default function HomePage() {
             <Car className="w-6 h-6 text-white" />
           </div>
           <div className="flex flex-col">
-            <span className="text-xl font-black tracking-tighter leading-none">AINORI</span>
+            <span className="text-xl font-black tracking-tighter leading-none">JOOL</span>
             <span className="text-[8px] font-black tracking-[0.3em] text-blue-500 uppercase">Premium Commute</span>
           </div>
         </div>
@@ -118,53 +120,117 @@ export default function HomePage() {
                   <p className="text-3xl lg:text-5xl font-black text-white">{stats.carbon_saved.split(' ')[0]}</p>
                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-2">Tons CO₂ Saved</p>
                </div>
+               <div className="flex flex-col items-center">
+                  <p className="text-3xl lg:text-5xl font-black text-white">{stats.trees_saved}</p>
+                  <p className="text-[10px] font-black text-green-500 uppercase tracking-[0.3em] mt-2">Trees Equivalent</p>
+               </div>
             </div>
           </div>
         </section>
 
-        {/* What We Are Solving */}
-        <section id="solutions" className="container mx-auto px-6 py-32 border-t border-white/5">
-           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-              <div>
-                 <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">THE PROBLEM</p>
-                 <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-8 leading-tight">
-                    COMMUTING IS BROKEN.<br />
-                    WE'RE THE REPAIR.
-                 </h2>
-                 <p className="text-slate-400 text-lg leading-relaxed mb-10">
-                    Trapped in solitary commutes, high fuel costs, and unpredictable travel times? 
-                    Ainori solves the office corridor mesh by aggregating verified professionals into a synchronized transport layer.
-                 </p>
+        {/* ─── THE CHAOS VS THE SYNDICATE ─────────────────────────────────── */}
+        <section className="container mx-auto px-6 py-32 border-t border-white/5">
+           <div className="text-center mb-20">
+              <p className="text-red-500 font-black text-[10px] uppercase tracking-[0.4em] mb-4">THE REALITY CHECK</p>
+              <h2 className="text-5xl md:text-7xl font-black tracking-tighter italic uppercase italic leading-none">
+                 STOP THE<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">OPEN MESH.</span>
+              </h2>
+           </div>
+
+           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              {/* The Old Way: Chat Groups */}
+              <div className="bg-red-500/[0.02] border border-red-500/20 rounded-[3rem] p-10 relative overflow-hidden">
+                 <div className="absolute top-0 right-0 p-8 opacity-10">
+                    <XCircle className="w-32 h-32 text-red-500" />
+                 </div>
+                 <h3 className="text-2xl font-black text-red-500 mb-8 uppercase tracking-tight">The Chat Group Chaos</h3>
                  <div className="space-y-6">
                     {[
-                      { icon: Clock, title: 'Mesh Timing', desc: 'Sync your departure with colleagues in real-time.' },
-                      { icon: Banknote, title: 'Cost Leakage', desc: 'Split premium fuel costs and tolls instantly.' },
-                      { icon: Zap, title: 'Productivity', desc: 'Arrive fresh, not exhausted from driving.' }
-                    ].map((item, idx) => (
-                      <div key={idx} className="flex gap-5">
-                         <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center flex-shrink-0">
-                            <item.icon className="w-5 h-5 text-blue-500" />
-                         </div>
+                      { icon: Shield, t: 'Privacy Leaks', d: 'Phone numbers and live locations shared with 2000+ unverified strangers.' },
+                      { icon: AlertCircle, t: 'Scams & Fakes', d: 'Zero identity verification. Anyone can join, stalk, or scam.' },
+                      { icon: MessageSquare, t: 'Digital Noise', d: 'Unnecessary promotions, "Good Morning" spam, and chaotic open loops.' },
+                      { icon: MapPin, t: 'Static Routes', d: 'Searching through 100s of messages to find one relevant trip.' }
+                    ].map((item, i) => (
+                      <div key={i} className="flex gap-4">
+                         <item.icon className="w-5 h-5 text-red-500/40 flex-shrink-0 mt-1" />
                          <div>
-                            <h4 className="font-black text-white uppercase tracking-tight mb-1">{item.title}</h4>
-                            <p className="text-sm text-slate-500">{item.desc}</p>
+                            <h4 className="text-xs font-black text-white/80 uppercase">{item.t}</h4>
+                            <p className="text-xs text-white/30 font-medium leading-relaxed mt-1">{item.d}</p>
                          </div>
                       </div>
                     ))}
                  </div>
+                 <div className="mt-10 p-6 bg-red-500/10 border border-red-500/20 rounded-2xl italic text-[10px] text-red-400 font-bold">
+                    "Casario to RCP, 8:45 AM, 1 seat, 98108xxxxx..." — Your personal data is now public property.
+                 </div>
               </div>
-              <div className="relative group">
-                 <div className="absolute inset-0 bg-blue-600/20 blur-[100px] -z-10 group-hover:bg-blue-600/30 transition-colors" />
-                 <div className="bg-white/5 border border-white/10 rounded-[4rem] p-12 aspect-square flex items-center justify-center relative overflow-hidden">
-                    <div className="text-center space-y-6 relative z-10">
-                       <p className="text-8xl font-black text-white tracking-widest">9.8</p>
-                       <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.5em]">AI OPTIMIZATION SCORE</p>
+
+              {/* The New Way: JOOL */}
+              <div className="bg-blue-600/5 border border-blue-500/30 rounded-[3rem] p-10 relative overflow-hidden shadow-2xl shadow-blue-500/10">
+                 <div className="absolute top-0 right-0 p-8 opacity-10">
+                    <ShieldCheck className="w-32 h-32 text-blue-400" />
+                 </div>
+                 <h3 className="text-2xl font-black text-blue-400 mb-8 uppercase tracking-tight">The JOOL Infrastructure</h3>
+                 <div className="space-y-6">
+                    {[
+                      { icon: Lock, t: 'Identity Isolation', d: 'Details only visible to confirmed partners. No public leaks.' },
+                      { icon: CheckCircle2, t: 'Verified Network', d: 'Corporate and identity verification for every single participant.' },
+                      { icon: Zap, t: 'Dynamic Discovery', d: 'Intelligent corridor matching. Find your ride in 2 taps.' },
+                      { icon: Banknote, t: 'Secure Settle', d: 'Encrypted payment coordination without sharing bank details publicly.' }
+                    ].map((item, i) => (
+                      <div key={i} className="flex gap-4">
+                         <item.icon className="w-5 h-5 text-blue-400 flex-shrink-0 mt-1" />
+                         <div>
+                            <h4 className="text-xs font-black text-white uppercase">{item.t}</h4>
+                            <p className="text-xs text-white/40 font-medium leading-relaxed mt-1">{item.d}</p>
+                         </div>
+                      </div>
+                    ))}
+                 </div>
+                 <div className="mt-10 p-6 bg-blue-600/10 border border-blue-500/20 rounded-2xl italic text-[10px] text-blue-400 font-bold">
+                    End-to-end encrypted commute orchestration. Crafted in India for the global elite.
+                 </div>
+              </div>
+           </div>
+        </section>
+
+        {/* ─── SUSTAINABILITY IMPACT ────────────────────────────────────────── */}
+        <section className="bg-slate-900/50 py-32 border-y border-white/5 relative overflow-hidden">
+           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dust.png')] opacity-10 pointer-events-none" />
+           <div className="container mx-auto px-6 relative z-10">
+              <div className="flex flex-col lg:flex-row items-center gap-20">
+                 <div className="lg:w-1/2">
+                    <p className="text-green-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">ENVIRONMENTAL LEDGER</p>
+                    <h2 className="text-5xl md:text-7xl font-black tracking-tighter mb-10 italic uppercase">
+                       Planet<br /><span className="text-green-400">Positive.</span>
+                    </h2>
+                    <p className="text-slate-400 text-lg leading-relaxed mb-12">
+                       Every shared ride reduces the net carbon ceiling. JOOL doesn't just move people; we nurture the ecosystem by removing thousands of individual vehicle emissions from our office corridors.
+                    </p>
+                    <div className="grid grid-cols-2 gap-8">
+                       <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/5">
+                          <p className="text-4xl font-black text-white">{stats.trees_saved}</p>
+                          <p className="text-[10px] font-black text-green-500 uppercase tracking-widest mt-2">Trees Equivalent</p>
+                          <p className="text-[9px] text-white/20 mt-1 uppercase">Saved this month</p>
+                       </div>
+                       <div className="bg-white/5 p-8 rounded-[2.5rem] border border-white/5">
+                          <p className="text-4xl font-black text-white">0.0g</p>
+                          <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mt-2">Data Carbon</p>
+                          <p className="text-[9px] text-white/20 mt-1 uppercase">Lean Architecture</p>
+                       </div>
                     </div>
-                    {/* Decorative map-like lines */}
-                    <div className="absolute inset-0 opacity-10">
-                       <div className="absolute top-1/4 left-0 w-full h-px bg-white" />
-                       <div className="absolute top-2/4 left-0 w-full h-px bg-white rotate-12" />
-                       <div className="absolute top-3/4 left-0 w-full h-px bg-blue-500" />
+                 </div>
+                 <div className="lg:w-1/2 flex items-center justify-center">
+                    <div className="relative w-full aspect-video rounded-[3rem] overflow-hidden group">
+                       <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent z-10" />
+                       <div className="absolute inset-0 flex items-center justify-center z-20">
+                          <div className="text-center">
+                             <Leaf className="w-20 h-20 text-green-400 mx-auto mb-4 animate-bounce" />
+                             <p className="text-2xl font-black text-white tracking-widest uppercase">1 Ride = 50 Trees</p>
+                             <p className="text-[10px] text-white/40 uppercase tracking-[0.3em] mt-2">CO₂ Absorption Power</p>
+                          </div>
+                       </div>
+                       <div className="absolute inset-0 bg-slate-800" />
                     </div>
                  </div>
               </div>
@@ -254,13 +320,42 @@ export default function HomePage() {
            </div>
         </section>
 
+        {/* ─── HAPPY RIDE HACKS ─────────────────────────────────────────── */}
+        <section id="hacks" className="container mx-auto px-6 py-32 border-t border-white/5">
+           <div className="text-center mb-20">
+              <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] mb-4">OPTIMIZATION PROTOCOLS</p>
+              <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic">HAPPY RIDE <span className="text-blue-500">HACKS.</span></h2>
+           </div>
+
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { title: 'Single Seat Strategy', d: 'Request exact seats to avoid multi-approval bottlenecks.', icon: Users },
+                { title: 'In-App Confirms', d: 'Always post confirmation messages in the ride chat for record.', icon: MessageSquare },
+                { title: 'Live Settle', d: 'Pay during the ride to ensure a smooth, zero-friction exit.', icon: Banknote },
+                { title: 'Time Discipline', d: 'Follow departure nodes strictly or use secure chat to update.', icon: Clock },
+                { title: 'Privacy First', d: 'Never share personal numbers in open corridor discussions.', icon: Lock },
+                { title: 'Fair Share', d: 'Ride providers maintain fixed price standards for fair commute.', icon: ShieldCheck },
+                { title: 'No Spam Policy', d: 'Zero tolerance for promotions or unnecessary celebrations.', icon: XCircle },
+                { title: 'Verified Nodes', d: 'Only trust rides with the blue checkmark for maximum security.', icon: CheckCircle2 }
+              ].map((hack, i) => (
+                <div key={i} className="bg-white/[0.03] border border-white/5 p-8 rounded-[2rem] hover:bg-blue-600/5 transition-all group">
+                   <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                      <hack.icon className="w-5 h-5 text-blue-400" />
+                   </div>
+                   <h4 className="font-black text-white text-sm uppercase tracking-tight mb-2">{hack.title}</h4>
+                   <p className="text-[10px] text-slate-500 font-medium leading-relaxed">{hack.d}</p>
+                </div>
+              ))}
+           </div>
+        </section>
+
         {/* CTA Section */}
         <section className="container mx-auto px-6 pb-40">
            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-[4rem] p-16 md:p-24 text-center relative overflow-hidden group shadow-2xl shadow-blue-600/30">
               <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
               <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-white/10 rounded-full blur-[100px] group-hover:scale-125 transition-transform duration-1000" />
               
-              <h2 className="text-4xl md:text-7xl font-black mb-10 relative z-10 tracking-tighter uppercase italic">
+              <h2 className="text-4xl md:text-7xl font-black mb-10 relative z-10 tracking-tighter uppercase italic leading-none">
                  REDEFINE YOUR<br />MOTION.
               </h2>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6 relative z-10">
@@ -282,14 +377,14 @@ export default function HomePage() {
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                  <Car className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-black tracking-widest uppercase">AINORI TECH SYNDICATE</span>
+              <span className="text-sm font-black tracking-widest uppercase">JOOL TECHNOLOGY SYNDICATE</span>
            </div>
            <div className="flex gap-10 text-[10px] font-black text-slate-500 uppercase tracking-widest">
               <span>Security Protocols</span>
               <span>Terms of Commute</span>
               <span>Syndicate Nodes</span>
            </div>
-           <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">© 2026 AINORI • SECURE COMMUTE V4.2</p>
+           <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">© 2026 JOOL • CRAFTED IN INDIA FOR THE GLOBE • V4.5</p>
         </div>
       </footer>
     </div>

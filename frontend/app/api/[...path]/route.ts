@@ -165,8 +165,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return h.handleProfile(pool as any, r.auth)
   }
   if (pathStr === 'stats') {
-    const r = await requireAuth(request)
-    if ('error' in r) return r.error
     return h.handleStats(pool as any)
   }
   if (pathStr === 'cities') {
