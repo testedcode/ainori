@@ -92,73 +92,125 @@ export default function HomePage() {
       </nav>
 
       <main>
-        {/* ─── VERIFIED SYNDICATE HUB ─────────────────────────────────────── */}
-        {user?.approved && (
-          <section className="container mx-auto px-6 pt-24 pb-12">
-             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* Welcome Card */}
-                <div className="lg:col-span-4 bg-gradient-to-br from-amber-500 to-orange-600 rounded-[3rem] p-10 shadow-2xl relative overflow-hidden group">
-                   <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-700">
-                      <Crown className="w-32 h-32 text-black" />
-                   </div>
-                   <div className="relative z-10">
-                      <div className="w-16 h-16 rounded-2xl bg-black flex items-center justify-center mb-6 shadow-xl">
-                         {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover rounded-2xl" /> : <ShieldCheck className="w-8 h-8 text-amber-500" />}
-                      </div>
-                      <h3 className="text-4xl font-black text-black leading-none mb-2 tracking-tighter uppercase italic">Welcome back,<br />Executive.</h3>
-                      <p className="text-black/60 text-sm font-bold uppercase tracking-widest mb-8">Syndicate Level: Elite Node</p>
-                      <Link href="/exclusive-benefits" className="inline-flex items-center gap-3 px-6 py-3 bg-black text-amber-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
-                         View Perks <ArrowRight className="w-4 h-4" />
-                      </Link>
-                   </div>
-                </div>
+      <main>
+        {/* ─── PREMIUM IDENTITY HERO (VERIFIED ONLY) ────────────────────────── */}
+        {user?.approved ? (
+          <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+            {/* Elite Background Elements */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-blue-600/10 via-transparent to-transparent -z-10" />
+            <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-amber-500/5 to-transparent -z-10" />
+            
+            <div className="container mx-auto px-6 relative z-10">
+               <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+                  {/* Left: Identity Briefing */}
+                  <div className="lg:col-span-7">
+                     <div className="inline-flex items-center gap-3 px-6 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-[0.4em] mb-10 text-amber-500 animate-in fade-in slide-in-from-left-8 duration-1000">
+                        <Crown className="w-4 h-4" /> SECURE EXECUTIVE ACCESS GRANTED
+                     </div>
+                     <h1 className="text-6xl md:text-9xl font-black tracking-tighter mb-8 leading-[0.85] uppercase italic">
+                        COMMANDING<br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-500 to-amber-200 animate-gradient-x">THE FLOW.</span>
+                     </h1>
+                     <p className="max-w-2xl text-xl text-white/50 font-bold mb-12 uppercase tracking-wide leading-relaxed">
+                        Welcome back to the Syndicate, {user.name.split(' ')[0]}. Your priority corridor is initialized and AI orchestration is standing by.
+                     </p>
+                     
+                     <div className="flex flex-wrap gap-6">
+                        <Link href="/find-ride" className="px-12 py-6 bg-amber-500 text-black rounded-[2.5rem] font-black text-sm uppercase tracking-widest hover:bg-amber-400 transition-all shadow-[0_20px_60px_rgba(245,158,11,0.4)] active:scale-95 flex items-center gap-3">
+                           Initialize Ride <ArrowRight className="w-5 h-5" />
+                        </Link>
+                        <Link href="/exclusive-benefits" className="px-12 py-6 bg-white/5 border border-white/10 rounded-[2.5rem] font-black text-sm uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-3">
+                           <Gem className="w-5 h-5 text-amber-500" /> Executive Vault
+                        </Link>
+                     </div>
+                  </div>
 
-                {/* Stats & Priority Card */}
-                <div className="lg:col-span-8 bg-white/5 border border-white/10 rounded-[3rem] p-10 backdrop-blur-3xl flex flex-col md:flex-row gap-12 items-center justify-between">
-                   <div className="flex-1 space-y-8 w-full">
-                      <div className="flex justify-between items-end">
-                         <div>
-                            <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-1">Priority Network Strength</p>
-                            <h4 className="text-3xl font-black italic uppercase text-blue-400">98.4% Efficiency</h4>
-                         </div>
-                         <Link href="/profile" className="text-[10px] font-black text-white/20 hover:text-white uppercase tracking-widest underline">Manage Stats</Link>
-                      </div>
-                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                         <div className="h-full bg-gradient-to-r from-blue-600 to-blue-400 w-[98.4%] shadow-[0_0_20px_rgba(37,99,235,0.5)]" />
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                         <div>
-                            <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Matches AI</p>
-                            <p className="text-lg font-black italic">ULTRA</p>
-                         </div>
-                         <div>
-                            <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Sync Latency</p>
-                            <p className="text-lg font-black italic">0.2ms</p>
-                         </div>
-                         <div>
-                            <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Trust Seal</p>
-                            <p className="text-lg font-black italic text-green-500">L3 SEC</p>
-                         </div>
-                         <div>
-                            <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Carbon Rank</p>
-                            <p className="text-lg font-black italic">TOP 1%</p>
-                         </div>
-                      </div>
-                   </div>
-                   <div className="w-px h-full bg-white/10 hidden md:block" />
-                   <div className="text-center md:text-right">
-                      <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-4">Executive Support</p>
-                      <div className="w-20 h-20 bg-white text-black rounded-3xl flex items-center justify-center mx-auto md:ml-auto mb-4 shadow-2xl group hover:rotate-12 transition-transform">
-                         <Sparkles className="w-8 h-8 animate-pulse" />
-                      </div>
-                      <p className="text-[10px] font-black uppercase tracking-widest">Priority Concierge<br /><span className="text-blue-500">Active</span></p>
-                   </div>
+                  {/* Right: Holographic Status Node */}
+                  <div className="lg:col-span-5 relative">
+                     <div className="relative bg-white/[0.03] border border-white/10 rounded-[4rem] p-12 backdrop-blur-3xl shadow-2xl overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:scale-110 transition-transform duration-1000">
+                           <ShieldCheck className="w-64 h-64" />
+                        </div>
+                        
+                        <div className="flex items-center gap-6 mb-12">
+                           <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-tr from-amber-500 to-orange-600 p-1 shadow-2xl">
+                              <div className="w-full h-full rounded-[1.8rem] bg-slate-900 overflow-hidden">
+                                 {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-3xl font-black text-white/20">{user.name[0]}</div>}
+                              </div>
+                           </div>
+                           <div>
+                              <h4 className="text-2xl font-black italic uppercase text-white leading-none mb-1">{user.name}</h4>
+                              <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">ELITE EXECUTIVE NODE L3</p>
+                           </div>
+                        </div>
+
+                        <div className="space-y-8">
+                           <div className="flex justify-between items-end border-b border-white/5 pb-6">
+                              <div>
+                                 <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Network Priority</p>
+                                 <p className="text-2xl font-black text-blue-400">98.4%</p>
+                              </div>
+                              <div className="text-right">
+                                 <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Status</p>
+                                 <p className="text-xs font-black text-green-500 uppercase tracking-widest">Authorized</p>
+                              </div>
+                           </div>
+                           <div className="grid grid-cols-2 gap-6">
+                              <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                                 <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-2">Sync Latency</p>
+                                 <p className="text-sm font-black italic">0.2ms</p>
+                              </div>
+                              <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                                 <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-2">Trust Score</p>
+                                 <p className="text-sm font-black italic">4.9/5.0</p>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                     {/* Floating Accents */}
+                     <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 blur-[60px] -z-10 animate-pulse" />
+                     <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-500/10 blur-[60px] -z-10 animate-pulse" />
+                  </div>
+               </div>
+            </div>
+          </section>
+        ) : (
+          /* ─── DYNAMIC HERO SECTION (STANDARD) ────────────────────────── */
+          <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-40 overflow-hidden">
+            {/* Background Elements */}
+            <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b ${theme.heroGradient} -z-10`} />
+            
+            <div className="container mx-auto px-6 relative z-10">
+              <div className="max-w-4xl mx-auto text-center">
+                <div className="inline-flex items-center gap-3 px-6 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-[0.4em] mb-10 text-blue-400">
+                  <ShieldCheck className="w-4 h-4" /> Secure Office Commute Corridor
                 </div>
-             </div>
+                
+                <h1 className="text-6xl md:text-9xl font-black tracking-tighter mb-10 leading-[0.85] uppercase italic">
+                  Mumbai's<br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-white to-blue-400 animate-gradient-x">Elite Grid.</span>
+                </h1>
+                
+                <p className="text-xl md:text-3xl text-white/50 font-bold mb-16 uppercase tracking-wide leading-relaxed">
+                  The private corridor for professionals.<br />
+                  <span className="text-blue-500/80">Palava • RCP • MBP • LODHA iTHINK</span>
+                </p>
+                
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
+                  <Link href="/register" className="group relative px-14 py-6 bg-white text-black rounded-[2.5rem] font-black text-sm uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-2xl active:scale-95 overflow-hidden">
+                    <span className="relative z-10 flex items-center gap-3">Join the Syndicate <ArrowRight className="w-5 h-5" /></span>
+                    <div className="absolute inset-0 bg-blue-500 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                  </Link>
+                  <Link href="/login" className="px-14 py-6 bg-white/5 border border-white/10 rounded-[2.5rem] font-black text-sm uppercase tracking-widest hover:bg-white/10 transition-all">
+                    Access Portal
+                  </Link>
+                </div>
+              </div>
+            </div>
           </section>
         )}
-
-        {/* ─── EXECUTIVE MOTION DASHBOARD (CAR DISPLAY) ────────────────── */}
+        
+        {/* ─── EXECUTIVE MOTION DASHBOARD (FOR VERIFIED) ────────────────── */}
         {user?.approved && (
           <section className="container mx-auto px-6 py-12">
              <div className="bg-gradient-to-br from-blue-600/20 via-white/[0.02] to-transparent border border-white/20 rounded-[4rem] p-12 md:p-20 backdrop-blur-3xl shadow-2xl relative overflow-hidden group">

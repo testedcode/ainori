@@ -211,119 +211,120 @@ export default function ProfilePage() {
 
       <main className="max-w-6xl mx-auto px-6 md:px-12 mt-12">
         
-        {/* Syndicate Executive Identity Card */}
-        <div className="bg-gradient-to-br from-slate-900 to-black border border-white/10 rounded-[4rem] p-10 md:p-16 shadow-[0_50px_100px_rgba(0,0,0,0.8)] relative overflow-hidden mb-16 group">
-           {/* Cybernetic Background Details */}
-           <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none" />
-           <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-blue-600/10 blur-[150px] rounded-full group-hover:bg-blue-600/20 transition-all duration-1000 animate-pulse" />
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-indigo-500/5 blur-[120px] rounded-full rotate-12" />
+        {/* Holographic Executive Identity Vault */}
+        <div className="relative mb-24 animate-in fade-in zoom-in-95 duration-1000">
+           {/* Outer Glows */}
+           <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-blue-600/10 blur-[150px] -z-10 rounded-full" />
+           <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-amber-500/10 blur-[150px] -z-10 rounded-full" />
            
-           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 relative z-10 items-center">
-              {/* Avatar & ID Column */}
-              <div className="lg:col-span-3 flex flex-col items-center">
-                 <div className="relative mb-8">
-                    <div className="w-48 h-48 rounded-[3.5rem] bg-gradient-to-tr from-amber-500 via-orange-500 to-amber-300 p-1.5 shadow-[0_30px_60px_rgba(245,158,11,0.3)]">
-                       <div className="w-full h-full rounded-[3.2rem] bg-slate-900 overflow-hidden relative">
+           <div className="bg-white/[0.02] border border-white/10 rounded-[5rem] p-12 md:p-20 backdrop-blur-3xl shadow-[0_80px_160px_rgba(0,0,0,0.6)] relative overflow-hidden group">
+              {/* Scanline Effect */}
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-20" />
+              
+              <div className="flex flex-col lg:flex-row items-center gap-20 relative z-10">
+                 {/* Left Column: Biometric Node */}
+                 <div className="relative">
+                    <div className="w-56 h-56 rounded-[4rem] bg-gradient-to-tr from-blue-600 via-indigo-500 to-amber-500 p-1 shadow-[0_40px_80px_rgba(37,99,235,0.3)] group-hover:scale-105 transition-transform duration-700">
+                       <div className="w-full h-full rounded-[3.8rem] bg-slate-900 overflow-hidden relative">
                           {profile?.avatar_url ? (
-                            <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                            <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-6xl font-black text-white/20">{initials}</div>
+                            <div className="w-full h-full flex items-center justify-center text-7xl font-black text-white/20 uppercase italic tracking-tighter">{initials}</div>
                           )}
                           {uploading && (
-                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
-                              <Loader2 className="w-8 h-8 text-white animate-spin" />
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-md">
+                              <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
                             </div>
                           )}
                        </div>
                     </div>
-                    <label className="absolute -bottom-2 -right-2 w-14 h-14 bg-white text-black rounded-2xl shadow-2xl hover:scale-110 transition-all active:scale-95 cursor-pointer z-10 flex items-center justify-center border-4 border-slate-900">
-                       <Camera className="w-6 h-6" />
+                    {/* Level Overlay */}
+                    <div className="absolute -top-4 -right-4 px-4 py-2 bg-amber-500 text-black rounded-xl font-black text-[10px] uppercase tracking-widest shadow-2xl border-4 border-[#0f172a] transform rotate-12">
+                       L3 CLEARANCE
+                    </div>
+                    <label className="absolute -bottom-2 -right-2 w-16 h-16 bg-white text-black rounded-2xl shadow-2xl hover:scale-110 transition-all active:scale-95 cursor-pointer z-10 flex items-center justify-center border-4 border-[#0f172a] group/cam">
+                       <Camera className="w-7 h-7 group-hover/cam:rotate-12 transition-transform" />
                        <input type="file" accept="image/*" onChange={handleAvatarUpload} disabled={uploading} className="hidden" />
                     </label>
                  </div>
-                 <div className="text-center">
-                    <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-2">Member ID</p>
-                    <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl font-mono text-xs text-amber-500/80">
-                       JOOL-{profile?.id?.toString().padStart(6, '0')}
-                    </div>
-                 </div>
-              </div>
 
-              {/* Identity & Status Metrics */}
-              <div className="lg:col-span-6 text-center lg:text-left">
-                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mb-8">
-                    <div className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg flex items-center gap-2 ${
-                      profile?.approved ? 'bg-amber-500 text-black' : 'bg-white/10 text-white/40'
-                    }`}>
-                       <ShieldCheck className="w-4 h-4" /> 
-                       {profile?.role === 'admin' ? 'SYNDICATE ARCHITECT' : profile?.approved ? 'ELITE EXECUTIVE NODE' : 'UNVERIFIED NODE'}
-                    </div>
-                    {profile?.approved && (
-                      <div className="px-5 py-2 bg-blue-600/20 border border-blue-500/30 text-blue-400 rounded-full text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
-                         <Sparkles className="w-4 h-4 animate-pulse" /> PRESTIGE STATUS
-                      </div>
-                    )}
-                 </div>
-
-                 <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 leading-none uppercase italic text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40">
-                    {profile?.name.split(' ')[0]}<br />
-                    <span className="text-white">{profile?.name.split(' ').slice(1).join(' ')}</span>
-                 </h1>
-
-                 <div className="grid grid-cols-2 md:grid-cols-3 gap-8 mt-10">
-                    <div>
-                       <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-2">Carbon Credit Sovereign</p>
-                       <div className="flex items-center gap-3">
-                          <Leaf className="w-6 h-6 text-green-500" />
-                          <span className="text-3xl font-black">{profile?.carbon_credits}<span className="text-xs opacity-30 ml-1 italic font-normal">kg</span></span>
+                 {/* Center Column: Identity Attributes */}
+                 <div className="flex-1 text-center lg:text-left">
+                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mb-10">
+                       <div className="px-6 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full text-[10px] font-black uppercase tracking-[0.4em] flex items-center gap-2">
+                          <Crown className="w-4 h-4" /> {profile?.approved ? 'SYNDICATE EXECUTIVE' : 'PENDING NODE'}
                        </div>
+                       {profile?.role === 'admin' && (
+                         <div className="px-6 py-2 bg-blue-500 text-white rounded-full text-[10px] font-black uppercase tracking-[0.4em] shadow-lg shadow-blue-500/30">
+                            SYSTEM ARCHITECT
+                         </div>
+                       )}
                     </div>
-                    <div>
-                       <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-2">Trust Reliability</p>
-                       <div className="flex items-center gap-3">
-                          <Star className="w-6 h-6 text-amber-500 fill-amber-500" />
-                          <span className="text-3xl font-black">4.9<span className="text-xs opacity-30 ml-1 italic font-normal">/ 5.0</span></span>
+
+                    <h1 className="text-7xl md:text-9xl font-black tracking-tighter mb-8 leading-[0.85] uppercase italic text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/20">
+                       {profile?.name}
+                    </h1>
+
+                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-12 mt-12">
+                       <div>
+                          <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-3">Syndicate ID</p>
+                          <p className="text-xl font-mono text-white/60 tracking-tighter">JN-{(profile?.id || 0).toString().padStart(6, '0')}</p>
                        </div>
-                    </div>
-                    <div className="hidden md:block">
-                       <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-2">System Clearance</p>
-                       <div className="flex items-center gap-3">
-                          <ShieldCheck className="w-6 h-6 text-blue-500" />
-                          <span className="text-3xl font-black">L3<span className="text-xs opacity-30 ml-1 italic font-normal">SEC</span></span>
+                       <div className="w-px h-12 bg-white/5 hidden md:block" />
+                       <div>
+                          <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-3">Carbon Neutrality</p>
+                          <div className="flex items-center gap-3">
+                             <Leaf className="w-6 h-6 text-green-500" />
+                             <span className="text-3xl font-black">{profile?.carbon_credits}<span className="text-xs text-white/20 ml-1 font-normal italic">KG SAVED</span></span>
+                          </div>
+                       </div>
+                       <div className="w-px h-12 bg-white/5 hidden md:block" />
+                       <div>
+                          <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-3">Trust Protocol</p>
+                          <div className="flex items-center gap-3">
+                             <Star className="w-6 h-6 text-amber-500 fill-amber-500" />
+                             <span className="text-3xl font-black">4.9<span className="text-xs text-white/20 ml-1 font-normal italic">SECURE</span></span>
+                          </div>
                        </div>
                     </div>
                  </div>
-              </div>
 
-              {/* Action Hub & Benefits Quick-Link */}
-              <div className="lg:col-span-3 space-y-4">
-                 {profile?.approved ? (
-                   <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-6">
-                      <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest text-center">Elite Executive Benefits Active</p>
-                      <Link 
-                        href="/exclusive-benefits"
-                        className="w-full py-5 bg-amber-500 text-black rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] transition-all shadow-xl shadow-amber-500/20"
-                      >
-                         <Crown className="w-4 h-4" /> BROWSE PERKS
-                      </Link>
-                      <button 
-                        onClick={() => setIsEditing(!isEditing)}
-                        className="w-full py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
-                      >
-                         {isEditing ? <><ZapOff className="w-4 h-4" /> ABORT EDIT</> : <><Edit3 className="w-4 h-4" /> EDIT PROFILE</>}
-                      </button>
-                   </div>
-                 ) : (
-                   <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-6 text-center">
-                      <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Awaiting Verification</p>
-                      <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto animate-pulse">
-                         <ShieldAlert className="w-8 h-8 text-white/20" />
-                      </div>
-                      <button className="w-full py-5 bg-white/5 border border-white/10 text-white/40 rounded-2xl font-black text-[10px] uppercase tracking-widest cursor-not-allowed">
-                         PENDING ACCESS
-                      </button>
-                   </div>
-                 )}
+                 {/* Right Column: Privilege Hub */}
+                 <div className="lg:w-1/4 w-full">
+                    <div className="bg-white/[0.03] border border-white/10 rounded-[3.5rem] p-8 space-y-6">
+                       <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] text-center mb-2">Access Privileges</p>
+                       <div className="space-y-3">
+                          {[
+                            { label: 'Priority Corridor', active: profile?.approved },
+                            { label: 'AI Match Engine', active: profile?.approved },
+                            { label: 'Syndicate Lounge', active: profile?.approved }
+                          ].map((priv, i) => (
+                            <div key={i} className="flex items-center justify-between px-5 py-3 bg-white/5 rounded-2xl border border-white/5">
+                               <span className="text-[10px] font-black uppercase tracking-widest text-white/60">{priv.label}</span>
+                               {priv.active ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <XCircle className="w-4 h-4 text-white/10" />}
+                            </div>
+                          ))}
+                       </div>
+                       
+                       <div className="pt-4 space-y-4">
+                          {profile?.approved ? (
+                            <Link href="/exclusive-benefits" className="w-full py-5 bg-amber-500 text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-amber-400 transition-all shadow-[0_20px_40px_rgba(245,158,11,0.2)]">
+                               <Gem className="w-4 h-4" /> ENTER THE VAULT
+                            </Link>
+                          ) : (
+                            <div className="w-full py-5 bg-white/5 border border-white/10 text-white/20 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-2 cursor-not-allowed">
+                               <Lock className="w-4 h-4" /> AUTHORIZATION PENDING
+                            </div>
+                          )}
+                          <button 
+                            onClick={() => setIsEditing(!isEditing)}
+                            className="w-full py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
+                          >
+                             {isEditing ? <ZapOff className="w-4 h-4" /> ABORT SYNC : <Edit3 className="w-4 h-4" /> SYNC IDENTITY}
+                          </button>
+                       </div>
+                    </div>
+                 </div>
               </div>
            </div>
         </div>
