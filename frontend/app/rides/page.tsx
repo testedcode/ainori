@@ -147,7 +147,10 @@ function CardView({
       onMouseLeave={() => setIsHovered(false)}
       className="group relative"
     >
-      <div className={`relative bg-[#0f172a]/80 backdrop-blur-3xl border rounded-[3rem] overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] ${isSelected ? 'border-green-500/50 scale-[1.02]' : 'border-white/10 hover:border-white/20'}`}>
+      <div className={`relative bg-[#0f172a]/90 backdrop-blur-3xl border rounded-[3.5rem] overflow-hidden transition-all duration-500 hover:shadow-[0_40px_80px_rgba(0,0,0,0.7)] ${
+        isSelected ? 'border-green-500 shadow-[0_0_40px_rgba(74,222,128,0.2)] scale-[1.01]' : 
+        ride.user_approved ? 'border-amber-400/40 shadow-[0_0_40px_rgba(251,191,36,0.15)] ring-1 ring-amber-400/20' : 'border-white/10 hover:border-white/20'
+      }`}>
          {/* Vehicle image as subtle glassmorphism background */}
          {ride.vehicle_image_url && (
            <div className="absolute inset-0 pointer-events-none">
@@ -166,63 +169,71 @@ function CardView({
                         <span className="text-[10px] font-black uppercase tracking-widest text-white/60">{fmtDate(ride.ride_date)}</span>
                      </div>
                      <div className={`px-3 py-1 bg-white/5 border border-white/10 rounded-lg flex items-center gap-2 ${
-                        (ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'text-green-400' : 'text-blue-400'
+                        (ride.direction === 'to_home' || (parseInt(ride.ride_time) >= 13)) ? 'text-green-400' : 'text-blue-400'
                      }`}>
-                        {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? <Home className="w-3 h-3" /> : <Building2 className="w-3 h-3" />}
+                        {(ride.direction === 'to_home' || (parseInt(ride.ride_time) >= 13)) ? <Home className="w-3 h-3" /> : <Building2 className="w-3 h-3" />}
                         <span className="text-[10px] font-black uppercase tracking-widest">
-                           {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'To Home' : 'To Office'}
+                           {(ride.direction === 'to_home' || (parseInt(ride.ride_time) >= 13)) ? 'To Home' : 'To Office'}
                         </span>
                      </div>
                   </div>
                </div>
 
                {/* Host Profile Showcase */}
-               <div className="flex items-center gap-3 p-1.5 pr-5 bg-white/[0.03] border border-white/5 rounded-full hover:border-blue-500/30 transition-all cursor-pointer group/host">
+               <div className={`flex items-center gap-4 p-2 pr-6 rounded-full transition-all cursor-pointer group/host ${
+                  ride.user_approved ? 'bg-amber-400/10 border border-amber-400/20 hover:border-amber-400/40' : 'bg-white/[0.03] border border-white/5 hover:border-white/10'
+               }`}>
                   <div className="relative">
-                     <div className="w-10 h-10 rounded-full border-2 border-blue-500/50 overflow-hidden bg-slate-900 shadow-lg group-hover/host:scale-105 transition-transform">
+                     <div className={`w-12 h-12 rounded-full border-2 overflow-hidden bg-slate-900 shadow-xl group-hover/host:scale-105 transition-transform flex items-center justify-center ${
+                        ride.user_approved ? 'border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.3)]' : 'border-blue-500/50'
+                     }`}>
                         {ride.user_avatar_url ? (
                            <img src={ride.user_avatar_url} className="w-full h-full object-cover" alt={ride.user_name} />
                         ) : (
-                           <div className="w-full h-full flex items-center justify-center text-xs font-black text-white/30">{ride.user_name[0]}</div>
+                           <span className={`text-sm font-black ${ride.user_approved ? 'text-amber-400' : 'text-blue-400'}`}>{ride.user_name[0]}</span>
                         )}
                      </div>
                      {ride.user_approved && (
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-[#0f172a] flex items-center justify-center shadow-lg">
-                           <ShieldCheck className="w-2.5 h-2.5 text-white" />
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-amber-400 rounded-full border-2 border-[#0f172a] flex items-center justify-center shadow-lg">
+                           <ShieldCheck className="w-3 h-3 text-black" />
                         </div>
                      )}
                   </div>
                   <div>
                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-black text-white uppercase tracking-tighter leading-none">{ride.user_name}</span>
-                        {ride.user_approved && <span className="text-[6px] font-black bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded-sm uppercase tracking-widest">PREMIUM</span>}
+                        <span className="text-xs font-black text-white uppercase tracking-tight leading-none">{ride.user_name}</span>
+                        {ride.user_approved && <CheckCircle2 className="w-3 h-3 text-amber-400" />}
                      </div>
-                     <div className="flex items-center gap-1 mt-0.5">
-                        <Star className="w-2 h-2 text-amber-400 fill-current" />
-                        <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Syndicate Elite</span>
+                     <div className="flex items-center gap-1 mt-1">
+                        <span className={`text-[7px] font-black uppercase tracking-[0.2em] ${ride.user_approved ? 'text-amber-400/60' : 'text-white/20'}`}>
+                           {ride.user_approved ? 'VERIFIED EXECUTIVE' : 'SYNDICATE MEMBER'}
+                        </span>
                      </div>
                   </div>
                </div>
             </div>
 
-            <div className="flex flex-col items-end gap-3">
-               {isOwnRide ? (
-                  <div className="px-4 py-2 bg-amber-400 text-black rounded-full text-[9px] font-black uppercase tracking-widest shadow-[0_10px_20px_rgba(251,191,36,0.2)]">
+            <div className="flex flex-col items-end gap-2 shrink-0">
+               {isOwnRide && (
+                  <div className="px-3 py-1 bg-amber-400 text-black rounded-lg text-[8px] font-black uppercase tracking-widest shadow-xl">
                      YOUR FLEET
                   </div>
-               ) : ride.user_approved ? (
-                  <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 border border-blue-500/30 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.1)]">
+               )}
+               {ride.user_approved && !isOwnRide && (
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-600/20 border border-blue-500/30 rounded-lg shadow-lg">
                      <Crown className="w-3 h-3 text-blue-400" />
-                     <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest">ELITE NODE</span>
+                     <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest">ELITE</span>
                   </div>
-               ) : null}
+               )}
 
-               <div className="flex flex-col items-end">
-                  <div className="flex items-center gap-1.5">
+               <div className="flex flex-col items-end mt-2">
+                  <div className="flex items-center gap-1.5 bg-white/5 px-4 py-2 rounded-2xl border border-white/5 min-w-[100px] justify-end">
                      <IndianRupee className="w-4 h-4 text-green-400" />
-                     <span className="text-4xl font-black text-white tracking-tighter leading-none">{ride.price_per_seat}</span>
+                     <span className="text-4xl font-black text-white tracking-tighter leading-none whitespace-nowrap">
+                        {Math.floor(ride.price_per_seat)}
+                     </span>
                   </div>
-                  <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mt-1">Authorized Rate</span>
+                  <span className="text-[7px] font-black text-white/20 uppercase tracking-[0.2em] mt-1 mr-2">Auth Rate</span>
                </div>
             </div>
          </div>
@@ -678,7 +689,7 @@ function RidesContent() {
             <p className="text-white/20 text-[10px] font-black uppercase tracking-widest leading-relaxed">Adjust your ride coordinates<br/>or publish a new route</p>
           </div>
         ) : view === 'grid' ? (
-          <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-10">
             {filtered.map(ride => {
                const currentUserId = Number(currentUser?.id || currentUser?.userId)
                return (
