@@ -359,7 +359,7 @@ export default function DashboardPage() {
               </div>
             </div>
           ))}
-        </div>
+        </section>
 
         {/* AI Insights Node */}
         <div className="mb-20 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-white/10 rounded-[3.5rem] p-10 md:p-14 relative overflow-hidden group">
