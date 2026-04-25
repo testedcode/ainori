@@ -311,7 +311,12 @@ export default function DashboardPage() {
                  Initialize Smart Sync
               </button>
            </div>
-           <div className="absolute top-0 right-0 p-16 opacity-[0.02] group-hover:opacity-[0.05] transition-all duration-1000 group-hover:s        {/* ─── EXECUTIVE ACCESS REQUESTS (PENDING) ────────────────────────── */}
+           <div className="absolute top-0 right-0 p-16 opacity-[0.02] group-hover:opacity-[0.05] transition-all duration-1000 group-hover:scale-110">
+              <Zap className="w-96 h-96 text-white" />
+           </div>
+        </div>
+
+        {/* ─── EXECUTIVE ACCESS REQUESTS (PENDING) ────────────────────────── */}
         {myRequests.length > 0 && (
           <section className="mb-20">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
