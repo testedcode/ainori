@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { 
   Car, Shield, Leaf, Banknote, Clock, ArrowRight, 
   User, Sparkles, MapPin, ChevronRight, CheckCircle2,
-  Lock, Zap, Star, Users, ShieldCheck, Gem, Crown,
+  ShieldAlert, Zap, Star, Users, ShieldCheck, Gem, Crown,
   XCircle, AlertCircle, MessageSquare, VolumeX, Handshake, Smile, Heart
 } from 'lucide-react';
 import { api } from '@/lib/api';
@@ -266,96 +266,7 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* ─── DYNAMIC HERO SECTION ────────────────────────────────────────── */}
-        <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-40 overflow-hidden">
-          {/* Background Elements */}
-          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-600/10 blur-[150px] rounded-full -z-10 animate-pulse" />
-          <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-indigo-600/10 blur-[120px] rounded-full -z-10" />
-          
-          <div className="container mx-auto px-6">
-            <div className="flex flex-col lg:flex-row items-center gap-20">
-              <div className="lg:w-3/5 text-left">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest mb-10">
-                  <Sparkles className="w-3 h-3" />
-                  <span>The Future of Professional Commute</span>
-                </div>
-                
-                <h1 className="text-6xl md:text-8xl lg:text-[110px] font-black tracking-tighter mb-8 leading-[0.85] text-white uppercase italic">
-                  SMASH THE<br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600">CHAOTIC MESH.</span>
-                </h1>
-                
-                <p className="max-w-xl text-slate-400 text-lg md:text-xl mb-12 leading-relaxed font-medium">
-                  Stop leaking your privacy in unverified chat groups. JOOL is the elite orchestration engine for Mumbai's professional corridors. Secure, synced, and sustainable.
-                </p>
-                
-                <div className="flex flex-col sm:flex-row items-center gap-6">
-                  <Link href="/find-ride" className="w-full sm:w-auto group bg-blue-600 text-white px-12 py-5 rounded-[2rem] text-sm font-black uppercase tracking-widest hover:bg-blue-500 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-blue-600/30">
-                    Join a Corridor <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
-                  </Link>
-                  <Link href="/register" className="w-full sm:w-auto text-center bg-white/5 backdrop-blur-md border border-white/10 text-white px-12 py-5 rounded-[2rem] text-sm font-black uppercase tracking-widest hover:bg-white/10 transition-all">
-                    Apply for Verification
-                  </Link>
-                </div>
-              </div>
 
-              {/* Visual Side: The Floating Card */}
-              <div className="lg:w-2/5 relative group perspective-1000">
-                <div className="absolute inset-0 bg-blue-600/20 blur-[100px] -z-10 group-hover:bg-blue-600/30 transition-all" />
-                <div className="bg-gradient-to-br from-white/10 to-transparent backdrop-blur-3xl border border-white/20 p-8 rounded-[3rem] shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-700">
-                  <div className="flex items-center justify-between mb-10">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                        <Car className="w-5 h-5" />
-                      </div>
-                      <span className="text-xs font-black uppercase tracking-widest">Secure Ride</span>
-                    </div>
-                    <div className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-[8px] font-black text-green-400 uppercase tracking-widest">
-                      JOOL Verified
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-6 mb-10">
-                    <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                      <span className="text-[10px] text-white/40 uppercase font-black">Corridor</span>
-                      <span className="text-sm font-bold">Casa Rio → RCP</span>
-                    </div>
-                    <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                      <span className="text-[10px] text-white/40 uppercase font-black">Departure</span>
-                      <span className="text-sm font-bold">08:45 AM</span>
-                    </div>
-                    <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                      <span className="text-[10px] text-white/40 uppercase font-black">Identity Node</span>
-                      <span className="text-sm font-bold flex items-center gap-2">
-                        <ShieldCheck className="w-4 h-4 text-blue-400" /> Professional Node 0x4F
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center">
-                     <span className="text-lg font-black tracking-widest uppercase italic">GJ 05 JK 7732</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Live Counter */}
-            <div className="mt-32 grid grid-cols-2 md:grid-cols-4 gap-10 border-t border-white/5 pt-16">
-               {[
-                 { v: stats.live_users, l: 'Live Syncing', c: 'text-blue-500', sub: 'Active Nodes' },
-                 { v: stats.rides_today, l: 'Daily Trips', c: 'text-white', sub: 'Corridor Capacity' },
-                 { v: stats.carbon_saved.split(' ')[0], l: 'Tons CO₂ Saved', c: 'text-green-500', sub: 'Planet Positive' },
-                 { v: stats.trees_saved, l: 'Trees Saved', c: 'text-green-400', sub: 'Impact Score' }
-               ].map((item, i) => (
-                 <div key={i} className="text-center md:text-left">
-                    <p className={`text-4xl lg:text-6xl font-black ${item.c} leading-none mb-3`}>{item.v}</p>
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-1">{item.l}</p>
-                    <p className="text-[8px] font-black text-white/20 uppercase tracking-widest">{item.sub}</p>
-                 </div>
-               ))}
-            </div>
-          </div>
-        </section>
 
         {/* ─── THE EXPOSE BANNER ────────────────────────────────────────── */}
         <section className="bg-red-600/5 border-y border-red-500/10 py-32 overflow-hidden relative">
@@ -421,7 +332,7 @@ export default function HomePage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
                  {[
                    { icon: ShieldCheck, title: 'Identity Nodes', desc: 'Every participant is multi-node verified. We eliminate the "anonymous intruder" completely.', color: 'from-blue-600/20 to-transparent' },
-                   { icon: Lock, title: 'Stealth Discovery', desc: 'Your trip details only unlock for confirmed partners. You stay invisible to the crowd.', color: 'from-indigo-600/20 to-transparent' },
+                   { icon: ShieldAlert, title: 'Stealth Discovery', desc: 'Your trip details only unlock for confirmed partners. You stay invisible to the crowd.', color: 'from-indigo-600/20 to-transparent' },
                    { icon: Zap, title: 'Corridor Sync', desc: 'Real-time AI-optimized departure nodes. No searching through messy group messages.', color: 'from-blue-500/20 to-transparent' }
                  ].map((net, idx) => (
                    <div key={idx} className={`bg-gradient-to-br ${net.color} border border-white/10 p-12 rounded-[4rem] hover:bg-white/5 transition-all group relative overflow-hidden`}>
@@ -517,7 +428,7 @@ export default function HomePage() {
                 { title: 'In-Ride Settle', d: 'Settle via UPI during the ride. Zero debt, zero friction.', icon: Banknote, color: 'bg-green-500/10 text-green-400' },
                 { title: 'Nexus Integrity', d: 'Never share personal numbers in groups. Keep it secure in JOOL.', icon: ShieldCheck, color: 'bg-red-500/10 text-red-400' },
                 { title: 'Time Discipline', d: 'Departure nodes are strict. Follow time or update via chat.', icon: Clock, color: 'bg-amber-500/10 text-amber-400' },
-                { title: 'Social Respect', d: 'Respect personal space. No unauthorized recordings or photos.', icon: Lock, color: 'bg-indigo-500/10 text-indigo-400' },
+                { title: 'Social Respect', d: 'Respect personal space. No unauthorized recordings or photos.', icon: ShieldAlert, color: 'bg-indigo-500/10 text-indigo-400' },
                 { title: 'Zero Spam Signal', d: 'Signal only. No promotions or unnecessary group celebrations.', icon: Zap, color: 'bg-yellow-500/10 text-yellow-400' },
                 { title: 'The Punctual Shake', d: 'Early is on time. Respect the ride provider\'s corridor schedule.', icon: Handshake, color: 'bg-cyan-500/10 text-cyan-400' }
               ].map((hack, i) => (
