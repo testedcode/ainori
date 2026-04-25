@@ -445,7 +445,8 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
   const day5 = new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10)
 
   let query = `
-    SELECT r.id, r.user_id, u.name as user_name, r.corridor_id, c.name as corridor_name,
+    SELECT r.id, r.user_id, u.name as user_name, u.approved as user_approved, u.avatar_url as user_avatar_url,
+           r.corridor_id, c.name as corridor_name,
            r.vehicle_id, r.ride_date, r.ride_time, r.pickup_point, r.drop_point,
            r.route_description, c.description as corridor_description, r.price_per_seat, r.available_seats, r.total_seats,
            r.status, r.direction, r.created_at, r.updated_at,
@@ -500,7 +501,8 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
 
 export async function handleGetUserRides(pool: Pool, auth: Auth) {
   const query = `
-    SELECT DISTINCT r.id, r.user_id, u.name as user_name, u.avatar_url, r.corridor_id, c.name as corridor_name,
+    SELECT DISTINCT r.id, r.user_id, u.name as user_name, u.approved as user_approved, u.avatar_url as user_avatar_url,
+           r.corridor_id, c.name as corridor_name,
            c.description as corridor_description,
            r.ride_date, r.ride_time, r.pickup_point, r.drop_point,
            r.price_per_seat, r.available_seats, r.total_seats, r.status, r.direction,
@@ -566,7 +568,7 @@ export async function handleGetUserRides(pool: Pool, auth: Auth) {
 export async function handleGetRide(pool: Pool, id: number) {
   const r = await pool.query(
     `SELECT r.id, r.user_id, u.name as user_name, u.upi_id as upi_id, u.phone as phone,
-            u.avatar_url as host_avatar_url, u.qr_code_url as host_qr_code_url,
+            u.approved as host_approved, u.avatar_url as host_avatar_url, u.qr_code_url as host_qr_code_url,
             r.corridor_id, c.name as corridor_name,
             c.description as corridor_description,
             r.vehicle_id, r.ride_date, r.ride_time, r.pickup_point, r.drop_point,
