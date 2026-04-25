@@ -92,7 +92,6 @@ export default function HomePage() {
       </nav>
 
       <main>
-      <main>
         {/* ─── PREMIUM IDENTITY HERO (VERIFIED ONLY) ────────────────────────── */}
         {user?.approved ? (
           <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
@@ -178,7 +177,7 @@ export default function HomePage() {
           /* ─── DYNAMIC HERO SECTION (STANDARD) ────────────────────────── */
           <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-40 overflow-hidden">
             {/* Background Elements */}
-            <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b ${theme.heroGradient} -z-10`} />
+            <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b ${theme.visuals.gradient} -z-10`} />
             
             <div className="container mx-auto px-6 relative z-10">
               <div className="max-w-4xl mx-auto text-center">

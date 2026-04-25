@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { 
   User, Mail, Phone, MapPin, CreditCard, Save, Loader2, 
   Leaf, Star, Award, ShieldCheck, QrCode, Edit3, Camera,
-  Clock, Sparkles, Crown, ZapOff, ShieldAlert
+  Clock, Sparkles, Crown, ZapOff, ShieldAlert, CheckCircle2, XCircle, Gem
 } from 'lucide-react'
 import Link from 'next/link'
 import { api } from '@/lib/api'
@@ -313,14 +313,14 @@ export default function ProfilePage() {
                             </Link>
                           ) : (
                             <div className="w-full py-5 bg-white/5 border border-white/10 text-white/20 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-2 cursor-not-allowed">
-                               <Lock className="w-4 h-4" /> AUTHORIZATION PENDING
+                               <ShieldAlert className="w-4 h-4" /> AUTHORIZATION PENDING
                             </div>
                           )}
                           <button 
                             onClick={() => setIsEditing(!isEditing)}
                             className="w-full py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
                           >
-                             {isEditing ? <ZapOff className="w-4 h-4" /> ABORT SYNC : <Edit3 className="w-4 h-4" /> SYNC IDENTITY}
+                             {isEditing ? <><ZapOff className="w-4 h-4" /> ABORT SYNC</> : <><Edit3 className="w-4 h-4" /> SYNC IDENTITY</>}
                           </button>
                        </div>
                     </div>
