@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { 
   Car, Plus, Search, Settings, LogOut, User, Sparkles, 
   ChevronRight, Leaf, Clock, Banknote, ShieldCheck, 
-  Calendar, MapPin, CheckCircle2, Timer, Bookmark, Users, Zap, AlertCircle
+  Calendar, MapPin, CheckCircle2, Timer, Bookmark, Users, Zap, AlertCircle,
+  Building2, Home
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
@@ -46,6 +47,8 @@ interface Ride {
   driver_name?: string
   role?: 'host' | 'co-commuter' | 'driver' | 'rider'
   direction?: 'to_office' | 'to_home'
+  user_approved?: boolean
+  user_avatar_url?: string
   confirmed_riders?: { id: number; user_id: number; name: string; avatar_url: string; seats_requested: number }[]
   pending_requests?: { id: number; user_id: number; name: string; avatar_url: string; seats_requested: number; created_at: string }[]
 }
@@ -480,10 +483,19 @@ export default function DashboardPage() {
                      
                      <div className="flex justify-between items-start mb-8 relative z-10">
                         <div>
-                           <h4 className="text-2xl font-black text-white italic uppercase tracking-tight mb-2">{ride.corridor_name}</h4>
-                           <div className="flex items-center gap-3 text-[10px] font-black text-white/40 uppercase tracking-widest">
-                              <User className="w-3.5 h-3.5 text-blue-500" />
-                              Host Node: <span className="text-white/60">{ride.driver_name}</span>
+                           <h4 className="text-2xl font-black text-white italic uppercase tracking-tight mb-4">{ride.corridor_name}</h4>
+                           <div className="flex items-center gap-3 p-1 pr-4 bg-white/5 border border-white/10 rounded-full w-fit">
+                              <div className="w-8 h-8 rounded-full border-2 border-blue-500/50 overflow-hidden bg-slate-900 shadow-lg">
+                                 {ride.user_avatar_url ? (
+                                    <img src={ride.user_avatar_url} className="w-full h-full object-cover" />
+                                 ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-[10px] font-black">{ride.driver_name?.[0]}</div>
+                                 )}
+                              </div>
+                              <div>
+                                 <p className="text-[7px] font-black text-white/20 uppercase tracking-widest leading-none mb-1">Host Node</p>
+                                 <p className="text-[10px] font-black text-white uppercase tracking-tighter">{ride.driver_name}</p>
+                              </div>
                            </div>
                         </div>
                         <div className="px-4 py-1.5 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-full text-[9px] font-black uppercase tracking-widest">
@@ -491,12 +503,15 @@ export default function DashboardPage() {
                         </div>
                      </div>
 
-                     <div className="flex items-center gap-10 relative z-10">
-                        <div className="flex items-center gap-3 text-sm font-black italic">
-                           <Calendar className="w-4 h-4 text-white/20" /> {ride.ride_date}
+                     <div className="flex items-center gap-6 relative z-10">
+                        <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg text-[10px] font-black uppercase tracking-widest text-white/60 border border-white/5">
+                           <Calendar className="w-3 h-3 text-blue-400" /> {ride.ride_date}
                         </div>
-                        <div className="flex items-center gap-3 text-sm font-black italic">
-                           <Timer className="w-4 h-4 text-white/20" /> {ride.ride_time}
+                        <div className={`flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg text-[10px] font-black uppercase tracking-widest border border-white/5 ${
+                           (ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'text-green-400' : 'text-blue-400'
+                        }`}>
+                           {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? <Home className="w-3 h-3" /> : <Building2 className="w-3 h-3" />}
+                           {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'To Home' : 'To Office'}
                         </div>
                      </div>
                   </Link>
@@ -521,11 +536,17 @@ export default function DashboardPage() {
                   <div key={ride.id} className="bg-white/[0.03] border border-white/10 rounded-[3rem] p-10 hover:bg-white/[0.06] transition-all relative overflow-hidden group">
                      <div className="flex justify-between items-start mb-10">
                         <div>
-                           <h4 className="text-2xl font-black text-white italic uppercase tracking-tight mb-2">{ride.corridor_name}</h4>
-                           <div className="flex items-center gap-4 text-[10px] font-black text-white/30 uppercase tracking-widest italic">
-                              <span>{ride.ride_date}</span>
-                              <span className="w-1 h-1 bg-white/10 rounded-full" />
-                              <span>{ride.ride_time}</span>
+                           <h4 className="text-2xl font-black text-white italic uppercase tracking-tight mb-4">{ride.corridor_name}</h4>
+                           <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg text-[10px] font-black uppercase tracking-widest text-white/60 border border-white/5">
+                                 <Calendar className="w-3 h-3 text-blue-400" /> {ride.ride_date}
+                              </div>
+                              <div className={`flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg text-[10px] font-black uppercase tracking-widest border border-white/5 ${
+                                 (ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'text-green-400' : 'text-blue-400'
+                              }`}>
+                                 {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? <Home className="w-3 h-3" /> : <Building2 className="w-3 h-3" />}
+                                 {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'To Home' : 'To Office'}
+                              </div>
                            </div>
                         </div>
                         <div className="flex flex-col items-end gap-2">

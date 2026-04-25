@@ -8,7 +8,7 @@ import {
   LayoutGrid, List, AlignJustify, Star, 
   ChevronRight, MapPin, Clock, RefreshCw,
   EyeOff, ChevronLeft, Info, Calendar,
-  ArrowRight, Check, X, ShieldCheck,
+  ArrowRight, Check, X, ShieldCheck, Crown,
   Building2, Home, Users, Sun, Sunrise,
   Navigation2, CheckCircle2, Timer, Moon
 } from 'lucide-react'
@@ -49,6 +49,7 @@ interface Ride {
   status: string; vehicle_make?: string; vehicle_model?: string; vehicle_color?: string;
   vehicle_type?: string; vehicle_number?: string; vehicle_image_url?: string;
   direction?: string; pending_count?: number;
+  user_approved?: boolean; user_avatar_url?: string;
   confirmed_riders?: { id: number; user_id: number; name: string; avatar_url: string; seats_requested: number }[];
 }
 
@@ -155,24 +156,73 @@ function CardView({
            </div>
          )}
          {/* HEADER - MOCKUP STYLE */}
-         <div className="p-8 pb-4 flex justify-between items-start relative">
-            <div>
-               <h2 className="text-5xl font-black text-white tracking-tighter italic mb-1">{fmtTime(ride.ride_time)}</h2>
-               <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] pl-1 flex items-center gap-2">
-                 <span className="flex items-center gap-1"><Calendar className="w-2.5 h-2.5" />{fmtDate(ride.ride_date)}</span>
-                 <span className="opacity-20">|</span>
-                 <span>{ride.direction === 'to_office' ? '🏢 To Office' : ride.direction === 'to_home' ? '🏠 To Home' : ride.pickup_point}</span>
-               </p>
-            </div>
-            <div className="flex flex-col items-end gap-2">
-               <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${isOwnRide ? 'bg-amber-400 text-black shadow-[0_0_15px_rgba(251,191,36,0.4)]' : 'bg-blue-600/20 text-blue-400 border border-blue-500/30'}`}>
-                  {isOwnRide ? 'YOUR RIDE' : 'HOSTED UNIT'}
-                  {!isOwnRide && <span className="flex items-center gap-0.5 ml-1 opacity-60"><Star className="w-2.5 h-2.5 fill-current" /> 4.9</span>}
+         <div className="p-8 pb-4 flex justify-between items-start relative z-10">
+            <div className="space-y-4">
+               <div>
+                  <h2 className="text-6xl font-black text-white tracking-tighter italic leading-none mb-2">{fmtTime(ride.ride_time)}</h2>
+                  <div className="flex items-center gap-3">
+                     <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg flex items-center gap-2">
+                        <Calendar className="w-3 h-3 text-blue-400" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white/60">{fmtDate(ride.ride_date)}</span>
+                     </div>
+                     <div className={`px-3 py-1 bg-white/5 border border-white/10 rounded-lg flex items-center gap-2 ${
+                        (ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'text-green-400' : 'text-blue-400'
+                     }`}>
+                        {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? <Home className="w-3 h-3" /> : <Building2 className="w-3 h-3" />}
+                        <span className="text-[10px] font-black uppercase tracking-widest">
+                           {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'To Home' : 'To Office'}
+                        </span>
+                     </div>
+                  </div>
                </div>
-               <div className="flex items-center gap-1 px-3 py-1 bg-white/5 rounded-full">
-                  <IndianRupee className="w-3 h-3 text-green-400" />
-                  <span className="text-lg font-black text-white tracking-tight">{ride.price_per_seat}</span>
-                  <span className="text-[9px] font-black text-white/30 uppercase">/seat</span>
+
+               {/* Host Profile Showcase */}
+               <div className="flex items-center gap-3 p-1.5 pr-5 bg-white/[0.03] border border-white/5 rounded-full hover:border-blue-500/30 transition-all cursor-pointer group/host">
+                  <div className="relative">
+                     <div className="w-10 h-10 rounded-full border-2 border-blue-500/50 overflow-hidden bg-slate-900 shadow-lg group-hover/host:scale-105 transition-transform">
+                        {ride.user_avatar_url ? (
+                           <img src={ride.user_avatar_url} className="w-full h-full object-cover" alt={ride.user_name} />
+                        ) : (
+                           <div className="w-full h-full flex items-center justify-center text-xs font-black text-white/30">{ride.user_name[0]}</div>
+                        )}
+                     </div>
+                     {ride.user_approved && (
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-[#0f172a] flex items-center justify-center shadow-lg">
+                           <ShieldCheck className="w-2.5 h-2.5 text-white" />
+                        </div>
+                     )}
+                  </div>
+                  <div>
+                     <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-black text-white uppercase tracking-tighter leading-none">{ride.user_name}</span>
+                        {ride.user_approved && <span className="text-[6px] font-black bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded-sm uppercase tracking-widest">PREMIUM</span>}
+                     </div>
+                     <div className="flex items-center gap-1 mt-0.5">
+                        <Star className="w-2 h-2 text-amber-400 fill-current" />
+                        <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Syndicate Elite</span>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <div className="flex flex-col items-end gap-3">
+               {isOwnRide ? (
+                  <div className="px-4 py-2 bg-amber-400 text-black rounded-full text-[9px] font-black uppercase tracking-widest shadow-[0_10px_20px_rgba(251,191,36,0.2)]">
+                     YOUR FLEET
+                  </div>
+               ) : ride.user_approved ? (
+                  <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 border border-blue-500/30 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.1)]">
+                     <Crown className="w-3 h-3 text-blue-400" />
+                     <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest">ELITE NODE</span>
+                  </div>
+               ) : null}
+
+               <div className="flex flex-col items-end">
+                  <div className="flex items-center gap-1.5">
+                     <IndianRupee className="w-4 h-4 text-green-400" />
+                     <span className="text-4xl font-black text-white tracking-tighter leading-none">{ride.price_per_seat}</span>
+                  </div>
+                  <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mt-1">Authorized Rate</span>
                </div>
             </div>
          </div>
