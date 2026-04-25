@@ -173,17 +173,26 @@ export default function AdminPage() {
     } catch {}
   }
 
-  const approveUser = (userId: number) => {
-    setUsers(prev => prev.map(u => u.id === userId ? { ...u, approved: true } : u))
-    toast.success('User approved!')
+  const approveUser = async (userId: number) => {
+    try {
+      await api.put(`/admin/users/${userId}`, { approved: true, blocked: false })
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, approved: true, blocked: false } : u))
+      toast.success('User approved!')
+    } catch { toast.error('Approval failed') }
   }
-  const denyUser = (userId: number) => {
-    setUsers(prev => prev.map(u => u.id === userId ? { ...u, approved: false, blocked: true } : u))
-    toast.success('User access denied.')
+  const denyUser = async (userId: number) => {
+    try {
+      await api.put(`/admin/users/${userId}`, { approved: false, blocked: true })
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, approved: false, blocked: true } : u))
+      toast.success('User access denied.')
+    } catch { toast.error('Action failed') }
   }
-  const toggleBlock = (userId: number, blocked: boolean) => {
-    setUsers(prev => prev.map(u => u.id === userId ? { ...u, blocked: !blocked } : u))
-    toast.success(!blocked ? 'User blacklisted.' : 'User restored.')
+  const toggleBlock = async (userId: number, blocked: boolean) => {
+    try {
+      await api.put(`/admin/users/${userId}`, { blocked: !blocked })
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, blocked: !blocked } : u))
+      toast.success(!blocked ? 'User blacklisted.' : 'User restored.')
+    } catch { toast.error('Status update failed') }
   }
   const toggleCorridor = async (id: number, active: boolean) => {
     setCorridors(prev => prev.map(c => c.id === id ? { ...c, is_active: !active } : c))

@@ -607,6 +607,21 @@ export default function RideDetailPage() {
                     Finish Trip
                   </button>
                 )}
+                {/* Cancel option for host */}
+                <button
+                  onClick={() => {
+                    if (confirm('Permanently cancel this ride? All accepted riders will be notified.')) {
+                      api.delete(`/rides/${rideId}`).then(() => {
+                        toast.success('Mission aborted.');
+                        router.push('/rides');
+                      }).catch(() => toast.error('Abort failed'))
+                    }
+                  }}
+                  className="flex-1 min-w-[140px] py-4 bg-red-600/10 border border-red-500/20 text-red-400 hover:bg-red-600 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <XCircle className="w-4 h-4" />
+                  Cancel Ride
+                </button>
               </div>
             )}
 

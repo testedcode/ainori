@@ -697,13 +697,13 @@ export async function handleUpdateRide(pool: Pool, id: number, body: unknown, au
     `UPDATE rides SET ${updates.join(', ')} WHERE id = $${i} AND user_id = $${i + 1}`,
     args
   )
-  // Auto-update ride status based on seats
+  // Auto-update ride status based on seats (ONLY if it's still in booking phase)
   await pool.query(`
     UPDATE rides SET status = CASE
       WHEN available_seats = 0 THEN 'full'
       WHEN available_seats < total_seats THEN 'partially_filled'
       ELSE 'open'
-    END WHERE id = $1
+    END WHERE id = $1 AND status IN ('open', 'partially_filled', 'full')
   `, [id])
   // If ride is now full, auto-reject remaining pending requests
   const finalSeats = await pool.query(`SELECT available_seats FROM rides WHERE id = $1`, [id])
@@ -929,13 +929,13 @@ export async function handleUpdatePaymentStatus(pool: Pool, rideId: number, user
 export async function handleGetAllUsers(pool: Pool, _auth: Auth) {
   try {
     const r = await pool.query(
-      `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, created_at, updated_at FROM users ORDER BY created_at DESC`
+      `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, approved, blocked, is_beta, created_at, updated_at FROM users ORDER BY created_at DESC`
     )
     return jsonResponse(r.rows)
   } catch (e: any) {
     console.warn('handleGetAllUsers full select failed, trying base columns', e.message)
     const r2 = await pool.query(
-      `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, created_at, updated_at FROM users ORDER BY created_at DESC`
+      `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, approved, blocked, is_beta, created_at, updated_at FROM users ORDER BY created_at DESC`
     )
     return jsonResponse(r2.rows.map(row => ({ ...row, avatar_url: null, bio: null, qr_code_url: null })))
   }
@@ -946,7 +946,7 @@ export async function handleUpdateUser(pool: Pool, id: number, body: unknown, _a
   const updates: string[] = []
   const args: unknown[] = []
   let i = 1
-  for (const key of ['name', 'phone', 'city', 'role', 'carbon_credits', 'upi_id']) {
+  for (const key of ['name', 'phone', 'city', 'role', 'carbon_credits', 'upi_id', 'approved', 'blocked', 'is_beta']) {
     if (b[key] !== undefined) {
       updates.push(`${key} = $${i++}`)
       args.push(b[key])
