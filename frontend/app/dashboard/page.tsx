@@ -20,6 +20,8 @@ interface UserProfile {
   name: string
   role: string
   carbon_credits: number
+  avatar_url?: string
+  approved?: boolean
 }
 
 interface Corridor {
@@ -209,70 +211,137 @@ export default function DashboardPage() {
 
       <main className="max-w-7xl mx-auto px-6 md:px-12 mt-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
         
-        {/* ─── EXECUTIVE COMMAND HERO ────────────────────────────────────────── */}
-        <section className="relative mb-16 overflow-hidden">
-           <div className="bg-gradient-to-br from-blue-600/20 via-white/[0.02] to-transparent border border-white/10 rounded-[4rem] p-12 md:p-20 backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
-              {/* Animated Accents */}
-              <div className="absolute top-0 right-0 p-20 opacity-5 group-hover:scale-110 transition-transform duration-1000">
-                 <ShieldCheck className="w-96 h-96 text-white" />
-              </div>
-              <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-500/10 rounded-full blur-[100px] animate-pulse" />
+        {/* ─── DYNAMIC AUTHORIZATION HERO ────────────────────────────────────────── */}
+        {user?.approved ? (
+          <section className="relative mb-20 overflow-hidden animate-in fade-in zoom-in-95 duration-1000">
+             <div className="bg-gradient-to-br from-blue-600/30 via-white/[0.02] to-transparent border border-white/20 rounded-[4rem] p-12 md:p-20 backdrop-blur-3xl shadow-[0_40px_100px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+                {/* Background Visuals */}
+                <div className="absolute top-0 right-0 p-20 opacity-5 group-hover:scale-110 transition-transform duration-1000">
+                   <ShieldCheck className="w-96 h-96 text-white" />
+                </div>
+                <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-500/10 rounded-full blur-[100px] animate-pulse" />
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center relative z-10">
-                 {/* Left: Identity Briefing */}
-                 <div className="lg:col-span-7 text-center lg:text-left">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-500/20 border border-blue-500/30 text-blue-400 rounded-full text-[10px] font-black uppercase tracking-widest mb-8">
-                       <ShieldCheck className="w-3.5 h-3.5" /> SYSTEM BRIEFING
-                    </div>
-                    <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-6 italic uppercase leading-none">
-                       EXECUTIVE<br />COMMAND.
-                    </h1>
-                    <p className="text-lg text-white/40 font-bold mb-10 uppercase tracking-widest">
-                       Active Corridor Authorization: <span className="text-blue-400">FULL SECTOR ACCESS</span>
-                    </p>
-                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
-                       <Link href="/offer-ride" className="px-10 py-5 bg-white text-black rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-blue-500 hover:text-white transition-all active:scale-95 shadow-2xl">
-                          Share Premium Ride
-                       </Link>
-                       <Link href="/find-ride" className="px-10 py-5 bg-white/5 border border-white/10 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-white/10 transition-all">
-                          Locate Corridors
-                       </Link>
-                    </div>
-                 </div>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center relative z-10">
+                   {/* Left: Identity Briefing */}
+                   <div className="lg:col-span-7">
+                      <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-500/20 border border-blue-500/30 text-blue-400 rounded-full text-[10px] font-black uppercase tracking-widest mb-8">
+                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping" />
+                         SYSTEM AUTHORIZED
+                      </div>
+                      <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-8 italic uppercase leading-[0.85]">
+                         COMMAND<br />THE FLOW.
+                      </h1>
+                      <div className="flex items-center gap-6 mb-12">
+                         <div className="px-6 py-2 bg-white/5 border border-white/10 rounded-xl">
+                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mb-1">Clearance Level</p>
+                            <p className="text-xs font-black text-blue-400 uppercase tracking-widest">LEVEL 3 EXECUTIVE</p>
+                         </div>
+                         <div className="px-6 py-2 bg-white/5 border border-white/10 rounded-xl">
+                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mb-1">Network Integrity</p>
+                            <p className="text-xs font-black text-green-400 uppercase tracking-widest">ENCRYPTED NODE</p>
+                         </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-6 mb-12">
+                         <Link href="/offer-ride" className="px-12 py-6 bg-white text-black rounded-[2rem] font-black text-[12px] uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all active:scale-95 shadow-2xl">
+                            INITIALIZE FLEET
+                         </Link>
+                         <Link href="/find-ride" className="px-12 py-6 bg-white/5 border border-white/20 rounded-[2rem] font-black text-[12px] uppercase tracking-[0.2em] hover:bg-white/10 transition-all">
+                            SYNC CORRIDORS
+                         </Link>
+                      </div>
 
-                 {/* Right: Holographic Status Node */}
-                 <div className="lg:col-span-5 relative">
-                    <div className="bg-white/[0.03] border border-white/10 rounded-[3.5rem] p-10 space-y-8">
-                       <div className="flex items-center gap-6 pb-6 border-b border-white/5">
-                          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 p-0.5 shadow-2xl">
-                             <div className="w-full h-full rounded-[1.1rem] bg-slate-900 overflow-hidden flex items-center justify-center font-black text-xl text-white/20">
-                                {user?.name?.[0]}
-                             </div>
-                          </div>
-                          <div>
-                             <h4 className="text-xl font-black text-white uppercase italic">{user?.name}</h4>
-                             <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">ELITE EXECUTIVE NODE L3</p>
-                          </div>
-                       </div>
-                       
-                       <div className="grid grid-cols-2 gap-6">
-                          <div>
-                             <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-2">Network Priority</p>
-                             <p className="text-2xl font-black text-blue-400">98.4%</p>
-                          </div>
-                          <div className="text-right">
-                             <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-2">Status</p>
-                             <p className="text-xs font-black text-green-500 uppercase tracking-widest bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">Authorized</p>
-                          </div>
-                       </div>
-                    </div>
-                 </div>
-              </div>
-           </div>
-        </section>
+                      {/* Privilege Showcase */}
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-10 border-t border-white/5">
+                         {[
+                           { label: 'Priority Match', status: 'Active', icon: Zap, color: 'text-amber-400' },
+                           { label: 'Executive Fleet', status: 'Ready', icon: Car, color: 'text-blue-400' },
+                           { label: 'Private Sync', status: 'Enabled', icon: ShieldCheck, color: 'text-green-400' }
+                         ].map((p, i) => (
+                           <div key={i} className="flex items-center gap-3">
+                              <p.icon className={`w-3.5 h-3.5 ${p.color}`} />
+                              <div>
+                                 <p className="text-[7px] font-black text-white/20 uppercase tracking-widest leading-none mb-1">{p.label}</p>
+                                 <p className="text-[9px] font-black text-white uppercase tracking-widest">{p.status}</p>
+                              </div>
+                           </div>
+                         ))}
+                      </div>
+                   </div>
 
-        {/* Global Impact Dashboard Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16">
+                   {/* Right: Holographic Biometric Node */}
+                   <div className="lg:col-span-5 relative">
+                      <div className="relative">
+                         <div className="absolute -inset-10 bg-blue-500/10 blur-[60px] rounded-full animate-pulse" />
+                         <div className="bg-white/[0.03] border border-white/10 rounded-[4rem] p-12 backdrop-blur-2xl relative z-10 shadow-2xl">
+                            <div className="flex flex-col items-center text-center">
+                               <div className="relative mb-8">
+                                  <div className="absolute -inset-4 border-2 border-dashed border-blue-500/20 rounded-full animate-[spin_20s_linear_infinite]" />
+                                  <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-tr from-blue-600 to-indigo-600 p-1 shadow-2xl relative overflow-hidden group/avatar">
+                                     {user?.avatar_url ? (
+                                        <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover rounded-[2.2rem]" />
+                                     ) : (
+                                        <div className="w-full h-full rounded-[2.2rem] bg-slate-900 flex items-center justify-center font-black text-4xl text-white/10">
+                                           {user?.name?.[0]}
+                                        </div>
+                                     )}
+                                     <div className="absolute inset-0 bg-gradient-to-t from-blue-600/40 to-transparent opacity-0 group-hover/avatar:opacity-100 transition-opacity" />
+                                  </div>
+                                  <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-green-500 rounded-2xl border-4 border-[#1e293b] flex items-center justify-center shadow-xl">
+                                     <ShieldCheck className="w-5 h-5 text-white" />
+                                  </div>
+                               </div>
+                               
+                               <h4 className="text-3xl font-black text-white italic uppercase tracking-tighter mb-2">{user?.name}</h4>
+                               <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-10">Elite Node Identified</p>
+                               
+                               <div className="w-full grid grid-cols-2 gap-4 border-t border-white/5 pt-8">
+                                  <div className="text-left">
+                                     <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Priority</p>
+                                     <p className="text-xl font-black text-white">98.4%</p>
+                                  </div>
+                                  <div className="text-right">
+                                     <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Status</p>
+                                     <p className="text-xs font-black text-green-400 uppercase tracking-widest">AUTHORIZED</p>
+                                  </div>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+             </div>
+          </section>
+        ) : (
+          <section className="relative mb-20 overflow-hidden">
+             <div className="bg-white/[0.02] border border-white/10 rounded-[3rem] p-12 md:p-16 relative overflow-hidden group">
+                <div className="max-w-2xl">
+                   <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full text-[10px] font-black uppercase tracking-widest mb-6">
+                      <Sparkles className="w-3.5 h-3.5" /> AUTHORIZATION PENDING
+                   </div>
+                   <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-6 uppercase italic">
+                      Welcome, {user?.name?.split(' ')[0] || 'Member'}.
+                   </h1>
+                   <p className="text-lg text-white/40 mb-10 leading-relaxed uppercase tracking-widest">
+                      Your high-fidelity corridor access is being processed. Complete your profile to unlock elite fleet privileges.
+                   </p>
+                   <div className="flex items-center gap-4">
+                      <Link href="/profile" className="px-8 py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all">
+                         COMPLETE PROFILE
+                      </Link>
+                      <Link href="/find-ride" className="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">
+                         BROWSE RIDES
+                      </Link>
+                   </div>
+                </div>
+                <div className="absolute top-0 right-0 p-16 opacity-[0.02] group-hover:scale-105 transition-transform duration-1000">
+                   <Car className="w-80 h-80 text-white" />
+                </div>
+             </div>
+          </section>
+        )}
+
+        {/* ─── GLOBAL IMPACT & NETWORK STATS ────────────────────────────────── */}
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
           {[
             { icon: Leaf, label: 'Carbon Neutrality', val: `${user?.carbon_credits || 450}g`, color: 'bg-green-500', glow: 'shadow-green-500/20' },
             { icon: Zap, label: 'Commute Velocity', val: '12 Days', color: 'bg-amber-500', glow: 'shadow-amber-500/20' },
