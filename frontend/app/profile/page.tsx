@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { 
   User, Mail, Phone, MapPin, CreditCard, Save, Loader2, 
   Leaf, Star, Award, ShieldCheck, QrCode, Edit3, Camera,
-  Clock
+  Clock, Sparkles, Crown, ZapOff, ShieldAlert
 } from 'lucide-react'
+import Link from 'next/link'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
 import JoolNav from '../components/JoolNav'
@@ -211,65 +212,94 @@ export default function ProfilePage() {
       <main className="max-w-6xl mx-auto px-6 md:px-12 mt-12">
         
         {/* Profile Header Card */}
-        <div className="bg-white/5 border border-white/10 rounded-[3rem] p-8 md:p-12 backdrop-blur-2xl shadow-2xl relative overflow-hidden mb-12">
-           <div className="absolute top-0 right-0 p-12 opacity-5 translate-x-1/4 -translate-y-1/4">
-             <User className="w-96 h-96 text-white" />
-           </div>
+        <div className="bg-gradient-to-br from-white/10 to-white/[0.02] border border-white/20 rounded-[4rem] p-10 md:p-16 backdrop-blur-3xl shadow-[0_50px_100px_rgba(0,0,0,0.5)] relative overflow-hidden mb-16 group">
+           {/* Abstract Background Glows */}
+           <div className="absolute -top-20 -right-20 w-96 h-96 bg-blue-600/10 blur-[120px] rounded-full group-hover:bg-blue-600/20 transition-all duration-1000" />
+           <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-indigo-600/10 blur-[120px] rounded-full group-hover:bg-indigo-600/20 transition-all duration-1000" />
            
-           <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
+           <div className="flex flex-col lg:flex-row items-center gap-12 relative z-10">
               {/* Avatar Section */}
-              <div className="relative group">
-                 <div className="w-40 h-40 rounded-[3rem] bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-6xl shadow-[0_20px_50px_rgba(37,99,235,0.3)] border-4 border-white/5 overflow-hidden relative">
-                   {profile?.avatar_url ? (
-                     <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-                   ) : (
-                     initials
-                   )}
-                   {uploading && (
-                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
-                       <Loader2 className="w-8 h-8 text-white animate-spin" />
-                     </div>
-                   )}
+              <div className="relative">
+                 <div className="w-48 h-48 rounded-[3.5rem] bg-gradient-to-tr from-blue-600 via-indigo-500 to-blue-400 p-1.5 shadow-[0_30px_60px_rgba(37,99,235,0.4)] relative">
+                    <div className="w-full h-full rounded-[3.2rem] bg-slate-900 overflow-hidden relative">
+                       {profile?.avatar_url ? (
+                         <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                       ) : (
+                         <div className="w-full h-full flex items-center justify-center text-6xl font-black text-white/20">{initials}</div>
+                       )}
+                       {uploading && (
+                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
+                           <Loader2 className="w-8 h-8 text-white animate-spin" />
+                         </div>
+                       )}
+                    </div>
                  </div>
-                 <label className="absolute bottom-2 right-2 p-3 bg-white text-black rounded-2xl shadow-xl hover:scale-110 transition-transform active:scale-95 cursor-pointer z-10">
-                    <Camera className="w-5 h-5" />
+                 <label className="absolute -bottom-2 -right-2 w-14 h-14 bg-white text-black rounded-2xl shadow-2xl hover:scale-110 transition-all active:scale-95 cursor-pointer z-10 flex items-center justify-center border-4 border-[#0f172a]">
+                    <Camera className="w-6 h-6" />
                     <input type="file" accept="image/*" onChange={handleAvatarUpload} disabled={uploading} className="hidden" />
                  </label>
               </div>
 
               {/* Identity Section */}
               <div className="flex-1 text-center md:text-left">
-                 <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-full mb-4">
-                    <ShieldCheck className="w-3.5 h-3.5" /> 
-                    {profile?.role === 'admin' ? 'ELITE ARCHITECT' : profile?.approved ? 'VERIFIED COMMUTER' : 'PENDING VERIFICATION'}
+                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-6">
+                    <div className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg ${
+                      profile?.approved ? 'bg-amber-500 text-black shadow-amber-500/20' : 'bg-white/10 text-white/40'
+                    }`}>
+                       <ShieldCheck className="w-4 h-4" /> 
+                       {profile?.role === 'admin' ? 'SYNDICATE ARCHITECT' : profile?.approved ? 'ELITE EXECUTIVE NODE' : 'UNVERIFIED NODE'}
+                    </div>
+                    {profile?.approved && (
+                      <div className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-blue-600/20 animate-pulse">
+                         <Sparkles className="w-4 h-4" /> PREMIUM SYNDICATE
+                      </div>
+                    )}
                  </div>
-                 <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2">{profile?.name}</h1>
-                 <p className="text-lg text-white/40 font-medium mb-6 flex items-center justify-center md:justify-start gap-2">
-                    <Mail className="w-4 h-4" /> {profile?.email}
+                 <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-4 leading-none uppercase italic">{profile?.name}</h1>
+                 <p className="text-xl text-white/30 font-bold mb-8 flex items-center justify-center lg:justify-start gap-3 tracking-tight">
+                    <Mail className="w-5 h-5" /> {profile?.email}
                  </p>
                  
-                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-                    <div className="px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center gap-2">
-                       <Leaf className="w-4 h-4 text-green-400" />
-                       <span className="text-sm font-black text-green-400 uppercase tracking-tighter">{profile?.carbon_credits}g CARBON SAVED</span>
+                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6">
+                    <div className="group/stat">
+                       <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1 group-hover/stat:text-green-400 transition-colors">Carbon Sovereign</p>
+                       <div className="flex items-center gap-2">
+                          <Leaf className="w-5 h-5 text-green-500" />
+                          <span className="text-2xl font-black text-white">{profile?.carbon_credits}<span className="text-xs text-white/30 ml-1">kg</span></span>
+                       </div>
                     </div>
-                    <div className="px-4 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-xl flex items-center gap-2">
-                       <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                       <span className="text-sm font-black text-yellow-400 mt-0.5">4.9 RATING</span>
+                    <div className="w-px h-10 bg-white/10 hidden md:block" />
+                    <div className="group/stat">
+                       <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1 group-hover/stat:text-yellow-400 transition-colors">Trust Score</p>
+                       <div className="flex items-center gap-2">
+                          <Star className="w-5 h-5 text-yellow-500 fill-yellow-400" />
+                          <span className="text-2xl font-black text-white">4.9<span className="text-xs text-white/30 ml-1">/ 5.0</span></span>
+                       </div>
                     </div>
                  </div>
               </div>
 
-              <div className="md:border-l md:border-white/10 md:pl-10 flex flex-col gap-3 min-w-[200px]">
+              {/* Action Section */}
+              <div className="lg:border-l lg:border-white/10 lg:pl-12 flex flex-col gap-4 min-w-[240px]">
+                 {profile?.approved && (
+                   <Link 
+                     href="/exclusive-benefits"
+                     className="w-full py-5 bg-gradient-to-r from-amber-500 to-orange-600 text-black rounded-[2rem] font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:scale-[1.02] transition-all shadow-xl shadow-amber-600/20"
+                   >
+                      <Crown className="w-4 h-4" /> EXCLUSIVE BENEFITS
+                   </Link>
+                 )}
                  <button 
                    onClick={() => setIsEditing(!isEditing)}
                    className="w-full py-4 bg-white text-black rounded-[2rem] font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-200 transition-all active:scale-95 shadow-xl"
                  >
-                    {isEditing ? <><Edit3 className="w-4 h-4" /> CANCEL EDIT</> : <><Edit3 className="w-4 h-4" /> MODIFY PROFILE</>}
+                    {isEditing ? <><ZapOff className="w-4 h-4" /> ABORT EDIT</> : <><Edit3 className="w-4 h-4" /> MODIFY PROFILE</>}
                  </button>
-                 <button className="w-full py-4 bg-white/5 border border-white/5 hover:bg-white/10 rounded-[2rem] font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all">
-                    <Award className="w-4 h-4" /> VIEW ACHIEVEMENTS
-                 </button>
+                 {!profile?.approved && (
+                   <button className="w-full py-5 bg-white/5 border border-white/10 text-white/40 rounded-[2rem] font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 cursor-not-allowed">
+                      <ShieldAlert className="w-4 h-4" /> PENDING ACCESS
+                   </button>
+                 )}
               </div>
            </div>
         </div>

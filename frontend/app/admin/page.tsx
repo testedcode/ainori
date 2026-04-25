@@ -194,6 +194,13 @@ export default function AdminPage() {
       toast.success(!blocked ? 'User blacklisted.' : 'User restored.')
     } catch { toast.error('Status update failed') }
   }
+  const revokeApproval = async (userId: number) => {
+    try {
+      await api.put(`/admin/users/${userId}`, { approved: false })
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, approved: false } : u))
+      toast.success('Approval revoked.')
+    } catch { toast.error('Failed to revoke approval') }
+  }
   const toggleCorridor = async (id: number, active: boolean) => {
     setCorridors(prev => prev.map(c => c.id === id ? { ...c, is_active: !active } : c))
     try { await api.put(`/corridors/${id}`, { is_active: !active }) } catch {}
@@ -485,6 +492,11 @@ export default function AdminPage() {
                        <button onClick={() => setAdminPasswordModalUser(u.id)} className="bg-yellow-600/10 text-yellow-500 hover:bg-yellow-600 hover:text-white px-8 py-4 rounded-2xl font-black text-xs transition-all active:scale-95">
                          RESET PW
                        </button>
+                       {u.approved && (
+                         <button onClick={() => revokeApproval(u.id)} className="bg-orange-600/10 text-orange-500 hover:bg-orange-600 hover:text-white px-8 py-4 rounded-2xl font-black text-xs transition-all active:scale-95">
+                           REVOKE APPROVAL
+                         </button>
+                       )}
                        <button onClick={() => toggleBlock(u.id, u.blocked || false)}
                          className={`px-8 py-4 rounded-2xl font-black text-xs transition-all active:scale-95 ${u.blocked ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white'}`}>
                          {u.blocked ? 'RESTORE ACCOUNT' : 'BLACKLIST USER'}

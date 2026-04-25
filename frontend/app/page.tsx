@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { 
   Car, Shield, Leaf, Banknote, Clock, ArrowRight, 
   User, Sparkles, MapPin, ChevronRight, CheckCircle2,
-  Lock, Zap, Star, Users, ShieldCheck, Gem,
+  Lock, Zap, Star, Users, ShieldCheck, Gem, Crown,
   XCircle, AlertCircle, MessageSquare, VolumeX, Handshake, Smile, Heart
 } from 'lucide-react';
 import { api } from '@/lib/api';
@@ -21,6 +21,8 @@ export default function HomePage() {
     trees_saved: 0
   });
 
+  const [user, setUser] = useState<any>(null);
+  const [vehicles, setVehicles] = useState<any[]>([]);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -31,11 +33,22 @@ export default function HomePage() {
       try {
         const res = await api.get('/stats') as any;
         if (res) setStats(prev => ({ ...prev, ...res }));
-      } catch (e) {
-        console.error('Failed to fetch stats');
-      }
+      } catch (e) {}
     };
+
+    const checkAuth = async () => {
+       try {
+          const u = await api.getProfile();
+          setUser(u);
+          if (u) {
+             const v = await api.get('/vehicles');
+             if (Array.isArray(v)) setVehicles(v);
+          }
+       } catch {}
+    };
+
     fetchStats();
+    checkAuth();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -45,8 +58,13 @@ export default function HomePage() {
 
   return (
     <div className={`min-h-screen text-white overflow-x-hidden font-sans selection:bg-blue-600/30 transition-colors duration-1000 ${theme.bg}`}>
+      {/* Background Texture & Pattern */}
+      <div className="fixed inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] -z-10 pointer-events-none" />
+      
       {/* Dynamic Vibe Background Glow */}
       <div className={`fixed top-0 left-1/2 -translate-x-1/2 w-full h-[800px] blur-[150px] -z-10 pointer-events-none transition-all duration-1000 ${theme.glow}`} />
+      <div className="fixed -top-40 -left-40 w-[600px] h-[600px] bg-blue-600/5 blur-[180px] -z-10 rounded-full animate-pulse" />
+      <div className="fixed -bottom-40 -right-40 w-[600px] h-[600px] bg-amber-500/5 blur-[180px] -z-10 rounded-full animate-pulse" />
       {/* Premium Navbar */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-500 px-6 md:px-12 py-4 flex justify-between items-center ${
         scrolled ? 'bg-[#0f172a]/80 backdrop-blur-2xl border-b border-white/5 py-3' : 'bg-transparent'
@@ -74,6 +92,97 @@ export default function HomePage() {
       </nav>
 
       <main>
+        {/* ─── VERIFIED MEMBER WELCOME STRIP ───────────────────────────────── */}
+        {user?.approved && (
+          <div className="pt-24 pb-4 bg-amber-500/10 border-b border-amber-500/20 backdrop-blur-md relative overflow-hidden group">
+             <div className="absolute top-0 right-0 p-8 opacity-10 animate-pulse">
+                <Crown className="w-12 h-12 text-amber-500" />
+             </div>
+             <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                   <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.3)]">
+                      {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover rounded-2xl" /> : <ShieldCheck className="w-6 h-6 text-black" />}
+                   </div>
+                   <div>
+                      <h4 className="text-sm font-black text-white uppercase tracking-widest leading-none">Welcome back, Executive {user.name.split(' ')[0]}</h4>
+                      <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] mt-1 flex items-center gap-2">
+                         <Star className="w-3 h-3 fill-amber-500" /> Verified Premium Member
+                      </p>
+                   </div>
+                </div>
+                <Link href="/exclusive-benefits" className="px-6 py-3 bg-amber-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl active:scale-95">
+                   Explore Benefits
+                </Link>
+             </div>
+          </div>
+        )}
+
+        {/* ─── EXECUTIVE MOTION DASHBOARD (FOR VERIFIED) ────────────────── */}
+        {user?.approved && (
+          <section className="container mx-auto px-6 py-20">
+             <div className="bg-gradient-to-br from-blue-600/20 via-white/5 to-transparent border border-white/20 rounded-[4rem] p-12 md:p-20 backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-20 opacity-5 group-hover:scale-110 transition-transform duration-1000">
+                   <ShieldCheck className="w-96 h-96" />
+                </div>
+                
+                <div className="flex flex-col lg:flex-row items-center gap-16 relative z-10">
+                   {/* Profile Image Node */}
+                   <div className="relative">
+                      <div className="w-40 h-40 rounded-[3rem] bg-gradient-to-br from-amber-500 to-orange-600 p-1 shadow-2xl">
+                         <div className="w-full h-full rounded-[2.8rem] bg-slate-900 overflow-hidden">
+                            {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-4xl font-black text-white/20">{user.name[0]}</div>}
+                         </div>
+                      </div>
+                      <div className="absolute -top-3 -right-3 w-10 h-10 bg-amber-500 rounded-2xl flex items-center justify-center shadow-xl border-4 border-[#0f172a]">
+                         <Crown className="w-5 h-5 text-black" />
+                      </div>
+                   </div>
+
+                   {/* Identity & Benefits */}
+                   <div className="flex-1 text-center lg:text-left">
+                      <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-4 italic uppercase">EXECUTIVE MOTION.</h2>
+                      <p className="text-lg text-white/40 font-bold mb-8 uppercase tracking-widest">Syndicate Level: Elite Executive Node</p>
+                      <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                         <Link href="/exclusive-benefits" className="px-8 py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-amber-500 transition-all active:scale-95">
+                            Elite Benefits
+                         </Link>
+                         <Link href="/profile" className="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">
+                            Manage Identity
+                         </Link>
+                      </div>
+                   </div>
+
+                   {/* Vehicle Node (Surprise Element) */}
+                   <div className="lg:w-1/3 w-full">
+                      <div className="bg-white/5 border border-white/10 rounded-[3rem] p-8 relative group/car overflow-hidden">
+                         <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-6">Your Executive Fleet</p>
+                         {vehicles.length > 0 ? (
+                           <div className="space-y-4">
+                              <div className="aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                                 <img src={vehicles[0].image_url || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80'} className="w-full h-full object-cover group-hover/car:scale-110 transition-transform duration-700" />
+                              </div>
+                              <div className="flex justify-between items-end">
+                                 <div>
+                                    <h5 className="font-black text-white uppercase italic">{vehicles[0].make} {vehicles[0].model}</h5>
+                                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{vehicles[0].vehicle_number}</p>
+                                 </div>
+                                 <span className="text-[8px] font-black bg-blue-600/20 text-blue-400 px-2 py-1 rounded-md uppercase">Primary Node</span>
+                              </div>
+                           </div>
+                         ) : (
+                           <div className="text-center py-10 opacity-30">
+                              <Car className="w-12 h-12 mx-auto mb-4" />
+                              <p className="text-[10px] font-black uppercase tracking-widest">No vehicle synchronized</p>
+                              <Link href="/profile" className="text-[8px] text-blue-400 underline mt-2 inline-block">Add Vehicle</Link>
+                           </div>
+                         )}
+                      </div>
+                   </div>
+                </div>
+             </div>
+          </section>
+        )}
+
         {/* ─── DYNAMIC HERO SECTION ────────────────────────────────────────── */}
         <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-40 overflow-hidden">
           {/* Background Elements */}
