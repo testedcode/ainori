@@ -93,9 +93,15 @@ function CardView({
                <svg viewBox="0 0 100 140" className="absolute inset-0 w-full h-full stroke-white/10 fill-white/5">
                  <path d="M20,45 Q20,35 50,35 Q80,35 80,45 L85,90 Q85,110 50,110 Q15,110 15,90 Z" strokeWidth="2" />
                </svg>
-               <div className="relative w-10 h-10 rounded-full bg-slate-900 border-2 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.5)] overflow-hidden">
-                  <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-amber-400 uppercase tracking-tighter">{ride.user_name[0]}</div>
-               </div>
+                <div className={`relative w-10 h-10 rounded-full bg-slate-900 border-2 shadow-[0_0_15px_rgba(251,191,36,0.5)] overflow-hidden ${ride.user_approved ? 'border-amber-400' : 'border-blue-400'}`}>
+                   {ride.user_avatar_url ? (
+                      <img src={ride.user_avatar_url} className="w-full h-full object-cover" alt={ride.user_name} />
+                   ) : (
+                      <div className={`w-full h-full flex items-center justify-center text-[10px] font-black uppercase tracking-tighter ${ride.user_approved ? 'text-amber-400' : 'text-blue-400'}`}>
+                        {ride.user_name[0]}
+                      </div>
+                   )}
+                </div>
             </div>
             <span className="text-[7px] font-black text-amber-400 uppercase tracking-widest">HOST</span>
          </div>
@@ -147,16 +153,21 @@ function CardView({
       onMouseLeave={() => setIsHovered(false)}
       className="group relative"
     >
-      <div className={`relative bg-[#0f172a]/90 backdrop-blur-3xl border rounded-[3.5rem] overflow-hidden transition-all duration-500 hover:shadow-[0_40px_80px_rgba(0,0,0,0.7)] ${
-        isSelected ? 'border-green-500 shadow-[0_0_40px_rgba(74,222,128,0.2)] scale-[1.01]' : 
-        ride.user_approved ? 'border-amber-400/40 shadow-[0_0_40px_rgba(251,191,36,0.15)] ring-1 ring-amber-400/20' : 'border-white/10 hover:border-white/20'
+      <div className={`relative backdrop-blur-3xl border rounded-[3.5rem] overflow-hidden transition-all duration-500 hover:shadow-[0_40px_80px_rgba(0,0,0,0.7)] ${
+        isSelected ? 'bg-[#0f172a]/95 border-green-500 shadow-[0_0_40px_rgba(74,222,128,0.2)] scale-[1.01]' : 
+        ride.user_approved ? 'bg-gradient-to-br from-amber-900/20 via-[#0f172a]/95 to-[#0f172a]/95 border-amber-400/50 shadow-[0_0_50px_rgba(251,191,36,0.15)] ring-1 ring-amber-400/30' : 'bg-[#0f172a]/90 border-white/10 hover:border-white/20'
       }`}>
+         {/* Premium Badge Overlay */}
+         {ride.user_approved && (
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
+         )}
+         
          {/* Vehicle image as subtle glassmorphism background */}
          {ride.vehicle_image_url && (
-           <div className="absolute inset-0 pointer-events-none">
-             <img src={ride.vehicle_image_url} alt="" className="w-full h-full object-cover opacity-[0.07]" />
-             <div className="absolute inset-0 bg-gradient-to-b from-[#0f172a]/60 via-transparent to-[#0f172a]/90" />
-           </div>
+            <div className="absolute inset-0 pointer-events-none">
+              <img src={ride.vehicle_image_url} alt="" className="w-full h-full object-cover opacity-[0.05]" />
+              <div className="absolute inset-0 bg-gradient-to-b from-[#0f172a]/40 via-transparent to-[#0f172a]/95" />
+            </div>
          )}
          {/* HEADER - MOCKUP STYLE */}
          <div className="p-8 pb-4 flex justify-between items-start relative z-10">
