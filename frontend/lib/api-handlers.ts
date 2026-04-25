@@ -1230,3 +1230,14 @@ export async function handleRateRide(pool: Pool, rideId: number, body: unknown, 
   
   return jsonResponse({ message: 'Rating submitted' }, 201)
 }
+
+export async function handleFixSchema(pool: Pool) {
+  try {
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS approved BOOLEAN DEFAULT false`)
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS blocked BOOLEAN DEFAULT false`)
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_beta BOOLEAN DEFAULT false`)
+    return jsonResponse({ message: 'Database schema synchronized successfully.' })
+  } catch (e: any) {
+    return errResponse('Schema sync failed: ' + e.message, 500)
+  }
+}

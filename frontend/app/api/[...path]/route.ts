@@ -339,6 +339,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (path.length === 3 && path[0] === 'rides' && /^\d+$/.test(path[1]) && path[2] === 'rate') {
     return h.handleRateRide(pool as any, parseInt(path[1], 10), body, auth)
   }
+  if (pathStr === 'admin/schema-fix') {
+    const adminErr = requireAdmin(auth)
+    if (adminErr) return adminErr
+    return h.handleFixSchema(pool)
+  }
   return Response.json({ error: 'Not found' }, { status: 404 })
 }
 

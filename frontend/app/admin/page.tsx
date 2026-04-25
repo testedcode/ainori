@@ -390,11 +390,11 @@ export default function AdminPage() {
                      <input type="file" accept="image/*" onChange={handleProfileImageUpload} disabled={uploadingImage} className="hidden" />
                   </label>
                </div>
-               <div>
+                <div>
                   <h3 className="text-3xl font-black mb-2">Admin Profile</h3>
                   <p className="text-white/40 font-bold mb-4 italic uppercase tracking-widest text-xs">Clearance Level: SYSTEM OVERRIDE</p>
                   <p className="text-white/60 font-medium">Configure your ecosystem presence and security credentials.</p>
-               </div>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -429,15 +429,30 @@ export default function AdminPage() {
         {/* USERS */}
         {activeTab === 'users' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                <div>
                  <h2 className="text-3xl font-black">Member Registry</h2>
                  <p className="text-white/40 font-bold">{users.length} authenticated users in ecosystem.</p>
                </div>
-               <div className="relative group">
-                  <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-blue-500 transition-colors" />
-                  <input value={searchUser} onChange={e => setSearchUser(e.target.value)}
-                    placeholder="Search by name or email..." className="bg-white/5 border border-white/5 focus:border-blue-600 pl-16 pr-8 py-5 rounded-2xl text-lg font-black focus:outline-none focus:bg-white/10 transition-all w-full md:w-96" />
+               <div className="flex items-center gap-4">
+                  <button 
+                    onClick={async () => {
+                      const toastId = toast.loading('Synchronizing architecture...')
+                      try {
+                        await api.post('/admin/schema-fix')
+                        toast.success('Database Synchronized! System ready.', { id: toastId })
+                        fetchAll()
+                      } catch { toast.error('Sync failed. Please check server logs.', { id: toastId }) }
+                    }}
+                    className="bg-amber-600 hover:bg-amber-500 text-white px-8 py-6 rounded-2xl font-black text-sm uppercase tracking-widest transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(217,119,6,0.4)] border border-amber-400/30 animate-pulse"
+                  >
+                    <Database className="w-5 h-5" /> SYNC DATABASE SCHEMA
+                  </button>
+                  <div className="relative group">
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-blue-500 transition-colors" />
+                    <input value={searchUser} onChange={e => setSearchUser(e.target.value)}
+                      placeholder="Search..." className="bg-white/5 border border-white/5 focus:border-blue-600 pl-16 pr-8 py-5 rounded-2xl text-lg font-black focus:outline-none focus:bg-white/10 transition-all w-64" />
+                  </div>
                </div>
             </div>
 
@@ -451,7 +466,8 @@ export default function AdminPage() {
                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-1">
                           <h4 className="text-2xl font-black">{u.name}</h4>
                           {u.role === 'admin' && <span className="text-[9px] bg-red-600 text-white px-3 py-1 rounded-full font-black tracking-widest">SYSTEM ADMIN</span>}
-                          {u.approved && !u.blocked && <span className="text-[9px] bg-green-500/10 text-green-400 border border-green-500/20 px-3 py-1 rounded-full font-black tracking-widest">VERIFIED</span>}
+                          {u.approved === true && u.blocked !== true && <span className="text-[9px] bg-amber-500 text-black px-3 py-1 rounded-full font-black tracking-widest shadow-[0_0_15px_rgba(245,158,11,0.4)]">PREMIUM MEMBER</span>}
+                          {u.approved === true && u.blocked !== true && <span className="text-[9px] bg-green-500/10 text-green-400 border border-green-500/20 px-3 py-1 rounded-full font-black tracking-widest">VERIFIED</span>}
                        </div>
                        <p className="text-white/40 font-bold">{u.email}</p>
                        <div className="flex items-center justify-center md:justify-start gap-4 mt-3 text-[10px] font-black text-white/20 tracking-widest uppercase">
