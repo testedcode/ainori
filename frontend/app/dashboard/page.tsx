@@ -245,7 +245,7 @@ export default function DashboardPage() {
                          <Link href="/offer-ride" className="px-12 py-6 bg-white text-black rounded-[2rem] font-black text-[12px] uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all active:scale-95 shadow-2xl">
                             INITIALIZE FLEET
                          </Link>
-                         <Link href="/find-ride" className="px-12 py-6 bg-white/5 border border-white/20 rounded-[2rem] font-black text-[12px] uppercase tracking-[0.2em] hover:bg-white/10 transition-all">
+                         <Link href="/rides" className="px-12 py-6 bg-white/5 border border-white/20 rounded-[2rem] font-black text-[12px] uppercase tracking-[0.2em] hover:bg-white/10 transition-all">
                             SYNC CORRIDORS
                          </Link>
                       </div>
@@ -328,7 +328,7 @@ export default function DashboardPage() {
                       <Link href="/profile" className="px-8 py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all">
                          COMPLETE PROFILE
                       </Link>
-                      <Link href="/find-ride" className="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">
+                      <Link href="/rides" className="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">
                          BROWSE RIDES
                       </Link>
                    </div>
