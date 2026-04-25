@@ -935,9 +935,9 @@ export async function handleGetAllUsers(pool: Pool, _auth: Auth) {
   } catch (e: any) {
     console.warn('handleGetAllUsers full select failed, trying base columns', e.message)
     const r2 = await pool.query(
-      `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, approved, blocked, is_beta, created_at, updated_at FROM users ORDER BY created_at DESC`
+      `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, created_at, updated_at FROM users ORDER BY created_at DESC`
     )
-    return jsonResponse(r2.rows.map(row => ({ ...row, avatar_url: null, bio: null, qr_code_url: null })))
+    return jsonResponse(r2.rows.map(row => ({ ...row, avatar_url: null, bio: null, qr_code_url: null, approved: false, blocked: false, is_beta: false })))
   }
 }
 
