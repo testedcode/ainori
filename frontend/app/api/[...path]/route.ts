@@ -150,7 +150,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           // Try DB first; if unavailable, use normal auth path below.
           try {
             const r = await pool.query(
-              `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url FROM users WHERE id = $1`,
+              `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, approved, blocked, is_beta FROM users WHERE id = $1`,
               [payload.user_id]
             )
             if (r.rows.length > 0) return Response.json(r.rows[0])

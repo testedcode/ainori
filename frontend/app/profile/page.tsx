@@ -24,6 +24,8 @@ interface ProfileData {
   bio?: string
   avatar_url?: string
   qr_code_url?: string
+  approved?: boolean
+  blocked?: boolean
 }
 
 interface UserRide {
@@ -238,7 +240,8 @@ export default function ProfilePage() {
               {/* Identity Section */}
               <div className="flex-1 text-center md:text-left">
                  <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-full mb-4">
-                    <ShieldCheck className="w-3.5 h-3.5" /> {profile?.role === 'admin' ? 'ELITE ARCHITECT' : 'VERIFIED COMMUTER'}
+                    <ShieldCheck className="w-3.5 h-3.5" /> 
+                    {profile?.role === 'admin' ? 'ELITE ARCHITECT' : profile?.approved ? 'VERIFIED COMMUTER' : 'PENDING VERIFICATION'}
                  </div>
                  <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2">{profile?.name}</h1>
                  <p className="text-lg text-white/40 font-medium mb-6 flex items-center justify-center md:justify-start gap-2">

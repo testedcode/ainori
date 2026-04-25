@@ -108,14 +108,14 @@ export async function handleLogin(pool: Pool, body: unknown) {
     let r: any
     try {
       r = await pool.query(
-        `SELECT id, email, password_hash, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url
+        `SELECT id, email, password_hash, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, approved, blocked, is_beta
          FROM users WHERE email = $1`,
         [b.email]
       )
     } catch (e: any) {
       console.warn('Login full select failed, trying base columns', e.message)
       r = await pool.query(
-        `SELECT id, email, password_hash, name, phone, city, role, carbon_credits, upi_id
+        `SELECT id, email, password_hash, name, phone, city, role, carbon_credits, upi_id, approved, blocked, is_beta
          FROM users WHERE email = $1`,
         [b.email]
       )
@@ -148,6 +148,9 @@ export async function handleLogin(pool: Pool, body: unknown) {
       avatar_url: row.avatar_url || null,
       bio: row.bio || null,
       qr_code_url: row.qr_code_url || null,
+      approved: row.approved || false,
+      blocked: row.blocked || false,
+      is_beta: row.is_beta || false,
     }
     console.log(`[AUTH] Login successful: ${user.email} (Role: ${user.role})`)
     return jsonResponse({ token, user })
@@ -164,7 +167,7 @@ export async function handleProfile(pool: Pool, auth: Auth) {
     
     try {
       const r = await pool.query(
-        `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, last_seen, created_at, updated_at
+        `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, approved, blocked, is_beta, last_seen, created_at, updated_at
          FROM users WHERE id = $1`,
         [auth.userId]
       )
@@ -174,7 +177,7 @@ export async function handleProfile(pool: Pool, auth: Auth) {
       console.warn('handleProfile full select failed, trying base columns', e.message)
       // Fallback if schema hasn't synced successfully
       const r2 = await pool.query(
-        `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, last_seen, created_at, updated_at
+        `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, approved, blocked, is_beta, last_seen, created_at, updated_at
          FROM users WHERE id = $1`,
         [auth.userId]
       )
@@ -189,7 +192,7 @@ export async function handleProfile(pool: Pool, auth: Auth) {
 
 export async function handleGetUserProfile(pool: Pool, id: number) {
   const r = await pool.query(
-    `SELECT id, name, city, role, carbon_credits, avatar_url, last_seen, created_at
+    `SELECT id, name, city, role, carbon_credits, avatar_url, approved, blocked, last_seen, created_at
      FROM users WHERE id = $1`,
     [id]
   )
