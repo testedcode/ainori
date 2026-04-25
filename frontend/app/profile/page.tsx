@@ -209,7 +209,7 @@ export default function ProfilePage() {
       
       <JoolNav />
 
-      <main className="max-w-6xl mx-auto px-6 md:px-12 mt-12">
+      <main className="max-w-7xl mx-auto px-6 md:px-12 mt-12">
         
         {/* Holographic Executive Identity Vault */}
         <div className="relative mb-24 animate-in fade-in zoom-in-95 duration-1000">

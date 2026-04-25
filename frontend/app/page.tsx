@@ -99,7 +99,7 @@ export default function HomePage() {
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-blue-600/10 via-transparent to-transparent -z-10" />
             <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-amber-500/5 to-transparent -z-10" />
             
-            <div className="container mx-auto px-6 relative z-10">
+            <div className="container max-w-7xl mx-auto px-6 relative z-10">
                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
                   {/* Left: Identity Briefing */}
                   <div className="lg:col-span-7">
@@ -179,7 +179,7 @@ export default function HomePage() {
             {/* Background Elements */}
             <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b ${theme.visuals.gradient} -z-10`} />
             
-            <div className="container mx-auto px-6 relative z-10">
+            <div className="container max-w-7xl mx-auto px-6 relative z-10">
               <div className="max-w-4xl mx-auto text-center">
                 <div className="inline-flex items-center gap-3 px-6 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-[0.4em] mb-10 text-blue-400">
                   <ShieldCheck className="w-4 h-4" /> Secure Office Commute Corridor
@@ -187,11 +187,11 @@ export default function HomePage() {
                 
                 <h1 className="text-6xl md:text-9xl font-black tracking-tighter mb-10 leading-[0.85] uppercase italic">
                   Mumbai's<br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-white to-blue-400 animate-gradient-x">Elite Grid.</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-white to-blue-400 animate-gradient-x">Professional Corridor.</span>
                 </h1>
                 
                 <p className="text-xl md:text-3xl text-white/50 font-bold mb-16 uppercase tracking-wide leading-relaxed">
-                  The private corridor for professionals.<br />
+                  Stop leaking your privacy in unverified chat groups.<br />
                   <span className="text-blue-500/80">Palava • RCP • MBP • LODHA iTHINK</span>
                 </p>
                 
@@ -211,7 +211,7 @@ export default function HomePage() {
         
         {/* ─── EXECUTIVE MOTION DASHBOARD (FOR VERIFIED) ────────────────── */}
         {user?.approved && (
-          <section className="container mx-auto px-6 py-12">
+          <section className="container max-w-7xl mx-auto px-6 py-12">
              <div className="bg-gradient-to-br from-blue-600/20 via-white/[0.02] to-transparent border border-white/20 rounded-[4rem] p-12 md:p-20 backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-20 opacity-5 group-hover:scale-110 transition-transform duration-1000">
                    <ShieldCheck className="w-96 h-96" />
@@ -271,7 +271,7 @@ export default function HomePage() {
         {/* ─── THE EXPOSE BANNER ────────────────────────────────────────── */}
         <section className="bg-red-600/5 border-y border-red-500/10 py-32 overflow-hidden relative">
            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 pointer-events-none" />
-           <div className="container mx-auto px-6">
+           <div className="container max-w-7xl mx-auto px-6">
               <div className="flex flex-col lg:flex-row items-center gap-20">
                  <div className="lg:w-1/2">
                     <p className="text-red-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">THE VULNERABILITY NEXUS</p>
@@ -321,7 +321,7 @@ export default function HomePage() {
 
         {/* ─── THE PLATFORM BENEFITS ─────────────────────────────────────── */}
         <section id="safety" className="py-40 relative">
-           <div className="container mx-auto px-6">
+           <div className="container max-w-7xl mx-auto px-6">
               <div className="text-center mb-32">
                  <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">THE JOOL INFRASTRUCTURE</p>
                  <h2 className="text-6xl md:text-8xl font-black tracking-tighter italic uppercase italic leading-none">
@@ -351,7 +351,7 @@ export default function HomePage() {
         </section>
 
         {/* Premium Features & Verified Travellers */}
-        <section id="premium" className="container mx-auto px-6 py-32">
+        <section id="premium" className="container max-w-7xl mx-auto px-6 py-32">
            <div className="flex flex-col lg:flex-row items-center justify-between gap-16 mb-24">
               <div className="lg:w-1/2">
                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-[9px] font-black uppercase tracking-widest rounded-lg mb-6">
@@ -408,7 +408,7 @@ export default function HomePage() {
         </section>
 
         {/* ─── HAPPY RIDE HACKS ─────────────────────────────────────────── */}
-        <section id="hacks" className="container mx-auto px-6 py-32 border-t border-white/5">
+        <section id="hacks" className="container max-w-7xl mx-auto px-6 py-32 border-t border-white/5">
            <div className="flex flex-col md:flex-row items-end justify-between gap-10 mb-20">
               <div className="md:w-2/3">
                  <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] mb-4">OPTIMIZATION PROTOCOLS</p>
@@ -448,7 +448,7 @@ export default function HomePage() {
         </section>
 
         {/* CTA Section */}
-        <section className="container mx-auto px-6 pb-40">
+        <section className="container max-w-7xl mx-auto px-6 pb-40">
            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-[4rem] p-16 md:p-24 text-center relative overflow-hidden group shadow-2xl shadow-blue-600/30">
               <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
               <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-white/10 rounded-full blur-[100px] group-hover:scale-125 transition-transform duration-1000" />
