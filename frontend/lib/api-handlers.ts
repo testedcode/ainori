@@ -1001,28 +1001,6 @@ export async function handleGetAnalytics(pool: Pool) {
   })
 }
 
-export async function handleRateRide(pool: Pool, rideId: number, body: unknown, auth: Auth) {
-  const b = body as { ratee_id?: number; rating?: number; comment?: string }
-  if (!b?.ratee_id || !b?.rating) return errResponse('ratee_id and rating required', 400)
-  
-  // Verify ride participation
-  const participant = await pool.query(
-    `SELECT 1 FROM rides WHERE id = $1 AND user_id = $2
-     UNION SELECT 1 FROM ride_requests WHERE ride_id = $1 AND user_id = $2 AND status = 'accepted'`,
-    [rideId, auth.userId]
-  )
-  if (participant.rows.length === 0) return errResponse('You were not part of this ride', 403)
-
-  await pool.query(
-    `INSERT INTO ratings (ride_id, rater_id, ratee_id, rating, comment) 
-     VALUES ($1, $2, $3, $4, $5) 
-     ON CONFLICT (ride_id, rater_id, ratee_id) DO UPDATE SET rating = EXCLUDED.rating, comment = EXCLUDED.comment`,
-    [rideId, auth.userId, b.ratee_id, b.rating, b.comment || '']
-  )
-  
-  return jsonResponse({ message: 'Rating submitted' }, 201)
-}
-
 export async function handleToggleFeature(pool: Pool, name: string, body: unknown) {
   const b = body as { enabled?: boolean }
   if (typeof b?.enabled !== 'boolean') return errResponse('enabled (boolean) required', 400)
@@ -1231,40 +1209,24 @@ export async function handleReplyFeedback(pool: Pool, id: number, body: unknown)
 }
 
 // ─── RATINGS ─────────────────────────────────────────────────────────────────
-async function ensureRatingsTable(pool: Pool) {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS ride_ratings (
-      id SERIAL PRIMARY KEY,
-      ride_id INTEGER NOT NULL,
-      rater_id INTEGER NOT NULL,
-      ratee_id INTEGER NOT NULL,
-      rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    )
-  `).catch(() => {})
-  // Fix the unique constraint to include ratee_id
-  await pool.query(`
-    ALTER TABLE ride_ratings DROP CONSTRAINT IF EXISTS ride_ratings_ride_id_rater_id_key;
-    ALTER TABLE ride_ratings ADD CONSTRAINT ride_ratings_triple_unique UNIQUE (ride_id, rater_id, ratee_id);
-  `).catch(() => {})
-}
-
 export async function handleRateRide(pool: Pool, rideId: number, body: unknown, auth: Auth) {
-  await ensureRatingsTable(pool)
-  const b = body as { rating?: number; ratee_id?: number }
-  if (!b?.rating || b.rating < 1 || b.rating > 5) return errResponse('Rating must be 1-5', 400)
-  if (!b?.ratee_id) return errResponse('ratee_id required', 400)
-  const check = await pool.query(
-    `SELECT 1 FROM ride_requests WHERE ride_id = $1 AND user_id = $2 AND status = 'accepted'
-     UNION SELECT 1 FROM rides WHERE id = $1 AND user_id = $2`,
+  const b = body as { ratee_id?: number; rating?: number; comment?: string }
+  if (!b?.ratee_id || !b?.rating) return errResponse('ratee_id and rating required', 400)
+  
+  // Verify ride participation
+  const participant = await pool.query(
+    `SELECT 1 FROM rides WHERE id = $1 AND user_id = $2
+     UNION SELECT 1 FROM ride_requests WHERE ride_id = $1 AND user_id = $2 AND status = 'accepted'`,
     [rideId, auth.userId]
   )
-  if (check.rows.length === 0) return errResponse('You were not part of this ride', 403)
+  if (participant.rows.length === 0) return errResponse('You were not part of this ride', 403)
+
   await pool.query(
-    `INSERT INTO ride_ratings (ride_id, rater_id, ratee_id, rating)
-     VALUES ($1, $2, $3, $4)
-     ON CONFLICT (ride_id, rater_id, ratee_id) DO UPDATE SET rating = $4, created_at = NOW()`,
-    [rideId, auth.userId, b.ratee_id, b.rating]
+    `INSERT INTO ratings (ride_id, rater_id, ratee_id, rating, comment) 
+     VALUES ($1, $2, $3, $4, $5) 
+     ON CONFLICT (ride_id, rater_id, ratee_id) DO UPDATE SET rating = EXCLUDED.rating, comment = EXCLUDED.comment`,
+    [rideId, auth.userId, b.ratee_id, b.rating, b.comment || '']
   )
+  
   return jsonResponse({ message: 'Rating submitted' }, 201)
 }
