@@ -299,6 +299,7 @@ function RidesContent() {
   }, [])
 
   const [showFilled, setShowFilled] = useState(false)
+  const [liveOnly, setLiveOnly] = useState(true)
   const [filter, setFilter] = useState({
     corridor: corridorParam || 'all',
     date: new Date().toISOString().split('T')[0],
@@ -398,6 +399,22 @@ function RidesContent() {
     if (filter.corridor !== 'all' && r.corridor_id !== parseInt(filter.corridor)) return false
     
     const h = parseInt(r.ride_time.split(':')[0])
+    const m = parseInt(r.ride_time.split(':')[1])
+
+    // ⏱️ 15-Min Expiry Filter
+    const isToday = filter.date === new Date().toISOString().split('T')[0]
+    if (isToday && liveOnly) {
+      // Always show active journeys regardless of time
+      const isActiveStatus = ['starting', 'at_pickup', 'at_dropoff'].includes(r.status)
+      if (!isActiveStatus) {
+        const now = new Date()
+        const rideDate = new Date()
+        rideDate.setHours(h, m, 0, 0)
+        const diffMins = (now.getTime() - rideDate.getTime()) / 60000
+        // Hide if started > 15 mins ago
+        if (diffMins > 15) return false
+      }
+    }
     
     if (filter.vibeTag !== 'all') {
       const [start, end] = filter.vibeTag.split('-').map(Number)
@@ -557,6 +574,14 @@ function RidesContent() {
                  {showFilled ? <EyeOff className="w-4 h-4" /> : <AlignJustify className="w-4 h-4" />}
                  <span className="text-[10px] font-black uppercase tracking-widest">{showFilled ? 'HIDE FULL' : 'SHOW FULL'}</span>
              </button>
+
+             <button 
+                onClick={() => setLiveOnly(!liveOnly)} 
+                className={`px-6 py-2 border rounded-2xl transition-all flex items-center gap-3 ${liveOnly ? 'bg-green-500 text-white border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.3)]' : 'bg-white/5 text-white/30 border-white/10 hover:border-white/30'}`}
+              >
+                <Timer className={`w-4 h-4 ${liveOnly ? 'animate-pulse' : ''}`} />
+                <span className="text-[10px] font-black uppercase tracking-widest">{liveOnly ? 'LIVE ONLY' : 'ALL RIDES'}</span>
+              </button>
 
              <button onClick={fetchRides} className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors">
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />

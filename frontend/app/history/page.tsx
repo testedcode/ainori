@@ -6,13 +6,14 @@ import Link from 'next/link'
 import {
   ArrowLeft, Calendar, Clock, IndianRupee,
   ChevronRight, Car, User, Search, History as HistoryIcon,
-  CheckCircle2, Loader2, Star, Zap, ExternalLink, Sparkles
+  CheckCircle2, Loader2, Star, Zap, ExternalLink, Sparkles,
+  MapPin, Flag, Check
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
 import JoolNav from '../components/JoolNav'
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
 function fmtDate(raw: string) {
   if (!raw) return ''
   const dStr = raw.includes('T') ? raw.split('T')[0] : raw
@@ -20,19 +21,17 @@ function fmtDate(raw: string) {
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
   if (dStr === today) return 'Today'
   if (dStr === yesterday) return 'Yesterday'
-  // Use a fixed time to avoid timezone shifts showing wrong date
   const d = new Date(dStr + 'T12:00:00')
   return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
 }
 function fmtTime(raw: string) {
   if (!raw) return ''
-  // handles "HH:MM:SS" or full ISO
   const t = raw.includes('T') ? new Date(raw).toTimeString() : raw
   return t.slice(0, 5)
 }
 
 interface RidePaymentInfo { id?: number; rider_status?: string; giver_status?: string }
-interface Rider { id: number; user_id: number; name: string; avatar_url: string; seats_requested: number }
+interface Rider { id: number; user_id: number; name: string; avatar_url: string; seats_requested: number; user_rating?: number }
 interface Ride {
   id: number; corridor_name: string; ride_date: string; ride_time: string
   pickup_point: string; drop_point: string; price_per_seat: number
@@ -59,93 +58,75 @@ export default function HistoryPage() {
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) { router.push('/login'); return }
-    const u = localStorage.getItem('user')
-    if (u) { try { const p = JSON.parse(u); setCurrentUserId(p.id || p.userId) } catch {} }
+    const usr = localStorage.getItem('user')
+    if (usr) {
+      const parsed = JSON.parse(usr)
+      setCurrentUserId(Number(parsed.id || parsed.userId))
+    }
     loadRides()
-  }, [router])
+  }, [])
+
+  const handleMarkPayment = (rideId: number, riderId: number, asGiver: boolean) => {
+    // This is handled locally in HistoryCard now
+  }
+
+  const handleRate = async (rideId: number, rateeId: number, rating: number) => {
+    try {
+      await api.post(`/rides/${rideId}/rate`, { ratee_id: rateeId, rating })
+      toast.success('Rating broadcasted! 🛰️')
+      loadRides()
+    } catch (e: any) {
+      toast.error(e.response?.data?.error || 'Rating failed')
+    }
+  }
 
   const filtered = rides.filter(r => {
     if (activeTab === 'host' && r.role !== 'host') return false
     if (activeTab === 'rider' && r.role !== 'rider') return false
     if (search) {
-      const s = search.toLowerCase()
-      return r.corridor_name?.toLowerCase().includes(s) || r.pickup_point?.toLowerCase().includes(s)
+      const q = search.toLowerCase()
+      return r.corridor_name.toLowerCase().includes(q) || r.pickup_point.toLowerCase().includes(q) || r.drop_point.toLowerCase().includes(q)
     }
     return true
   })
 
-  const todayStr = new Date().toISOString().split('T')[0]
-  const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split('T')[0]
-  const getDateKey = (raw: string) => (raw.includes('T') ? raw.split('T')[0] : raw)
-
-  const recent = filtered.filter(r => { const d = getDateKey(r.ride_date); return d === todayStr || d === yesterdayStr }).sort((a, b) => b.ride_date.localeCompare(a.ride_date))
-  const upcoming = filtered.filter(r => getDateKey(r.ride_date) > todayStr).sort((a, b) => a.ride_date.localeCompare(b.ride_date))
-  const past = filtered.filter(r => getDateKey(r.ride_date) < yesterdayStr).sort((a, b) => b.ride_date.localeCompare(a.ride_date))
-
-  const handleMarkPayment = async (rideId: number, riderId: number, asGiver: boolean) => {
-    try {
-      const payload = asGiver ? { giver_status: 'received' } : { rider_status: 'done' }
-      await api.put(`/rides/${rideId}/payments/${riderId}`, payload)
-      toast.success(asGiver ? '✅ Marked as received!' : '✅ Payment marked as done!')
-      // Optimistic update
-      setRides(prev => prev.map(r => {
-        if (r.id !== rideId) return r
-        return {
-          ...r,
-          payment_info: {
-            ...r.payment_info,
-            ...(asGiver ? { giver_status: 'received' } : { rider_status: 'done' })
-          }
-        }
-      }))
-    } catch { toast.error('Failed to update payment') }
-  }
-
-  const handleRate = async (rideId: number, rateeId: number, rating: number) => {
-    if (!rateeId) { toast.error('Could not identify user to rate'); return }
-    try {
-      await api.post(`/rides/${rideId}/rate`, { rating, ratee_id: rateeId })
-      toast.success(`⭐ ${rating}/5 submitted!`)
-      // Optimistic update
-      setRides(prev => prev.map(r => r.id === rideId ? { ...r, user_rating: rating } : r))
-    } catch { toast.error('Rating failed') }
-  }
+  const recent = filtered.filter(r => ['Today', 'Yesterday'].includes(fmtDate(r.ride_date)))
+  const upcoming = filtered.filter(r => new Date(r.ride_date + 'T' + r.ride_time) > new Date() && !['Today', 'Yesterday'].includes(fmtDate(r.ride_date)))
+  const past = filtered.filter(r => new Date(r.ride_date + 'T' + r.ride_time) <= new Date() && !['Today', 'Yesterday'].includes(fmtDate(r.ride_date)))
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white font-sans pb-20">
+    <div className="min-h-screen bg-[#05070a] text-white font-sans pb-32">
       <JoolNav />
-      <main className="max-w-5xl mx-auto px-6 md:px-12 mt-12">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-          <div>
-            <Link href="/dashboard" className="inline-flex items-center gap-2 text-[10px] font-black text-white/40 hover:text-white transition-colors uppercase tracking-widest mb-4">
-              <ArrowLeft className="w-3 h-3" /> BACK
-            </Link>
-            <h1 className="text-3xl font-black text-white tracking-tighter flex items-center gap-3">
-              <HistoryIcon className="w-8 h-8 text-blue-500" /> Commute History
-            </h1>
-            <p className="text-white/40 text-sm mt-1">Tap any card to open ride details and manage payments.</p>
-          </div>
-          <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-2xl px-4 py-2.5">
-            <Search className="w-4 h-4 text-slate-500" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..." className="bg-transparent text-sm text-white focus:outline-none w-40" />
-          </div>
-        </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-10 bg-white/5 p-1 rounded-2xl w-max">
-          {(['all', 'host', 'rider'] as const).map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-tight transition-all ${activeTab === tab ? 'bg-blue-600 text-white shadow-lg' : 'text-white/40 hover:text-white'}`}>
-              {tab === 'rider' ? 'Joined' : tab}
-            </button>
-          ))}
+      <main className="max-w-6xl mx-auto px-6 mt-12">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-600 rounded-2xl flex items-center justify-center text-black shadow-2xl shadow-amber-400/20">
+              <HistoryIcon className="w-7 h-7" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-black tracking-tighter italic uppercase leading-none">Mission Logs</h1>
+              <p className="text-white/20 text-[10px] font-black uppercase tracking-widest mt-1">Personnel Commute Archive</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-1.5 rounded-[2rem] w-full md:w-auto">
+            {(['all', 'host', 'rider'] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => setActiveTab(t)}
+                className={`px-6 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === t ? 'bg-white text-black shadow-lg' : 'text-white/30 hover:text-white'}`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 opacity-20">
-            <div className="w-10 h-10 border-2 border-white/20 border-t-white rounded-full animate-spin mb-4" />
-            <p className="text-[10px] font-black uppercase tracking-[0.2em]">Loading...</p>
+          <div className="flex flex-col items-center justify-center py-32 opacity-20">
+            <Loader2 className="w-10 h-10 animate-spin mb-4" />
+            <p className="text-[10px] font-black uppercase tracking-[0.5em]">Fetching_Logs...</p>
           </div>
         ) : (
           <div className="space-y-16">
@@ -154,8 +135,8 @@ export default function HistoryPage() {
                 <h2 className="text-xs font-black text-amber-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                   <Zap className="w-3.5 h-3.5 fill-amber-400" /> RECENT ACTIVITY — TODAY & YESTERDAY
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {recent.map(ride => <HistoryCard key={ride.id} ride={ride} isRecent currentUserId={currentUserId} onMarkPayment={handleMarkPayment} onRate={handleRate} />)}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {recent.map(ride => <HistoryCard key={ride.id} ride={ride} isRecent currentUserId={currentUserId} onRate={handleRate} />)}
                 </div>
               </section>
             )}
@@ -164,8 +145,8 @@ export default function HistoryPage() {
                 <h2 className="text-xs font-black text-blue-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" /> Upcoming
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {upcoming.map(ride => <HistoryCard key={ride.id} ride={ride} currentUserId={currentUserId} onMarkPayment={handleMarkPayment} onRate={handleRate} />)}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {upcoming.map(ride => <HistoryCard key={ride.id} ride={ride} currentUserId={currentUserId} onRate={handleRate} />)}
                 </div>
               </section>
             )}
@@ -176,8 +157,8 @@ export default function HistoryPage() {
                   <p className="text-white/20 font-black text-[10px] uppercase tracking-widest">No rides yet</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {past.map(ride => <HistoryCard key={ride.id} ride={ride} isPast currentUserId={currentUserId} onMarkPayment={handleMarkPayment} onRate={handleRate} />)}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {past.map(ride => <HistoryCard key={ride.id} ride={ride} isPast currentUserId={currentUserId} onRate={handleRate} />)}
                 </div>
               )}
             </section>
@@ -215,145 +196,200 @@ function StarRating({ rideId, rateeId, current, label, onRate }: {
 
 // ─── HISTORY CARD ────────────────────────────────────────────────────────────
 function HistoryCard({
-  ride, isPast, isRecent, currentUserId, onMarkPayment, onRate
+  ride, isPast, isRecent, currentUserId, onRate
 }: {
   ride: Ride; isPast?: boolean; isRecent?: boolean
   currentUserId?: number
-  onMarkPayment: (rideId: number, riderId: number, asGiver: boolean) => void
   onRate: (rideId: number, rateeId: number, rating: number) => void
 }) {
-  const [marking, setMarking] = useState(false)
-  const [localPayment, setLocalPayment] = useState(ride.payment_info)
+  const [marking, setMarking] = useState<number | null>(null)
+  const [payments, setPayments] = useState<any[]>([])
+  const [loadingPayments, setLoadingPayments] = useState(false)
 
-  useEffect(() => { setLocalPayment(ride.payment_info) }, [ride.payment_info])
+  const isOwner = ride.role === 'host'
 
-  const riderPaid = localPayment?.rider_status === 'done'
-  const giverReceived = localPayment?.giver_status === 'received'
-  const myPayDone = ride.role === 'rider' ? riderPaid : giverReceived
+  useEffect(() => {
+    if (isOwner) {
+      setLoadingPayments(true)
+      api.get(`/rides/${ride.id}/payments`)
+        .then((res: any) => { if (Array.isArray(res)) setPayments(res) })
+        .finally(() => setLoadingPayments(false))
+    }
+  }, [ride.id, isOwner])
 
-  const doMark = async (e: React.MouseEvent, riderId: number, asGiver: boolean) => {
+  const myPayment = isOwner ? null : ride.payment_info
+  const riderPaid = myPayment?.rider_status === 'done'
+  const giverReceived = myPayment?.giver_status === 'received'
+  const isPending = isOwner 
+    ? payments.some(p => p.giver_status !== 'received')
+    : !giverReceived
+
+  const doMark = async (e: React.MouseEvent, riderId: number, asGiver: boolean, riderName?: string) => {
     e.preventDefault(); e.stopPropagation()
-    setMarking(true)
+    setMarking(riderId)
     try {
       const payload = asGiver ? { giver_status: 'received' } : { rider_status: 'done' }
       await api.put(`/rides/${ride.id}/payments/${riderId}`, payload)
-      setLocalPayment(prev => ({ ...prev, ...(asGiver ? { giver_status: 'received' } : { rider_status: 'done' }) }))
-      toast.success(asGiver ? '✅ Marked received!' : '✅ Payment done!')
-      onMarkPayment(ride.id, riderId, asGiver)
+      
+      if (isOwner) {
+        setPayments(prev => prev.map(p => p.rider_id === riderId ? { ...p, ...payload } : p))
+      }
+      
+      toast.success(asGiver ? `✅ Received from ${riderName || 'rider'}!` : '✅ Payment marked done!')
     } catch { toast.error('Failed') }
-    finally { setMarking(false) }
+    finally { setMarking(null) }
+  }
+
+  const handleMarkAll = async (e: React.MouseEvent) => {
+    e.preventDefault(); e.stopPropagation()
+    const pending = payments.filter(p => p.giver_status !== 'received')
+    if (pending.length === 0) return
+    setMarking(-1)
+    try {
+      await Promise.all(pending.map(p => api.put(`/rides/${ride.id}/payments/${p.rider_id}`, { giver_status: 'received' })))
+      setPayments(prev => prev.map(p => ({ ...p, giver_status: 'received' })))
+      toast.success('✅ All payments received!')
+    } catch { toast.error('Failed to mark all') }
+    finally { setMarking(null) }
   }
 
   return (
-    <Link href={`/rides/${ride.id}`} className={`block rounded-3xl p-5 transition-all group hover:scale-[1.01] hover:shadow-xl cursor-pointer ${
-      isRecent ? 'bg-amber-500/5 border border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.06)]'
-      : isPast ? 'bg-white/[0.02] border border-white/5 hover:bg-white/5'
-      : 'bg-white/5 border-l-4 border-l-blue-500 border border-white/10'
+    <div className={`block rounded-[2.5rem] p-6 transition-all group hover:scale-[1.01] hover:shadow-2xl ${
+      isRecent ? 'bg-amber-500/5 border border-amber-500/20 shadow-[0_20px_40px_rgba(245,158,11,0.05)]'
+      : 'bg-white/[0.03] border border-white/5 hover:bg-white/[0.05]'
     }`}>
-      {/* TOP ROW */}
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-black text-white text-base truncate">{ride.corridor_name}</h3>
-            <ExternalLink className="w-3 h-3 text-white/20 flex-shrink-0 group-hover:text-blue-400 transition-colors" />
+      <Link href={`/rides/${ride.id}`}>
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-black text-white text-xl tracking-tighter uppercase italic truncate">{ride.corridor_name}</h3>
+              <ExternalLink className="w-3.5 h-3.5 text-white/20 group-hover:text-blue-400 transition-colors" />
+            </div>
+            <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] flex items-center gap-2">
+              {isOwner ? <Car className="w-3 h-3 text-amber-400" /> : <User className="w-3 h-3 text-blue-400" />}
+              {isOwner ? 'Command Center' : `Joined · ${ride.user_name || 'Host'}`}
+            </p>
           </div>
-          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest flex items-center gap-1.5">
-            {ride.role === 'host' ? <Car className="w-3 h-3 text-green-400" /> : <User className="w-3 h-3 text-blue-400" />}
-            {ride.role === 'host' ? 'You hosted' : `Joined · ${ride.user_name || 'Host'}`}
-          </p>
+          <div className="text-right">
+            <p className="text-xs font-black text-white leading-none">{fmtDate(ride.ride_date)}</p>
+            <p className="text-[10px] text-white/30 font-bold mt-1">{fmtTime(ride.ride_time)}</p>
+          </div>
         </div>
-        <div className="text-right flex-shrink-0 ml-3">
-          <p className="text-xs font-black text-white">{fmtDate(ride.ride_date)}</p>
-          <p className="text-[10px] text-white/30 font-bold">{fmtTime(ride.ride_time)}</p>
-        </div>
-      </div>
 
-      {/* META */}
-      <div className="flex items-center gap-3 mb-3">
-        <span className="flex items-center gap-1 text-[10px] text-green-400 font-black">
-          <IndianRupee className="w-3 h-3" />{ride.price_per_seat}/seat
-        </span>
-        <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${
-          ride.status === 'completed' ? 'bg-green-500/10 text-green-400'
-          : ride.status === 'cancelled' ? 'bg-red-500/10 text-red-400'
-          : 'bg-blue-500/10 text-blue-400'
-        }`}>{ride.status}</span>
-        {/* Payment badge */}
-        {myPayDone ? (
-          <span className="flex items-center gap-1 text-[8px] font-black text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">
-            <CheckCircle2 className="w-3 h-3" /> Paid
-          </span>
-        ) : (isRecent || isPast) && (
-          <span className="flex items-center gap-1 text-[8px] font-black text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full animate-pulse">
-            <Sparkles className="w-3 h-3" /> Settle Now
-          </span>
-        )}
-      </div>
-
-      {/* PAYMENT ACTIONS — stop propagation so link doesn't fire */}
-      <div className="border-t border-white/5 pt-3 space-y-2" onClick={e => e.preventDefault()}>
-        {/* Rider: mark own payment */}
-        {ride.role === 'rider' && currentUserId && (
-          <div className="flex items-center justify-between">
-            <span className={`text-[9px] font-black uppercase tracking-widest ${riderPaid ? 'text-green-400' : 'text-white/20'}`}>
-              {riderPaid ? '✓ Payment done' : 'Payment pending'}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 bg-white/5 rounded-2xl flex items-center justify-center">
+                <IndianRupee className="w-4 h-4 text-green-400" />
+             </div>
+             <div>
+                <p className="text-[9px] font-black text-white/20 uppercase tracking-widest leading-none">Trip Fare</p>
+                <p className="text-lg font-black text-white mt-0.5">₹{ride.price_per_seat}</p>
+             </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {isPending && (
+              <span className="flex items-center gap-1.5 text-[9px] font-black text-amber-400 uppercase tracking-widest bg-amber-400/10 px-3 py-1 rounded-full animate-pulse border border-amber-400/20">
+                <Zap className="w-3 h-3 fill-amber-400" /> Settle Now
+              </span>
+            )}
+            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase border ${
+              ride.status === 'completed' ? 'bg-green-500/10 border-green-500/20 text-green-400' 
+              : ride.status === 'cancelled' ? 'bg-red-500/10 border-red-500/20 text-red-400'
+              : 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+            }`}>
+              {ride.status}
             </span>
-            {!riderPaid && (
+          </div>
+        </div>
+      </Link>
+
+      <div className="pt-6 border-t border-white/5 space-y-5">
+        {isOwner ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">Rider Payments</p>
+              {payments.filter(p => p.giver_status !== 'received').length > 1 && (
+                <button 
+                  onClick={handleMarkAll}
+                  disabled={marking !== null}
+                  className="text-[9px] font-black text-blue-400 hover:text-blue-300 uppercase tracking-tighter underline underline-offset-4 decoration-blue-500/30"
+                >
+                  {marking === -1 ? 'Syncing...' : 'Mark All Received'}
+                </button>
+              )}
+            </div>
+            {loadingPayments ? (
+              <div className="py-4 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-white/10" /></div>
+            ) : payments.length === 0 ? (
+              <p className="text-[10px] text-white/10 italic">No payments detected for this mission.</p>
+            ) : (
+              <div className="space-y-2">
+                {payments.map(p => (
+                  <div key={p.id} className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${p.giver_status === 'received' ? 'bg-green-500/5 border-green-500/10 opacity-50' : 'bg-white/5 border-white/5'}`}>
+                    <div className="flex items-center gap-2">
+                       <div className="w-6 h-6 rounded-lg bg-blue-600/20 flex items-center justify-center text-[8px] font-black text-blue-400">
+                          {p.rider_name?.[0] || 'R'}
+                       </div>
+                       <span className="text-[11px] font-bold text-white/60">{p.rider_name || 'Rider'}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[11px] font-black text-green-400">₹{p.amount}</span>
+                      <button
+                        onClick={e => doMark(e, p.rider_id, true, p.rider_name)}
+                        disabled={p.giver_status === 'received' || marking !== null}
+                        className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase transition-all ${
+                          p.giver_status === 'received' ? 'text-green-500 bg-green-500/10' : 'bg-white text-black hover:bg-blue-600 hover:text-white'
+                        }`}
+                      >
+                        {marking === p.rider_id ? <Loader2 className="w-3 h-3 animate-spin" /> : p.giver_status === 'received' ? '✓' : 'MARK'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center justify-between bg-white/5 p-4 rounded-3xl border border-white/5">
+            <div>
+              <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">Payment Status</p>
+              <div className="flex items-center gap-2">
+                 <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${giverReceived ? 'bg-green-500/20 text-green-400' : riderPaid ? 'bg-amber-400/20 text-amber-400' : 'bg-white/10 text-white/40'}`}>
+                   {giverReceived ? 'SETTLED ✓' : riderPaid ? 'SENT' : 'UNPAID'}
+                 </span>
+              </div>
+            </div>
+            {!giverReceived && (
               <button
-                onClick={e => doMark(e, currentUserId, false)}
-                disabled={marking}
-                className="flex items-center gap-1 px-3 py-1.5 bg-green-500/20 border border-green-500/30 text-green-400 rounded-xl text-[9px] font-black hover:bg-green-500/30 transition-all"
+                onClick={e => doMark(e, Number(currentUserId), false)}
+                disabled={riderPaid || marking !== null}
+                className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  riderPaid ? 'bg-white/5 text-white/20' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_10px_30px_rgba(37,99,235,0.3)]'
+                }`}
               >
-                {marking ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
-                Mark Done
+                {marking === currentUserId ? <Loader2 className="w-3 h-3 animate-spin" /> : riderPaid ? 'Pending Host' : 'I have paid'}
               </button>
             )}
           </div>
         )}
 
-        {/* Host: mark received per rider */}
-        {ride.role === 'host' && ride.confirmed_riders && ride.confirmed_riders.length > 0 && (
-          <div className="space-y-1.5">
-            {ride.confirmed_riders.map(r => (
-              <div key={r.id} className="flex flex-col gap-1.5 p-2.5 bg-white/[0.03] border border-white/5 rounded-2xl">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[8px] font-black overflow-hidden flex-shrink-0">
-                      {r.avatar_url ? <img src={r.avatar_url} className="w-full h-full object-cover" alt="" /> : r.name[0]}
-                    </div>
-                    <span className="text-[10px] font-bold text-white/60">{r.name.split(' ')[0]}</span>
-                  </div>
-                  <button
-                    onClick={e => doMark(e, r.user_id, true)}
-                    disabled={marking || giverReceived}
-                    className={`px-2 py-1 rounded-lg text-[8px] font-black transition-all ${giverReceived ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-white/5 border border-white/10 text-white/40 hover:bg-green-500/10 hover:text-green-400 hover:border-green-500/20'}`}
-                  >
-                    {giverReceived ? '✓ Received' : 'Mark Received'}
-                  </button>
-                </div>
-                {/* Host rates rider */}
-                {(isPast || isRecent) && (
-                  <div className="pt-1.5 border-t border-white/5">
-                    <StarRating rideId={ride.id} rateeId={r.user_id} current={(r as any).user_rating} label="Rate rider" onRate={onRate} />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Rider rates host */}
-        {ride.role === 'rider' && ride.user_id && (isPast || isRecent) && (
-          <div className="pt-2 border-t border-white/5">
-            <StarRating rideId={ride.id} rateeId={ride.user_id} current={ride.user_rating} label="Rate host" onRate={onRate} />
+        {/* RATINGS */}
+        {(isPast || isRecent) && (
+          <div className="space-y-3 pt-2">
+             {!isOwner && (
+               <StarRating rideId={ride.id} rateeId={ride.user_id!} current={ride.user_rating} label={`Rate ${ride.user_name || 'Host'}`} onRate={onRate} />
+             )}
+             {isOwner && ride.confirmed_riders?.map(r => (
+               <StarRating key={r.user_id} rideId={ride.id} rateeId={r.user_id} current={(r as any).user_rating} label={`Rate ${r.name.split(' ')[0]}`} onRate={onRate} />
+             ))}
           </div>
         )}
       </div>
-
+      
       {/* FOOTER */}
-      <div className="mt-3 flex items-center justify-end text-[9px] font-black text-white/20 group-hover:text-blue-400 transition-colors uppercase tracking-widest gap-1">
-        Open Ride <ChevronRight className="w-3 h-3" />
-      </div>
-    </Link>
+      <Link href={`/rides/${ride.id}`} className="mt-6 flex items-center justify-end text-[9px] font-black text-white/20 group-hover:text-blue-400 transition-colors uppercase tracking-widest gap-1">
+        Detailed Roster <ChevronRight className="w-3 h-3" />
+      </Link>
+    </div>
   )
 }

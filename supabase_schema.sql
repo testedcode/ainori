@@ -155,6 +155,18 @@ CREATE TABLE IF NOT EXISTS feature_flags (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Ratings
+CREATE TABLE IF NOT EXISTS ratings (
+    id SERIAL PRIMARY KEY,
+    ride_id INTEGER REFERENCES rides(id) ON DELETE CASCADE,
+    rater_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    ratee_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(ride_id, rater_id, ratee_id)
+);
+
 -- SEED DATA
 INSERT INTO cities (name, status) VALUES 
     ('Mumbai', 'active'),
