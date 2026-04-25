@@ -92,62 +92,94 @@ export default function HomePage() {
       </nav>
 
       <main>
-        {/* ─── VERIFIED MEMBER WELCOME STRIP ───────────────────────────────── */}
+        {/* ─── VERIFIED SYNDICATE HUB ─────────────────────────────────────── */}
         {user?.approved && (
-          <div className="pt-24 pb-4 bg-amber-500/10 border-b border-amber-500/20 backdrop-blur-md relative overflow-hidden group">
-             <div className="absolute top-0 right-0 p-8 opacity-10 animate-pulse">
-                <Crown className="w-12 h-12 text-amber-500" />
-             </div>
-             <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                   <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.3)]">
-                      {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover rounded-2xl" /> : <ShieldCheck className="w-6 h-6 text-black" />}
+          <section className="container mx-auto px-6 pt-24 pb-12">
+             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Welcome Card */}
+                <div className="lg:col-span-4 bg-gradient-to-br from-amber-500 to-orange-600 rounded-[3rem] p-10 shadow-2xl relative overflow-hidden group">
+                   <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-700">
+                      <Crown className="w-32 h-32 text-black" />
                    </div>
-                   <div>
-                      <h4 className="text-sm font-black text-white uppercase tracking-widest leading-none">Welcome back, Executive {user.name.split(' ')[0]}</h4>
-                      <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] mt-1 flex items-center gap-2">
-                         <Star className="w-3 h-3 fill-amber-500" /> Verified Premium Member
-                      </p>
+                   <div className="relative z-10">
+                      <div className="w-16 h-16 rounded-2xl bg-black flex items-center justify-center mb-6 shadow-xl">
+                         {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover rounded-2xl" /> : <ShieldCheck className="w-8 h-8 text-amber-500" />}
+                      </div>
+                      <h3 className="text-4xl font-black text-black leading-none mb-2 tracking-tighter uppercase italic">Welcome back,<br />Executive.</h3>
+                      <p className="text-black/60 text-sm font-bold uppercase tracking-widest mb-8">Syndicate Level: Elite Node</p>
+                      <Link href="/exclusive-benefits" className="inline-flex items-center gap-3 px-6 py-3 bg-black text-amber-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
+                         View Perks <ArrowRight className="w-4 h-4" />
+                      </Link>
                    </div>
                 </div>
-                <Link href="/exclusive-benefits" className="px-6 py-3 bg-amber-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl active:scale-95">
-                   Explore Benefits
-                </Link>
+
+                {/* Stats & Priority Card */}
+                <div className="lg:col-span-8 bg-white/5 border border-white/10 rounded-[3rem] p-10 backdrop-blur-3xl flex flex-col md:flex-row gap-12 items-center justify-between">
+                   <div className="flex-1 space-y-8 w-full">
+                      <div className="flex justify-between items-end">
+                         <div>
+                            <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-1">Priority Network Strength</p>
+                            <h4 className="text-3xl font-black italic uppercase text-blue-400">98.4% Efficiency</h4>
+                         </div>
+                         <Link href="/profile" className="text-[10px] font-black text-white/20 hover:text-white uppercase tracking-widest underline">Manage Stats</Link>
+                      </div>
+                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                         <div className="h-full bg-gradient-to-r from-blue-600 to-blue-400 w-[98.4%] shadow-[0_0_20px_rgba(37,99,235,0.5)]" />
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                         <div>
+                            <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Matches AI</p>
+                            <p className="text-lg font-black italic">ULTRA</p>
+                         </div>
+                         <div>
+                            <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Sync Latency</p>
+                            <p className="text-lg font-black italic">0.2ms</p>
+                         </div>
+                         <div>
+                            <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Trust Seal</p>
+                            <p className="text-lg font-black italic text-green-500">L3 SEC</p>
+                         </div>
+                         <div>
+                            <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Carbon Rank</p>
+                            <p className="text-lg font-black italic">TOP 1%</p>
+                         </div>
+                      </div>
+                   </div>
+                   <div className="w-px h-full bg-white/10 hidden md:block" />
+                   <div className="text-center md:text-right">
+                      <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-4">Executive Support</p>
+                      <div className="w-20 h-20 bg-white text-black rounded-3xl flex items-center justify-center mx-auto md:ml-auto mb-4 shadow-2xl group hover:rotate-12 transition-transform">
+                         <Sparkles className="w-8 h-8 animate-pulse" />
+                      </div>
+                      <p className="text-[10px] font-black uppercase tracking-widest">Priority Concierge<br /><span className="text-blue-500">Active</span></p>
+                   </div>
+                </div>
              </div>
-          </div>
+          </section>
         )}
 
-        {/* ─── EXECUTIVE MOTION DASHBOARD (FOR VERIFIED) ────────────────── */}
+        {/* ─── EXECUTIVE MOTION DASHBOARD (CAR DISPLAY) ────────────────── */}
         {user?.approved && (
-          <section className="container mx-auto px-6 py-20">
-             <div className="bg-gradient-to-br from-blue-600/20 via-white/5 to-transparent border border-white/20 rounded-[4rem] p-12 md:p-20 backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
+          <section className="container mx-auto px-6 py-12">
+             <div className="bg-gradient-to-br from-blue-600/20 via-white/[0.02] to-transparent border border-white/20 rounded-[4rem] p-12 md:p-20 backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-20 opacity-5 group-hover:scale-110 transition-transform duration-1000">
                    <ShieldCheck className="w-96 h-96" />
                 </div>
                 
                 <div className="flex flex-col lg:flex-row items-center gap-16 relative z-10">
-                   {/* Profile Image Node */}
-                   <div className="relative">
-                      <div className="w-40 h-40 rounded-[3rem] bg-gradient-to-br from-amber-500 to-orange-600 p-1 shadow-2xl">
-                         <div className="w-full h-full rounded-[2.8rem] bg-slate-900 overflow-hidden">
-                            {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-4xl font-black text-white/20">{user.name[0]}</div>}
-                         </div>
-                      </div>
-                      <div className="absolute -top-3 -right-3 w-10 h-10 bg-amber-500 rounded-2xl flex items-center justify-center shadow-xl border-4 border-[#0f172a]">
-                         <Crown className="w-5 h-5 text-black" />
-                      </div>
-                   </div>
-
-                   {/* Identity & Benefits */}
+                   {/* Identity Briefing */}
                    <div className="flex-1 text-center lg:text-left">
-                      <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-4 italic uppercase">EXECUTIVE MOTION.</h2>
-                      <p className="text-lg text-white/40 font-bold mb-8 uppercase tracking-widest">Syndicate Level: Elite Executive Node</p>
+                      <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-500/20 border border-blue-500/30 text-blue-400 rounded-full text-[10px] font-black uppercase tracking-widest mb-6">
+                         <Shield className="w-3.5 h-3.5" /> SYSTEM BRIEFING
+                      </div>
+                      <h2 className="text-5xl md:text-7xl font-black tracking-tighter mb-4 italic uppercase">EXECUTIVE MOTION.</h2>
+                      <p className="text-lg text-white/40 font-bold mb-8 uppercase tracking-widest">Active Corridor Authorization: Full Sector Access</p>
                       <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
-                         <Link href="/exclusive-benefits" className="px-8 py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-amber-500 transition-all active:scale-95">
-                            Elite Benefits
+                         <Link href="/find-ride" className="px-10 py-5 bg-white text-black rounded-2xl font-black text-[12px] uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all active:scale-95 shadow-2xl">
+                            Request Priority Ride
                          </Link>
-                         <Link href="/profile" className="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all">
-                            Manage Identity
+                         <Link href="/profile" className="px-10 py-5 bg-white/5 border border-white/10 rounded-2xl font-black text-[12px] uppercase tracking-widest hover:bg-white/10 transition-all">
+                            Syndicate Vault
                          </Link>
                       </div>
                    </div>

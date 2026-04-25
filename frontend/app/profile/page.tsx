@@ -211,94 +211,118 @@ export default function ProfilePage() {
 
       <main className="max-w-6xl mx-auto px-6 md:px-12 mt-12">
         
-        {/* Profile Header Card */}
-        <div className="bg-gradient-to-br from-white/10 to-white/[0.02] border border-white/20 rounded-[4rem] p-10 md:p-16 backdrop-blur-3xl shadow-[0_50px_100px_rgba(0,0,0,0.5)] relative overflow-hidden mb-16 group">
-           {/* Abstract Background Glows */}
-           <div className="absolute -top-20 -right-20 w-96 h-96 bg-blue-600/10 blur-[120px] rounded-full group-hover:bg-blue-600/20 transition-all duration-1000" />
-           <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-indigo-600/10 blur-[120px] rounded-full group-hover:bg-indigo-600/20 transition-all duration-1000" />
+        {/* Syndicate Executive Identity Card */}
+        <div className="bg-gradient-to-br from-slate-900 to-black border border-white/10 rounded-[4rem] p-10 md:p-16 shadow-[0_50px_100px_rgba(0,0,0,0.8)] relative overflow-hidden mb-16 group">
+           {/* Cybernetic Background Details */}
+           <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none" />
+           <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-blue-600/10 blur-[150px] rounded-full group-hover:bg-blue-600/20 transition-all duration-1000 animate-pulse" />
+           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-indigo-500/5 blur-[120px] rounded-full rotate-12" />
            
-           <div className="flex flex-col lg:flex-row items-center gap-12 relative z-10">
-              {/* Avatar Section */}
-              <div className="relative">
-                 <div className="w-48 h-48 rounded-[3.5rem] bg-gradient-to-tr from-blue-600 via-indigo-500 to-blue-400 p-1.5 shadow-[0_30px_60px_rgba(37,99,235,0.4)] relative">
-                    <div className="w-full h-full rounded-[3.2rem] bg-slate-900 overflow-hidden relative">
-                       {profile?.avatar_url ? (
-                         <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-                       ) : (
-                         <div className="w-full h-full flex items-center justify-center text-6xl font-black text-white/20">{initials}</div>
-                       )}
-                       {uploading && (
-                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
-                           <Loader2 className="w-8 h-8 text-white animate-spin" />
-                         </div>
-                       )}
+           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 relative z-10 items-center">
+              {/* Avatar & ID Column */}
+              <div className="lg:col-span-3 flex flex-col items-center">
+                 <div className="relative mb-8">
+                    <div className="w-48 h-48 rounded-[3.5rem] bg-gradient-to-tr from-amber-500 via-orange-500 to-amber-300 p-1.5 shadow-[0_30px_60px_rgba(245,158,11,0.3)]">
+                       <div className="w-full h-full rounded-[3.2rem] bg-slate-900 overflow-hidden relative">
+                          {profile?.avatar_url ? (
+                            <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-6xl font-black text-white/20">{initials}</div>
+                          )}
+                          {uploading && (
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
+                              <Loader2 className="w-8 h-8 text-white animate-spin" />
+                            </div>
+                          )}
+                       </div>
+                    </div>
+                    <label className="absolute -bottom-2 -right-2 w-14 h-14 bg-white text-black rounded-2xl shadow-2xl hover:scale-110 transition-all active:scale-95 cursor-pointer z-10 flex items-center justify-center border-4 border-slate-900">
+                       <Camera className="w-6 h-6" />
+                       <input type="file" accept="image/*" onChange={handleAvatarUpload} disabled={uploading} className="hidden" />
+                    </label>
+                 </div>
+                 <div className="text-center">
+                    <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-2">Member ID</p>
+                    <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl font-mono text-xs text-amber-500/80">
+                       JOOL-{profile?.id?.toString().padStart(6, '0')}
                     </div>
                  </div>
-                 <label className="absolute -bottom-2 -right-2 w-14 h-14 bg-white text-black rounded-2xl shadow-2xl hover:scale-110 transition-all active:scale-95 cursor-pointer z-10 flex items-center justify-center border-4 border-[#0f172a]">
-                    <Camera className="w-6 h-6" />
-                    <input type="file" accept="image/*" onChange={handleAvatarUpload} disabled={uploading} className="hidden" />
-                 </label>
               </div>
 
-              {/* Identity Section */}
-              <div className="flex-1 text-center md:text-left">
-                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-6">
-                    <div className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg ${
-                      profile?.approved ? 'bg-amber-500 text-black shadow-amber-500/20' : 'bg-white/10 text-white/40'
+              {/* Identity & Status Metrics */}
+              <div className="lg:col-span-6 text-center lg:text-left">
+                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mb-8">
+                    <div className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg flex items-center gap-2 ${
+                      profile?.approved ? 'bg-amber-500 text-black' : 'bg-white/10 text-white/40'
                     }`}>
                        <ShieldCheck className="w-4 h-4" /> 
                        {profile?.role === 'admin' ? 'SYNDICATE ARCHITECT' : profile?.approved ? 'ELITE EXECUTIVE NODE' : 'UNVERIFIED NODE'}
                     </div>
                     {profile?.approved && (
-                      <div className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-blue-600/20 animate-pulse">
-                         <Sparkles className="w-4 h-4" /> PREMIUM SYNDICATE
+                      <div className="px-5 py-2 bg-blue-600/20 border border-blue-500/30 text-blue-400 rounded-full text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
+                         <Sparkles className="w-4 h-4 animate-pulse" /> PRESTIGE STATUS
                       </div>
                     )}
                  </div>
-                 <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-4 leading-none uppercase italic">{profile?.name}</h1>
-                 <p className="text-xl text-white/30 font-bold mb-8 flex items-center justify-center lg:justify-start gap-3 tracking-tight">
-                    <Mail className="w-5 h-5" /> {profile?.email}
-                 </p>
-                 
-                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6">
-                    <div className="group/stat">
-                       <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1 group-hover/stat:text-green-400 transition-colors">Carbon Sovereign</p>
-                       <div className="flex items-center gap-2">
-                          <Leaf className="w-5 h-5 text-green-500" />
-                          <span className="text-2xl font-black text-white">{profile?.carbon_credits}<span className="text-xs text-white/30 ml-1">kg</span></span>
+
+                 <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 leading-none uppercase italic text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40">
+                    {profile?.name.split(' ')[0]}<br />
+                    <span className="text-white">{profile?.name.split(' ').slice(1).join(' ')}</span>
+                 </h1>
+
+                 <div className="grid grid-cols-2 md:grid-cols-3 gap-8 mt-10">
+                    <div>
+                       <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-2">Carbon Credit Sovereign</p>
+                       <div className="flex items-center gap-3">
+                          <Leaf className="w-6 h-6 text-green-500" />
+                          <span className="text-3xl font-black">{profile?.carbon_credits}<span className="text-xs opacity-30 ml-1 italic font-normal">kg</span></span>
                        </div>
                     </div>
-                    <div className="w-px h-10 bg-white/10 hidden md:block" />
-                    <div className="group/stat">
-                       <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1 group-hover/stat:text-yellow-400 transition-colors">Trust Score</p>
-                       <div className="flex items-center gap-2">
-                          <Star className="w-5 h-5 text-yellow-500 fill-yellow-400" />
-                          <span className="text-2xl font-black text-white">4.9<span className="text-xs text-white/30 ml-1">/ 5.0</span></span>
+                    <div>
+                       <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-2">Trust Reliability</p>
+                       <div className="flex items-center gap-3">
+                          <Star className="w-6 h-6 text-amber-500 fill-amber-500" />
+                          <span className="text-3xl font-black">4.9<span className="text-xs opacity-30 ml-1 italic font-normal">/ 5.0</span></span>
+                       </div>
+                    </div>
+                    <div className="hidden md:block">
+                       <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-2">System Clearance</p>
+                       <div className="flex items-center gap-3">
+                          <ShieldCheck className="w-6 h-6 text-blue-500" />
+                          <span className="text-3xl font-black">L3<span className="text-xs opacity-30 ml-1 italic font-normal">SEC</span></span>
                        </div>
                     </div>
                  </div>
               </div>
 
-              {/* Action Section */}
-              <div className="lg:border-l lg:border-white/10 lg:pl-12 flex flex-col gap-4 min-w-[240px]">
-                 {profile?.approved && (
-                   <Link 
-                     href="/exclusive-benefits"
-                     className="w-full py-5 bg-gradient-to-r from-amber-500 to-orange-600 text-black rounded-[2rem] font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:scale-[1.02] transition-all shadow-xl shadow-amber-600/20"
-                   >
-                      <Crown className="w-4 h-4" /> EXCLUSIVE BENEFITS
-                   </Link>
-                 )}
-                 <button 
-                   onClick={() => setIsEditing(!isEditing)}
-                   className="w-full py-4 bg-white text-black rounded-[2rem] font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-200 transition-all active:scale-95 shadow-xl"
-                 >
-                    {isEditing ? <><ZapOff className="w-4 h-4" /> ABORT EDIT</> : <><Edit3 className="w-4 h-4" /> MODIFY PROFILE</>}
-                 </button>
-                 {!profile?.approved && (
-                   <button className="w-full py-5 bg-white/5 border border-white/10 text-white/40 rounded-[2rem] font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-2 cursor-not-allowed">
-                      <ShieldAlert className="w-4 h-4" /> PENDING ACCESS
-                   </button>
+              {/* Action Hub & Benefits Quick-Link */}
+              <div className="lg:col-span-3 space-y-4">
+                 {profile?.approved ? (
+                   <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-6">
+                      <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest text-center">Elite Executive Benefits Active</p>
+                      <Link 
+                        href="/exclusive-benefits"
+                        className="w-full py-5 bg-amber-500 text-black rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] transition-all shadow-xl shadow-amber-500/20"
+                      >
+                         <Crown className="w-4 h-4" /> BROWSE PERKS
+                      </Link>
+                      <button 
+                        onClick={() => setIsEditing(!isEditing)}
+                        className="w-full py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
+                      >
+                         {isEditing ? <><ZapOff className="w-4 h-4" /> ABORT EDIT</> : <><Edit3 className="w-4 h-4" /> EDIT PROFILE</>}
+                      </button>
+                   </div>
+                 ) : (
+                   <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 space-y-6 text-center">
+                      <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Awaiting Verification</p>
+                      <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto animate-pulse">
+                         <ShieldAlert className="w-8 h-8 text-white/20" />
+                      </div>
+                      <button className="w-full py-5 bg-white/5 border border-white/10 text-white/40 rounded-2xl font-black text-[10px] uppercase tracking-widest cursor-not-allowed">
+                         PENDING ACCESS
+                      </button>
+                   </div>
                  )}
               </div>
            </div>
