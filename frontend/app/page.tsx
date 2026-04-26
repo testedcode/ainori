@@ -11,7 +11,8 @@ import {
   Cpu, MousePointer2, Share2, ShieldQuestion, Workflow, Activity,
   ZapOff, Headphones, DollarSign, Timer, BarChart3, Radio, Wind, Ghost,
   Lock, EyeOff, Navigation, HeartHandshake, UserPlus, TrafficCone,
-  Anchor, Zap as ZapIcon
+  Anchor, Zap as ZapIcon, ThermometerSun, Stethoscope, Bike, TrendingDown,
+  LineChart, Coffee, BrainCircuit, Network
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { getVibe, VIBE_THEMES } from '@/lib/vibe-utils';
@@ -92,9 +93,9 @@ export default function HomePage() {
           
           <div className="hidden lg:flex items-center gap-10 text-[10px] font-black uppercase tracking-widest text-slate-400">
             <Link href="#shift" className="hover:text-white transition-colors">The Nexus</Link>
+            <Link href="#optimization" className="hover:text-white transition-colors">Optimization</Link>
             <Link href="#hacks" className="hover:text-white transition-colors">Hacks & Vibe</Link>
             <Link href="#premium" className="hover:text-white transition-colors">Tiers</Link>
-            <Link href="#impact" className="hover:text-white transition-colors">Impact</Link>
           </div>
 
           <div className="flex items-center gap-4">
@@ -187,17 +188,206 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ─── THE SHIFT: FROM CHAOS TO INFRASTRUCTURE (ULTRA VISUAL) ────────────────────────── */}
-        <section id="shift" className="py-60 relative border-t border-white/5">
+        {/* ─── THE FEMALE SAFETY PROTOCOL (HIGH IMPACT HIGHLIGHT) ────────────────────────── */}
+        <section className="py-20 relative overflow-hidden">
+           <div className="container max-w-7xl mx-auto px-6">
+              <div className="bg-gradient-to-br from-purple-900/40 via-blue-900/20 to-transparent border border-purple-500/30 rounded-[5rem] p-12 md:p-24 relative group">
+                 <div className="absolute top-0 right-0 p-20 opacity-5 group-hover:scale-110 transition-transform">
+                    <ShieldCheck className="w-96 h-96 text-white" />
+                 </div>
+                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+                    <div className="text-left relative z-10">
+                       <div className="inline-flex items-center gap-3 px-8 py-3 bg-purple-500/20 border border-purple-500/30 rounded-full text-[10px] font-black uppercase tracking-[0.6em] mb-12 text-purple-400">
+                          <ShieldCheck className="w-5 h-5" /> THE FEMALE SAFETY PROTOCOL
+                       </div>
+                       <h2 className="text-5xl md:text-8xl font-black tracking-tighter uppercase italic leading-[0.85] mb-12">
+                          PEACE OF MIND.<br />
+                          <span className="text-purple-400">ENGINEERED.</span>
+                       </h2>
+                       <p className="text-xl md:text-3xl text-slate-300 font-bold max-w-2xl leading-tight mb-12 italic">
+                          No more anxiety. No more unvetted strangers. Just a secure, peer-verified corridor within your <span className="text-white">trusted community.</span>
+                       </p>
+                       <div className="space-y-6">
+                          {[
+                            'Same-Society Verification: Match with neighbors you know.',
+                            'Real-Time Family Tracking: Your loved ones stay in the loop.',
+                            'Vetted Corporate Network: Exclusive access for professionals only.',
+                            'Emergency SOS Node: Direct link to Syndicate Support.'
+                          ].map((feat, i) => (
+                            <div key={i} className="flex items-center gap-4 group/item">
+                               <div className="w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center group-hover/item:bg-purple-500 transition-colors">
+                                  <CheckCircle2 className="w-4 h-4 text-purple-400 group-hover/item:text-black" />
+                               </div>
+                               <span className="text-sm md:text-lg font-black text-white/80 uppercase italic tracking-tight">{feat}</span>
+                            </div>
+                          ))}
+                       </div>
+                    </div>
+                    <div className="relative">
+                       <div className="bg-[#0a0f1e] border border-purple-500/20 rounded-[4rem] p-12 shadow-2xl">
+                          <div className="w-full aspect-square bg-gradient-to-tr from-purple-500/10 to-blue-500/10 rounded-[3rem] flex items-center justify-center relative overflow-hidden group/viz">
+                             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+                             <div className="relative z-10 text-center">
+                                <ShieldCheck className="w-32 h-32 text-purple-400 mx-auto mb-8 animate-pulse" />
+                                <p className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-2">SYNDICATE TRUST SCORE</p>
+                                <p className="text-6xl font-black text-white">99.9%</p>
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </section>
+
+        {/* ─── URBAN OPTIMIZATION: THE BENEFITS MATRIX (RE-ENGINEERED) ────────────────────────── */}
+        <section id="optimization" className="py-60 relative">
+           <div className="container max-w-7xl mx-auto px-6">
+              <div className="text-left mb-40">
+                 <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">MACRO URBAN EFFICIENCY</p>
+                 <h2 className="text-6xl md:text-9xl font-black tracking-tighter italic uppercase leading-[0.8] mb-12">
+                    URBAN<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600">OPTIMIZATION.</span>
+                 </h2>
+                 <p className="text-xl md:text-3xl text-slate-500 font-bold max-w-4xl uppercase italic leading-tight">
+                    Beyond carpooling—this is a <span className="text-white">Health, Wealth, and Productivity</span> engine designed for the high-performance professional.
+                 </p>
+              </div>
+
+              {/* The Optimization Matrix Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+                 
+                 {/* HEALTH & CLIMATE */}
+                 <div className="bg-white/[0.02] border border-white/5 rounded-[4rem] p-12 relative overflow-hidden group hover:bg-white/[0.04] transition-all">
+                    <div className="flex items-center gap-4 mb-12">
+                       <div className="w-16 h-16 bg-blue-500/10 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <ThermometerSun className="w-8 h-8 text-blue-400" />
+                       </div>
+                       <div className="text-left">
+                          <h3 className="text-2xl font-black uppercase italic leading-none mb-1">Health Shield</h3>
+                          <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest">CLIMATE CONTROL</p>
+                       </div>
+                    </div>
+                    <p className="text-slate-400 font-bold leading-tight mb-10 text-left">
+                       Protect yourself from heat strokes, dust, and pollution. Travel in a climate-controlled environment that keeps your energy levels peak for the office.
+                    </p>
+                    <div className="flex items-center gap-3 text-blue-400">
+                       <Stethoscope className="w-4 h-4" />
+                       <span className="text-[10px] font-black uppercase tracking-widest">Prevents Health Hazards</span>
+                    </div>
+                 </div>
+
+                 {/* BIKE TO CAR UPGRADE */}
+                 <div className="bg-white/[0.02] border border-white/5 rounded-[4rem] p-12 relative overflow-hidden group hover:bg-white/[0.04] transition-all">
+                    <div className="flex items-center gap-4 mb-12">
+                       <div className="w-16 h-16 bg-amber-500/10 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Bike className="w-8 h-8 text-amber-500" />
+                       </div>
+                       <div className="text-left">
+                          <h3 className="text-2xl font-black uppercase italic leading-none mb-1">Fleet Parity</h3>
+                          <p className="text-[9px] font-black text-amber-400 uppercase tracking-widest">SAFETY UPGRADE</p>
+                       </div>
+                    </div>
+                    <p className="text-slate-400 font-bold leading-tight mb-10 text-left">
+                       Own a bike but prefer car safety? Travel in a premium car at prices equivalent to your bike's fuel. Maximum safety without the financial burden.
+                    </p>
+                    <div className="flex items-center gap-3 text-amber-400">
+                       <Shield className="w-4 h-4" />
+                       <span className="text-[10px] font-black uppercase tracking-widest">Zero Exposure Risk</span>
+                    </div>
+                 </div>
+
+                 {/* FINANCIAL TRACKER */}
+                 <div className="bg-white/[0.02] border border-white/5 rounded-[4rem] p-12 relative overflow-hidden group hover:bg-white/[0.04] transition-all">
+                    <div className="flex items-center gap-4 mb-12">
+                       <div className="w-16 h-16 bg-green-500/10 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <LineChart className="w-8 h-8 text-green-400" />
+                       </div>
+                       <div className="text-left">
+                          <h3 className="text-2xl font-black uppercase italic leading-none mb-1">Expense Ledger</h3>
+                          <p className="text-[9px] font-black text-green-500 uppercase tracking-widest">WEALTH OPTIMIZATION</p>
+                       </div>
+                    </div>
+                    <p className="text-slate-400 font-bold leading-tight mb-10 text-left">
+                       Avoid unpredictable Ola/Uber surge pricing. Keep your monthly commute budget fixed and tracked with the Syndicate ledger. Predictable wealth.
+                    </p>
+                    <div className="flex items-center gap-3 text-green-400">
+                       <TrendingDown className="w-4 h-4" />
+                       <span className="text-[10px] font-black uppercase tracking-widest">Zero Surge Surcharges</span>
+                    </div>
+                 </div>
+
+                 {/* PRODUCTIVITY NODE */}
+                 <div className="bg-white/[0.02] border border-white/5 rounded-[4rem] p-12 relative overflow-hidden group hover:bg-white/[0.04] transition-all">
+                    <div className="flex items-center gap-4 mb-12">
+                       <div className="w-16 h-16 bg-purple-500/10 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <BrainCircuit className="w-8 h-8 text-purple-400" />
+                       </div>
+                       <div className="text-left">
+                          <h3 className="text-2xl font-black uppercase italic leading-none mb-1">Intel Node</h3>
+                          <p className="text-[9px] font-black text-purple-400 uppercase tracking-widest">DEEP WORK HUB</p>
+                       </div>
+                    </div>
+                    <p className="text-slate-400 font-bold leading-tight mb-10 text-left">
+                       Don't just commute—execute. Use the "Silent Node" to finish reports, clear emails, or meditate. Arrive at the office "Zen-ready" and ahead of the day.
+                    </p>
+                    <div className="flex items-center gap-3 text-purple-400">
+                       <Coffee className="w-4 h-4" />
+                       <span className="text-[10px] font-black uppercase tracking-widest">Mental Health Dividend</span>
+                    </div>
+                 </div>
+
+                 {/* SYNDICATE NETWORKING */}
+                 <div className="bg-white/[0.02] border border-white/5 rounded-[4rem] p-12 relative overflow-hidden group hover:bg-white/[0.04] transition-all">
+                    <div className="flex items-center gap-4 mb-12">
+                       <div className="w-16 h-16 bg-cyan-500/10 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Network className="w-8 h-8 text-cyan-400" />
+                       </div>
+                       <div className="text-left">
+                          <h3 className="text-2xl font-black uppercase italic leading-none mb-1">Social Capital</h3>
+                          <p className="text-[9px] font-black text-cyan-400 uppercase tracking-widest">PEER SYNERGY</p>
+                       </div>
+                    </div>
+                    <p className="text-slate-400 font-bold leading-tight mb-10 text-left">
+                       Match with senior professionals from your own society and office hub. Commute-time networking is the ultimate hack for career acceleration.
+                    </p>
+                    <div className="flex items-center gap-3 text-cyan-400">
+                       <Handshake className="w-4 h-4" />
+                       <span className="text-[10px] font-black uppercase tracking-widest">Professional Proximity</span>
+                    </div>
+                 </div>
+
+                 {/* ASSET LONGEVITY */}
+                 <div className="bg-white/[0.02] border border-white/5 rounded-[4rem] p-12 relative overflow-hidden group hover:bg-white/[0.04] transition-all">
+                    <div className="flex items-center gap-4 mb-12">
+                       <div className="w-16 h-16 bg-red-500/10 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <TrafficCone className="w-8 h-8 text-red-500" />
+                       </div>
+                       <div className="text-left">
+                          <h3 className="text-2xl font-black uppercase italic leading-none mb-1">Asset Armor</h3>
+                          <p className="text-[9px] font-black text-red-400 uppercase tracking-widest">VEHICLE LONGEVITY</p>
+                       </div>
+                    </div>
+                    <p className="text-slate-400 font-bold leading-tight mb-10 text-left">
+                       Reduce the wear and tear on your own vehicle. By riding with the syndicate, you extend your car/bike's life and maintain its resale value.
+                    </p>
+                    <div className="flex items-center gap-3 text-red-400">
+                       <Layers className="w-4 h-4" />
+                       <span className="text-[10px] font-black uppercase tracking-widest">Micro-Traffic Reduction</span>
+                    </div>
+                 </div>
+
+              </div>
+           </div>
+        </section>
+
+        {/* ─── THE SHIFT: FROM CHAOS TO INFRASTRUCTURE ────────────────────────── */}
+        <section id="shift" className="py-20 relative border-t border-white/5">
            <div className="container max-w-7xl mx-auto px-6">
               <div className="text-left mb-40">
                  <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">THE SYSTEMIC NEXUS</p>
                  <h2 className="text-6xl md:text-9xl font-black tracking-tighter italic uppercase leading-[0.8] mb-12">
-                    FROM CHAOS TO<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600">INFRASTRUCTURE.</span>
+                    THE COMMUTE<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600">ARCHITECTURE.</span>
                  </h2>
-                 <p className="text-xl md:text-3xl text-slate-500 font-bold max-w-4xl uppercase italic leading-tight">
-                    We don't just solve chat group friction. We re-engineer the entire commute experience—from <span className="text-white">Privacy to Peace of Mind.</span>
-                 </p>
               </div>
 
               {/* Problem/Solution Nexus Grid */}
@@ -205,7 +395,6 @@ export default function HomePage() {
                  
                  {/* PRIVACY & SECURITY BLOCK */}
                  <div className="relative group">
-                    <div className="absolute -inset-10 bg-red-500/5 blur-[100px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="bg-white/[0.02] border border-white/5 rounded-[5rem] p-12 relative overflow-hidden h-full">
                        <div className="flex items-center gap-4 mb-12">
                           <div className="w-16 h-16 bg-red-500/10 rounded-3xl flex items-center justify-center">
@@ -232,84 +421,14 @@ export default function HomePage() {
                     </div>
                  </div>
 
-                 {/* FEMALE SAFETY & VETTING BLOCK */}
-                 <div className="relative group">
-                    <div className="absolute -inset-10 bg-purple-500/5 blur-[100px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="bg-white/[0.02] border border-white/5 rounded-[5rem] p-12 relative overflow-hidden h-full">
-                       <div className="flex items-center gap-4 mb-12">
-                          <div className="w-16 h-16 bg-purple-500/10 rounded-3xl flex items-center justify-center">
-                             <ShieldCheck className="w-8 h-8 text-purple-400" />
-                          </div>
-                          <div>
-                             <h3 className="text-3xl font-black uppercase italic text-white">Trust Architecture</h3>
-                             <p className="text-[10px] font-black text-purple-400 uppercase tracking-widest">SAFETY: VETTED SYNERGY</p>
-                          </div>
-                       </div>
-                       
-                       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                          <div className="p-8 bg-purple-500/5 border border-purple-500/10 rounded-[3rem] opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
-                             <p className="text-[8px] font-black text-red-500 uppercase tracking-widest mb-4">THE HURDLE</p>
-                             <p className="text-sm font-bold text-white mb-2 italic">Stranger Danger</p>
-                             <p className="text-[10px] text-slate-500 leading-relaxed">Women and families face high anxiety commuting with unverified individuals from public platforms.</p>
-                          </div>
-                          <div className="p-8 bg-purple-600/20 border border-purple-500/40 rounded-[3rem] shadow-2xl">
-                             <p className="text-[8px] font-black text-purple-400 uppercase tracking-widest mb-4">SYNDICATE SAFETY</p>
-                             <p className="text-sm font-bold text-white mb-2 italic">Same-Society Matching</p>
-                             <p className="text-[10px] text-slate-200 leading-relaxed">We match you with neighbors working in your office hub. Shared community means shared accountability.</p>
-                          </div>
-                       </div>
-                    </div>
-                 </div>
-
-                 {/* ECONOMIC & TRAFFIC BLOCK */}
-                 <div className="relative group lg:col-span-2">
-                    <div className="absolute -inset-10 bg-green-500/5 blur-[120px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="bg-white/[0.02] border border-white/5 rounded-[5rem] p-12 relative overflow-hidden">
-                       <div className="flex items-center gap-4 mb-16">
-                          <div className="w-16 h-16 bg-green-500/10 rounded-3xl flex items-center justify-center">
-                             <TrafficCone className="w-8 h-8 text-green-400" />
-                          </div>
-                          <div className="text-left">
-                             <h3 className="text-4xl font-black uppercase italic text-white leading-none mb-2">Urban Optimization</h3>
-                             <p className="text-[10px] font-black text-green-500 uppercase tracking-widest">IMPACT: MACRO EFFICIENCY</p>
-                          </div>
-                       </div>
-                       
-                       <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-                          <div className="flex flex-col gap-6 p-8 bg-white/5 border border-white/10 rounded-[4rem]">
-                             <div className="w-12 h-12 bg-green-500/10 rounded-2xl flex items-center justify-center">
-                                <DollarSign className="w-6 h-6 text-green-400" />
-                             </div>
-                             <h4 className="text-xl font-black uppercase italic">Pocket Friendly</h4>
-                             <p className="text-xs text-slate-400 leading-relaxed">Join the syndicate and slash commute costs by up to 80% compared to solo cabs or fuel. High luxury at public ride costs.</p>
-                          </div>
-                          <div className="flex flex-col gap-6 p-8 bg-white/5 border border-white/10 rounded-[4rem]">
-                             <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center">
-                                <Share2 className="w-6 h-6 text-blue-400" />
-                             </div>
-                             <h4 className="text-xl font-black uppercase italic">Traffic Reduction</h4>
-                             <p className="text-xs text-slate-400 leading-relaxed">Fewer cars on road means faster corridors for all. We optimize every seat to clear the urban deadlock.</p>
-                          </div>
-                          <div className="flex flex-col gap-6 p-8 bg-white/5 border border-white/10 rounded-[4rem]">
-                             <div className="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center">
-                                <HeartHandshake className="w-6 h-6 text-amber-500" />
-                             </div>
-                             <h4 className="text-xl font-black uppercase italic">Peace for Family</h4>
-                             <p className="text-xs text-slate-400 leading-relaxed">Real-time corridor tracking and vetted peers mean your family stays at peace knowing you're in a secure loop.</p>
-                          </div>
-                       </div>
-                    </div>
-                 </div>
-
                  {/* SOCIAL & NEW JOINERS BLOCK */}
-                 <div className="relative group lg:col-span-2">
-                    <div className="absolute -inset-10 bg-blue-600/5 blur-[120px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-[5rem] p-16 relative overflow-hidden flex flex-col md:flex-row items-center gap-16">
+                 <div className="relative group">
+                    <div className="bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-blue-500/20 rounded-[5rem] p-12 relative overflow-hidden h-full flex flex-col justify-center">
                        <div className="absolute top-0 right-0 p-16 opacity-5 group-hover:scale-110 transition-transform">
                           <UserPlus className="w-64 h-64 text-white" />
                        </div>
                        
-                       <div className="flex-1 text-left relative z-10">
+                       <div className="text-left relative z-10">
                           <div className="inline-flex items-center gap-3 px-6 py-2 bg-blue-600/20 rounded-full text-[10px] font-black uppercase tracking-widest text-blue-400 mb-8">
                              <Users className="w-4 h-4" /> THE SOCIAL HIVE
                           </div>
@@ -318,40 +437,12 @@ export default function HomePage() {
                              <span className="text-blue-400">FIND YOUR CORNER.</span>
                           </h3>
                           <p className="text-lg text-slate-300 font-bold max-w-2xl leading-relaxed">
-                             Relocating is hard. Commuting shouldn't be. JOOL matches new joiners with established professionals in their office hubs, building your social circle while you move.
+                             Relocating is hard. Commuting shouldn't be. JOOL matches new joiners with established professionals in their office hubs.
                           </p>
-                       </div>
-
-                       <div className="w-full md:w-80 grid grid-cols-2 gap-4 relative z-10">
-                          {[
-                            { label: 'SOCIAL SYNC', val: '99%' },
-                            { label: 'TRUST SCORE', val: '4.9' },
-                            { label: 'NODES', val: '12k+' },
-                            { label: 'SAVING', val: '₹4k+' }
-                          ].map((stat, i) => (
-                            <div key={i} className="p-6 bg-white/5 border border-white/10 rounded-[2rem] text-center">
-                               <p className="text-2xl font-black text-white">{stat.val}</p>
-                               <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{stat.label}</p>
-                            </div>
-                          ))}
                        </div>
                     </div>
                  </div>
 
-              </div>
-
-              {/* Final Promise Banner */}
-              <div className="mt-32 p-12 bg-white/[0.03] border border-white/5 rounded-[4rem] text-center relative overflow-hidden">
-                 <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-transparent to-blue-600/5" />
-                 <h4 className="text-2xl md:text-4xl font-black uppercase italic text-white mb-6">ONE PROTOCOL. EVERY SOLUTION.</h4>
-                 <div className="flex flex-wrap justify-center gap-12">
-                    {['SOCIETY TO OFFICE', 'PEER VERIFIED', 'CARBON NEUTRAL', 'POCKET FRIENDLY'].map((tag, i) => (
-                       <div key={i} className="flex items-center gap-3">
-                          <CheckCircle2 className="w-5 h-5 text-green-500" />
-                          <span className="text-xs font-black uppercase tracking-widest text-slate-400">{tag}</span>
-                       </div>
-                    ))}
-                 </div>
               </div>
            </div>
         </section>
@@ -524,34 +615,10 @@ export default function HomePage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
                  <div className="text-left">
                     <p className="text-green-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">GLOBAL IMPACT NODE</p>
-                    <h2 className="text-5xl md:text-8xl font-black tracking-tighter mb-10 italic uppercase leading-[0.85]">
+                    <h2 className="text-5xl md:text-[10rem] font-black tracking-tighter mb-10 italic uppercase leading-[0.85]">
                        SAVING FOR YOU.<br />
                        <span className="text-green-500">SOLVING FOR ALL.</span>
                     </h2>
-                    <p className="text-slate-400 text-xl leading-relaxed mb-12 max-w-xl">
-                       Every ride matched is a victory for the planet and your wallet. Optimize the world's motion.
-                    </p>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-12">
-                       <div className="flex gap-4 items-center">
-                          <div className="w-12 h-12 bg-green-500/10 rounded-2xl flex items-center justify-center">
-                             <Leaf className="w-6 h-6 text-green-400" />
-                          </div>
-                          <div>
-                             <p className="text-2xl font-black text-white">{stats.trees_saved}</p>
-                             <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Trees Equivalent</p>
-                          </div>
-                       </div>
-                       <div className="flex gap-4 items-center">
-                          <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center">
-                             <DollarSign className="w-6 h-6 text-blue-400" />
-                          </div>
-                          <div>
-                             <p className="text-2xl font-black text-white">{stats.money_saved}</p>
-                             <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Fuel Economy Saved</p>
-                          </div>
-                       </div>
-                    </div>
                  </div>
                  
                  <div className="relative group">
@@ -627,7 +694,7 @@ export default function HomePage() {
         </div>
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-t border-white/5 pt-12">
-           <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">© 2026 JOOL TECHNOLOGY SYNDICATE • CRAFTED FOR THE GLOBE • V9.0</p>
+           <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">© 2026 JOOL TECHNOLOGY SYNDICATE • CRAFTED FOR THE GLOBE • V10.0</p>
            <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">System Online</span>
