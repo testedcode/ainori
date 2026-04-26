@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { 
   User, Mail, Phone, MapPin, CreditCard, Save, Loader2, 
   Leaf, Star, Award, ShieldCheck, QrCode, Edit3, Camera,
-  Clock, Sparkles, Crown, ZapOff, ShieldAlert, CheckCircle2, XCircle, Gem
+  Clock, Sparkles, Crown, ZapOff, ShieldAlert, CheckCircle2, XCircle, Gem,
+  Building2, Home
 } from 'lucide-react'
 import Link from 'next/link'
 import { api } from '@/lib/api'
@@ -500,85 +501,144 @@ export default function ProfilePage() {
 
         </div>
 
-         {/* TRIP HISTORY - NEW SECTION */}
-         <section className="mt-16">
-            <h3 className="text-2xl font-black mb-8 flex items-center gap-3">
-               <MapPin className="w-6 h-6 text-orange-500" /> TRIP HISTORY LEDGER
-            </h3>
-            <div className="bg-white/5 border border-white/10 rounded-[3rem] p-8 md:p-12 overflow-hidden relative">
-               <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 blur-[100px] -z-10" />
-               
-               {myRides.length === 0 ? (
-                 <div className="text-center py-20">
-                    <MapPin className="w-12 h-12 text-white/10 mx-auto mb-4" />
-                    <p className="text-white/40 font-bold">No trips recorded in the ledger.</p>
-                 </div>
-               ) : (() => {
-                  const activeTrips = myRides.filter(r => r.status === 'active' || r.status === 'completed' || r.status === 'partially_filled' || r.status === 'open')
+          <section className="mt-24 pb-20">
+             <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
+                <div className="flex items-center gap-4">
+                   <div className="w-14 h-14 bg-gradient-to-tr from-orange-600 to-amber-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-orange-500/20">
+                      <MapPin className="w-8 h-8 text-white" />
+                   </div>
+                   <div>
+                      <h3 className="text-3xl font-black text-white tracking-tighter uppercase italic leading-none">Trip Ledger</h3>
+                      <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] mt-1">Holographic History Record</p>
+                   </div>
+                </div>
+                <div className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-white/40 uppercase tracking-widest flex items-center gap-3">
+                   <ShieldCheck className="w-4 h-4 text-blue-400" /> All transmissions verified
+                </div>
+             </div>
+
+             <div className="bg-white/[0.02] border border-white/5 rounded-[4rem] p-1 md:p-2 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-orange-500/5 blur-[120px] -z-10" />
+                
+                {myRides.length === 0 ? (
+                  <div className="text-center py-32">
+                     <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <ZapOff className="w-10 h-10 text-white/10" />
+                     </div>
+                     <p className="text-white/40 font-black uppercase tracking-widest text-[10px]">No active missions found in the ledger.</p>
+                     <Link href="/rides" className="mt-8 inline-flex px-10 py-4 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/10">Find First Ride</Link>
+                  </div>
+                ) : (() => {
+                  const activeTrips = myRides.filter(r => r.status !== 'cancelled')
                   
                   // Group by month
                   const groups: Record<string, UserRide[]> = {}
                   activeTrips.forEach(r => {
-                    const month = new Date(r.ride_date).toLocaleString('default', { month: 'long', year: 'numeric' })
+                    const datePart = r.ride_date.split('T')[0]
+                    const d = new Date(datePart + 'T00:00:00')
+                    const month = d.toLocaleString('default', { month: 'long', year: 'numeric' })
                     if (!groups[month]) groups[month] = []
                     groups[month].push(r)
                   })
 
-                  const sortedMonths = Object.keys(groups).sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
-                  const recentMonths = sortedMonths.slice(0, 3)
-                  const archiveMonths = sortedMonths.slice(3)
+                  const sortedMonths = Object.keys(groups).sort((a, b) => {
+                    const [m1, y1] = a.split(' ')
+                    const [m2, y2] = b.split(' ')
+                    return new Date(`${m2} 1, ${y2}`).getTime() - new Date(`${m1} 1, ${m1}`).getTime()
+                  })
 
                   return (
-                    <div className="space-y-12">
-                      {recentMonths.map(month => (
+                    <div className="space-y-16 p-8 md:p-12">
+                      {sortedMonths.map(month => (
                         <div key={month}>
-                           <div className="flex items-center gap-4 mb-6">
-                              <h4 className="text-lg font-black text-white/60 uppercase tracking-widest">{month}</h4>
-                              <div className="flex-1 h-px bg-white/10" />
+                           <div className="flex items-center gap-6 mb-10">
+                              <h4 className="text-2xl font-black text-white/80 uppercase italic tracking-tighter leading-none">{month}</h4>
+                              <div className="flex-1 h-px bg-gradient-to-r from-white/10 to-transparent" />
                            </div>
-                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {groups[month].map(ride => (
-                                <div key={ride.id} className={`p-6 rounded-3xl border transition-all ${ride.role === 'host' ? 'bg-green-500/5 border-green-500/20' : 'bg-blue-500/5 border-blue-500/20'}`}>
-                                   <div className="flex justify-between items-start mb-4">
-                                      <div>
-                                         <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">
-                                           {ride.role === 'host' ? 'Hosted Route' : `Commuted with ${ride.driver_name}`}
-                                         </p>
-                                         <h5 className="font-bold text-white pr-4">{ride.corridor_name}</h5>
-                                      </div>
-                                      <div className="text-[10px] font-black text-white/40 border border-white/10 px-2 py-0.5 rounded-md uppercase">
-                                         {ride.ride_date}
-                                      </div>
-                                   </div>
-                                   <div className="flex items-center gap-4 text-[10px] font-bold text-white/40 uppercase">
-                                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {ride.ride_time}</span>
-                                      <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {ride.direction === 'to_office' ? 'Office Bound' : 'Home Bound'}</span>
-                                      <span className="flex-1 text-right text-green-400">₹{ride.id % 20 + 80} SAVED</span>
-                                   </div>
-                                </div>
-                              ))}
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                              {groups[month].map(ride => {
+                                const datePart = ride.ride_date.split('T')[0]
+                                const d = new Date(datePart + 'T00:00:00')
+                                const formattedDate = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }).toUpperCase()
+                                const isHost = ride.role === 'host'
+                                
+                                return (
+                                  <div key={ride.id} className="group relative">
+                                     <div className={`absolute -inset-1 bg-gradient-to-r ${isHost ? 'from-green-500/20 to-blue-500/20' : 'from-blue-600/20 to-indigo-600/20'} rounded-[3rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity`} />
+                                     
+                                     <div className={`relative p-8 rounded-[3rem] border backdrop-blur-2xl transition-all duration-500 hover:-translate-y-2 cursor-pointer ${isHost ? 'bg-green-500/[0.02] border-green-500/10 group-hover:border-green-500/30' : 'bg-blue-600/[0.02] border-blue-500/10 group-hover:border-blue-500/30'}`}>
+                                        <div className="flex justify-between items-start mb-8">
+                                           <div className="flex items-center gap-4">
+                                              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${isHost ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-blue-600/10 border-blue-500/20 text-blue-400'}`}>
+                                                 {isHost ? <ShieldCheck className="w-6 h-6" /> : <Car className="w-6 h-6" />}
+                                              </div>
+                                              <div>
+                                                 <p className={`text-[9px] font-black uppercase tracking-[0.2em] mb-1 ${isHost ? 'text-green-500/60' : 'text-blue-400/60'}`}>
+                                                   {isHost ? 'FLEET COMMAND' : 'PASSENGER MODULE'}
+                                                 </p>
+                                                 <h5 className="text-xl font-black text-white italic tracking-tighter uppercase">{ride.corridor_name}</h5>
+                                              </div>
+                                           </div>
+                                           <div className="text-right">
+                                              <span className="text-2xl font-black text-white tracking-tighter">{formattedDate}</span>
+                                              <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] mt-1">RECORD DATE</p>
+                                           </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4 mb-8">
+                                           <div className="bg-white/5 border border-white/5 rounded-2xl p-4">
+                                              <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Timing</p>
+                                              <div className="flex items-center gap-2">
+                                                 <Clock className="w-3.5 h-3.5 text-amber-500" />
+                                                 <span className="text-xs font-black text-white">{ride.ride_time}</span>
+                                              </div>
+                                           </div>
+                                           <div className="bg-white/5 border border-white/5 rounded-2xl p-4">
+                                              <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Route</p>
+                                              <div className="flex items-center gap-2">
+                                                 {ride.direction === 'to_office' ? <Building2 className="w-3.5 h-3.5 text-blue-400" /> : <Home className="w-3.5 h-3.5 text-green-400" />}
+                                                 <span className="text-xs font-black text-white">{ride.direction === 'to_office' ? 'OFFICE' : 'HOME'}</span>
+                                              </div>
+                                           </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between border-t border-white/5 pt-8 gap-4">
+                                           <div className="flex -space-x-2">
+                                              {ride.confirmed_riders?.slice(0, 3).map((r, i) => (
+                                                <img key={i} src={r.avatar_url || `https://ui-avatars.com/api/?name=${r.name}`} className="w-7 h-7 rounded-full border-2 border-[#0f172a] object-cover" />
+                                              ))}
+                                              {(ride.confirmed_riders?.length || 0) > 3 && (
+                                                <div className="w-7 h-7 rounded-full border-2 border-[#0f172a] bg-slate-800 flex items-center justify-center text-[8px] font-black">+{ride.confirmed_riders!.length - 3}</div>
+                                              )}
+                                           </div>
+
+                                           <div className="flex gap-2">
+                                              <Link 
+                                                href={`/rides/${ride.id}`}
+                                                className={`px-6 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${isHost ? 'bg-green-500 text-black hover:bg-green-400' : 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-600/20'}`}
+                                              >
+                                                 OPEN MISSION
+                                              </Link>
+                                              <Link 
+                                                href={`/support?tab=ticket&trip_id=${ride.id}`}
+                                                className="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-white/40 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all"
+                                              >
+                                                 REPORT
+                                              </Link>
+                                           </div>
+                                        </div>
+                                     </div>
+                                  </div>
+                                )
+                              })}
                            </div>
                         </div>
                       ))}
-
-                      {archiveMonths.length > 0 && (
-                        <div className="pt-8 border-t border-white/5">
-                           <h4 className="text-xs font-black text-white/20 uppercase tracking-[0.3em] mb-6">History Archive</h4>
-                           <div className="space-y-2">
-                              {archiveMonths.map(month => (
-                                <div key={month} className="flex items-center justify-between p-4 bg-white/[0.02] rounded-2xl border border-white/5 hover:bg-white/[0.05] transition-all">
-                                   <span className="text-sm font-bold text-white/40">{month}</span>
-                                   <span className="text-xs font-black text-blue-400">{groups[month].length} Trips Recorded</span>
-                                </div>
-                              ))}
-                           </div>
-                        </div>
-                      )}
                     </div>
                   )
-               })()}
-            </div>
-         </section>
+                })()}
+             </div>
+          </section>
       </main>
 
       {showPasswordModal && (

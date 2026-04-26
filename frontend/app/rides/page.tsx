@@ -473,7 +473,7 @@ function RidesContent() {
     const h = parseInt(r.ride_time.split(':')[0])
     const m = parseInt(r.ride_time.split(':')[1])
 
-    // ⏱️ 15-Min Expiry Filter
+    // ⏱️ High-Precision Expiry & Window Filter
     const isToday = filter.date === new Date().toISOString().split('T')[0]
     if (isToday && liveOnly) {
       // Always show active journeys regardless of time
@@ -481,10 +481,19 @@ function RidesContent() {
       if (!isActiveStatus) {
         const now = new Date()
         const rideDate = new Date()
-        rideDate.setHours(h, m, 0, 0)
+        // Handle ISO string or date-only string
+        const datePart = r.ride_date.split('T')[0]
+        const [rh, rm] = r.ride_time.split(':').map(Number)
+        rideDate.setHours(rh, rm, 0, 0)
+        
         const diffMins = (now.getTime() - rideDate.getTime()) / 60000
-        // Hide if started > 15 mins ago
-        if (diffMins > 15) return false
+        
+        // Rules for "Live Only":
+        // 1. Hide if it happened > 30 mins ago (grace period)
+        if (diffMins > 30) return false
+        
+        // 2. Hide if it is > 2 hours in the future
+        if (diffMins < -120) return false
       }
     }
     

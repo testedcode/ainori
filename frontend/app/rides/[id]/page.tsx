@@ -407,8 +407,11 @@ export default function RideDetailPage() {
           </div>
 
           {/* ─── RATINGS (FOR PAST RIDES) ────────────────────────────────────── */}
-          {(new Date(ride.ride_date + 'T' + ride.ride_time) < new Date()) && (
-            <GlassPanel className="border-amber-400/30 bg-amber-400/[0.02]">
+          {(() => {
+            const datePart = ride.ride_date.split('T')[0]
+            const isPast = new Date(datePart + 'T' + ride.ride_time) < new Date()
+            return isPast && (
+              <GlassPanel className="border-amber-400/30 bg-amber-400/[0.02]">
               <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-amber-400/10 rounded-2xl flex items-center justify-center">
@@ -593,7 +596,10 @@ export default function RideDetailPage() {
                     I'm at the spot
                   </button>
                 )}
-                {(ride.status === 'at_pickup' || ride.status === 'starting' || (new Date(ride.ride_date + 'T' + ride.ride_time) < new Date())) && (
+                {(ride.status === 'at_pickup' || ride.status === 'starting' || (() => {
+                  const datePart = ride.ride_date.split('T')[0]
+                  return new Date(datePart + 'T' + ride.ride_time) < new Date()
+                })()) && (
                   <button
                     onClick={() => {
                       if (confirm('Finish this trip? This will move it to history.')) {
