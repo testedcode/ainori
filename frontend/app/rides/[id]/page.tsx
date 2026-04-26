@@ -8,7 +8,7 @@ import {
   MessageSquare, Send, Check, X, Loader2, Navigation,
   AlertCircle, Sparkles, CheckCircle2, Banknote, QrCode,
   Timer, ArrowRight, Ticket, Copy, UserCheck, XCircle, Zap, ExternalLink,
-  PlayCircle, Navigation2, Flag
+  PlayCircle, Navigation2, Flag, Building2, Home
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
@@ -453,7 +453,8 @@ export default function RideDetailPage() {
                 </div>
               </div>
             </GlassPanel>
-          )}
+            )
+          })()}
 
           {/* RIDE SUMMARY PANEL */}
           <GlassPanel className="border-blue-500/20 !p-0 overflow-hidden">

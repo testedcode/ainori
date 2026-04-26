@@ -6,7 +6,7 @@ import {
   User, Mail, Phone, MapPin, CreditCard, Save, Loader2, 
   Leaf, Star, Award, ShieldCheck, QrCode, Edit3, Camera,
   Clock, Sparkles, Crown, ZapOff, ShieldAlert, CheckCircle2, XCircle, Gem,
-  Building2, Home
+  Building2, Home, Car
 } from 'lucide-react'
 import Link from 'next/link'
 import { api } from '@/lib/api'
