@@ -531,7 +531,42 @@ export default function HomePage() {
       </main>
 
       <footer className="container mx-auto px-6 py-20 border-t border-white/5">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
+           <div className="md:col-span-2 text-left">
+              <div className="flex items-center gap-3 mb-8">
+                 <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <Car className="w-7 h-7 text-white" />
+                 </div>
+                 <div className="flex flex-col">
+                   <span className="text-2xl font-black tracking-widest uppercase leading-none">JOOL SYNDICATE</span>
+                   <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.4em]">Autonomous Intelligence Commute</span>
+                 </div>
+              </div>
+              <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest max-w-sm leading-relaxed">
+                 Engineering the future of urban motion. Join the most secure professional commute network globally.
+              </p>
+           </div>
+           
+           <div className="text-left">
+              <h4 className="text-xs font-black uppercase tracking-[0.4em] mb-10 text-white">Infrastructure</h4>
+              <div className="flex flex-col gap-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                 <Link href="/privacy" className="hover:text-white transition-colors">Privacy Protocol</Link>
+                 <Link href="/terms" className="hover:text-white transition-colors">Terms of Syndicate</Link>
+                 <Link href="/support" className="hover:text-white transition-colors">Support Node</Link>
+              </div>
+           </div>
+
+           <div className="text-left">
+              <h4 className="text-xs font-black uppercase tracking-[0.4em] mb-10 text-white">Community</h4>
+              <div className="flex flex-col gap-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                 <Link href="/hacks" className="hover:text-white transition-colors">Efficiency Hacks</Link>
+                 <Link href="/exclusive-benefits" className="hover:text-white transition-colors">Elite Tiers</Link>
+                 <Link href="/safety" className="hover:text-white transition-colors">Safety Nets</Link>
+              </div>
+           </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-t border-white/5 pt-12">
            <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">© 2026 JOOL TECHNOLOGY SYNDICATE • V10.4</p>
            <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
