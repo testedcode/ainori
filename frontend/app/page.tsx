@@ -14,7 +14,8 @@ import {
   Anchor, Zap as ZapIcon, ThermometerSun, Stethoscope, Bike, TrendingDown,
   LineChart, Coffee, BrainCircuit, Network, Umbrella, CloudRain,
   Flame, ShieldHalf, LayoutGrid, Coins, Zap as EVIcon, HeartPulse,
-  MonitorCheck, Verified, Glasses, Sparkle, Gauge, LifeBuoy
+  MonitorCheck, Verified, Glasses, Sparkle, Gauge, LifeBuoy, Split, Scan,
+  Box, Terminal, Binary
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { getVibe, VIBE_THEMES } from '@/lib/vibe-utils';
@@ -111,10 +112,7 @@ export default function HomePage() {
                 MOVE WITH<br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-white to-blue-400 animate-gradient-x">PURE INTENT.</span>
               </h1>
-              <p className="text-xl md:text-3xl text-white/50 font-bold mb-16 uppercase tracking-tight max-w-4xl mx-auto">
-                 AI-Orchestrated Private Corridors. <br /> Structured. Secure. Superior.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-10">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-10 mt-16">
                 <Link href="/register" className="group relative px-16 py-7 bg-white text-black rounded-[3rem] font-black text-lg uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-2xl active:scale-95 overflow-hidden">
                   <span className="relative z-10 flex items-center gap-3">Join the Syndicate <ArrowRight className="w-6 h-6" /></span>
                 </Link>
@@ -144,7 +142,7 @@ export default function HomePage() {
                             'Same-Society Verification: Match with neighbors you know.',
                             'Real-Time Family Tracking: Your loved ones stay in the loop.',
                             'Vetted Corporate Network: Exclusive access for professionals only.',
-                            'Emergency SOS Node: Direct link to Syndicate Support.'
+                            'Secured In-App Comms: Masked identifiers for total privacy.'
                           ].map((feat, i) => (
                             <div key={i} className="flex items-center gap-4 group/item">
                                <div className="w-6 h-6 bg-purple-500/20 rounded-full flex items-center justify-center group-hover/item:bg-purple-500 transition-colors">
@@ -155,23 +153,131 @@ export default function HomePage() {
                           ))}
                        </div>
                     </div>
-                    <div className="relative">
-                       <div className="bg-[#0a0f1e] border border-purple-500/20 rounded-[4rem] p-12 shadow-2xl">
-                          <div className="w-full aspect-square bg-gradient-to-tr from-purple-500/10 to-blue-500/10 rounded-[3rem] flex items-center justify-center relative overflow-hidden group/viz">
-                             <div className="relative z-10 text-center">
-                                <ShieldCheck className="w-32 h-32 text-purple-400 mx-auto mb-8 animate-pulse" />
-                                <p className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-2">SYNDICATE TRUST SCORE</p>
-                                <p className="text-6xl font-black text-white">99.9%</p>
-                             </div>
-                          </div>
-                       </div>
-                    </div>
                  </div>
               </div>
            </div>
         </section>
 
-        {/* ─── URBAN OPTIMIZATION MASTER MATRIX (V10.3) ────────────────────────── */}
+        {/* ─── THE SYSTEMIC OVERWRITE: FROM CHAOS TO INFRASTRUCTURE (RE-ENGINEERED) ────────────────────────── */}
+        <section id="shift" className="py-60 relative overflow-hidden bg-[#050810]">
+           {/* Cinematic Ambient Light */}
+           <div className="absolute top-1/2 left-0 w-[800px] h-[800px] bg-red-600/5 blur-[150px] -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+           <div className="absolute top-1/2 right-0 w-[800px] h-[800px] bg-blue-600/5 blur-[150px] translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+
+           <div className="container max-w-7xl mx-auto px-6 relative z-10">
+              <div className="text-center mb-40">
+                 <div className="inline-flex items-center gap-3 px-6 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-[0.4em] mb-8 text-white/40">
+                    <Scan className="w-4 h-4" /> SYSTEMIC OVERWRITE INITIATED
+                 </div>
+                 <h2 className="text-6xl md:text-9xl font-black tracking-tighter italic uppercase leading-[0.8]">
+                    THE SHIFT FROM<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-white to-blue-500 animate-gradient-x">CHAOS TO INFRASTRUCTURE.</span>
+                 </h2>
+              </div>
+
+              {/* The "Versatile" Presentation: Dual Plate Shift */}
+              <div className="relative flex flex-col lg:flex-row items-stretch gap-4 min-h-[700px] group/shift">
+                 
+                 {/* LEFT: THE CHAOS (Glitch Style) */}
+                 <div className="flex-1 bg-[#0a0505] border border-red-900/30 rounded-[4rem] p-12 relative overflow-hidden transition-all duration-1000 group-hover/shift:flex-[0.8] hover:!flex-[1.2] group">
+                    {/* Chaos Noise Overlay */}
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-20 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-red-600/5 to-transparent pointer-events-none" />
+                    
+                    <div className="relative z-10 h-full flex flex-col justify-between">
+                       <div>
+                          <div className="flex items-center gap-4 mb-16">
+                             <div className="w-16 h-16 bg-red-600/10 rounded-[2rem] flex items-center justify-center border border-red-500/20 shadow-[0_0_40px_rgba(220,38,38,0.2)]">
+                                <ZapOff className="w-8 h-8 text-red-500 animate-pulse" />
+                             </div>
+                             <div className="text-left">
+                                <h3 className="text-4xl font-black uppercase italic leading-none text-white/90">The Chaos</h3>
+                                <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mt-1">UNORGANIZED VULNERABILITY</p>
+                             </div>
+                          </div>
+
+                          <div className="space-y-4">
+                             {[
+                               { t: 'Unvetted Chat Groups', d: 'Zero accountability. Zero structure.', icon: XCircle },
+                               { t: 'Phone Numbers Leaked', d: 'Identity exposed to unvetted strangers.', icon: EyeOff },
+                               { t: 'Unpredictable Pricing', d: 'Surge traps and awkward negotiations.', icon: TrendingUp },
+                               { t: 'Safety Hazards', d: 'No tracking. No vetting. No safety net.', icon: ShieldAlert }
+                             ].map((item, i) => (
+                               <div key={i} className="flex items-center gap-6 p-6 bg-white/[0.02] border border-white/5 rounded-3xl hover:bg-red-950/20 hover:border-red-500/20 transition-all group/item">
+                                  <item.icon className="w-6 h-6 text-red-600 group-hover/item:scale-110 transition-transform" />
+                                  <div className="text-left">
+                                     <h4 className="text-lg font-black text-white/40 group-hover/item:text-white uppercase italic tracking-tight">{item.t}</h4>
+                                     <p className="text-[10px] font-bold text-red-900 uppercase tracking-widest group-hover/item:text-red-500">{item.d}</p>
+                                  </div>
+                               </div>
+                             ))}
+                          </div>
+                       </div>
+                       
+                       <div className="pt-12 text-left opacity-20 group-hover:opacity-40 transition-opacity">
+                          <p className="text-[8px] font-black text-red-500 uppercase tracking-[0.5em]">STATUS: DEGRADED_SIGNAL</p>
+                       </div>
+                    </div>
+                 </div>
+
+                 {/* CENTER: THE SCANNER OVERLAY (MAGIC ELEMENT) */}
+                 <div className="hidden lg:flex absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent -translate-x-1/2 z-20 pointer-events-none">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rounded-full blur-md animate-[bounce_4s_infinite]" />
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-4 bg-blue-500 rounded-full blur-md animate-[bounce_3s_infinite]" />
+                 </div>
+
+                 {/* RIGHT: THE SYNDICATE (High-Fidelity Structure) */}
+                 <div className="flex-1 bg-[#050a15] border border-blue-900/30 rounded-[4rem] p-12 relative overflow-hidden transition-all duration-1000 group-hover/shift:flex-[1.2] hover:!flex-[1.4] group">
+                    {/* Infrastructure Grid Overlay */}
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-blue-600/5 to-transparent pointer-events-none" />
+                    
+                    <div className="relative z-10 h-full flex flex-col justify-between">
+                       <div>
+                          <div className="flex items-center gap-4 mb-16">
+                             <div className="w-16 h-16 bg-blue-600/10 rounded-[2rem] flex items-center justify-center border border-blue-500/20 shadow-[0_0_40px_rgba(37,99,235,0.2)]">
+                                <Binary className="w-8 h-8 text-blue-500 animate-[spin_8s_linear_infinite]" />
+                             </div>
+                             <div className="text-left">
+                                <h3 className="text-4xl font-black uppercase italic leading-none text-white">The Syndicate</h3>
+                                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">AI-ORCHESTRATED INFRASTRUCTURE</p>
+                             </div>
+                          </div>
+
+                          <div className="space-y-4">
+                             {[
+                               { t: 'Society Verified Nodes', d: 'Match with trusted neighbors only.', icon: ShieldCheck, color: 'text-blue-400' },
+                               { t: 'Masked Identity', d: 'E2E encryption. Ghost protocols active.', icon: Fingerprint, color: 'text-cyan-400' },
+                               { t: 'Fixed Ledger Rates', d: 'Predictable pricing. Zero surge.', icon: Coins, color: 'text-green-400' },
+                               { t: 'Emergency SOS Grid', d: 'Real-time tracking. Instant assistance.', icon: Activity, color: 'text-blue-500' }
+                             ].map((item, i) => (
+                               <div key={i} className="flex items-center gap-6 p-6 bg-blue-600/5 border border-blue-500/10 rounded-3xl hover:bg-blue-600/20 hover:border-blue-500/40 transition-all group/item shadow-2xl">
+                                  <div className="relative">
+                                     <item.icon className={`w-6 h-6 ${item.color} group-hover/item:scale-110 transition-transform relative z-10`} />
+                                     <div className={`absolute inset-0 ${item.color.replace('text', 'bg')} blur-lg opacity-40`} />
+                                  </div>
+                                  <div className="text-left">
+                                     <h4 className="text-lg font-black text-white uppercase italic tracking-tight">{item.t}</h4>
+                                     <p className="text-[10px] font-black text-blue-400/60 uppercase tracking-widest group-hover/item:text-blue-400">{item.d}</p>
+                                  </div>
+                               </div>
+                             ))}
+                          </div>
+                       </div>
+
+                       <div className="pt-12 text-left">
+                          <div className="flex items-center gap-3">
+                             <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(34,197,94,1)]" />
+                             <p className="text-[8px] font-black text-blue-400 uppercase tracking-[0.5em]">SYSTEM_STATUS: NOMINAL • SECURITY: ELITE</p>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+
+              </div>
+           </div>
+        </section>
+
+        {/* ─── URBAN OPTIMIZATION MASTER MATRIX (V10.4) ────────────────────────── */}
         <section id="optimization" className="py-60 relative overflow-hidden">
            <div className="container max-w-7xl mx-auto px-6">
               <div className="flex flex-col lg:flex-row items-end justify-between mb-40 gap-10">
@@ -189,7 +295,6 @@ export default function HomePage() {
               {/* THE MASTER GRID (Curated 10 Cards) */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                  
-                 {/* 1. MONSOON SHIELD */}
                  <OptimizationCard 
                     tag="[SEASONAL SHIELD]" 
                     title="Monsoon Node" 
@@ -201,7 +306,6 @@ export default function HomePage() {
                     badge="ACTIVE"
                  />
 
-                 {/* 2. EXECUTIVE SYNERGY (Re-worded "Elite Growth") */}
                  <OptimizationCard 
                     tag="[ELITE NETWORK]" 
                     title="Peer Synergy" 
@@ -213,7 +317,6 @@ export default function HomePage() {
                     badge="PREMIUM"
                  />
 
-                 {/* 3. FEMALE SAFETY (Re-integrated) */}
                  <OptimizationCard 
                     tag="[SAFETY PROTOCOL]" 
                     title="Guardian Node" 
@@ -225,7 +328,6 @@ export default function HomePage() {
                     badge="SECURE"
                  />
 
-                 {/* 4. SENIOR MOBILITY (NEW) */}
                  <OptimizationCard 
                     tag="[EASY ACCESS]" 
                     title="Silver Corridor" 
@@ -237,7 +339,6 @@ export default function HomePage() {
                     badge="NEW"
                  />
 
-                 {/* 5. HEALTH & CLIMATE */}
                  <OptimizationCard 
                     tag="[HEALTH SHIELD]" 
                     title="Biotic Node" 
@@ -248,7 +349,6 @@ export default function HomePage() {
                     color="cyan"
                  />
 
-                 {/* 6. ZEN SABBATICAL */}
                  <OptimizationCard 
                     tag="[MENTAL HEALTH]" 
                     title="Zen Corridor" 
@@ -259,7 +359,6 @@ export default function HomePage() {
                     color="indigo"
                  />
 
-                 {/* 7. BIKE-TO-CAR PARITY */}
                  <OptimizationCard 
                     tag="[SAFETY PARITY]" 
                     title="Fleet Upgrade" 
@@ -270,7 +369,6 @@ export default function HomePage() {
                     color="orange"
                  />
 
-                 {/* 8. NEXUS LOGIC (Organizing Chaos) */}
                  <OptimizationCard 
                     tag="[INFRASTRUCTURE]" 
                     title="Nexus Logic" 
@@ -281,7 +379,6 @@ export default function HomePage() {
                     color="pink"
                  />
 
-                 {/* 9. EV GENESIS */}
                  <OptimizationCard 
                     tag="[NATURE LOVERS]" 
                     title="EV Genesis" 
@@ -293,7 +390,6 @@ export default function HomePage() {
                     badge="COMING SOON"
                  />
 
-                 {/* 10. WEALTH LEDGER */}
                  <OptimizationCard 
                     tag="[FINANCE NODE]" 
                     title="Wealth Ledger" 
@@ -305,68 +401,115 @@ export default function HomePage() {
                  />
 
               </div>
+           </div>
+        </section>
 
-              {/* SECURE COMMS & PAYMENTS ROW */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-10">
-                 <div className="bg-white/[0.03] border border-white/5 rounded-[4rem] p-10 flex flex-col md:flex-row items-center gap-10 text-left group hover:bg-white/[0.06] transition-all">
-                    <div className="w-24 h-24 bg-blue-600/10 rounded-[2.5rem] flex-shrink-0 flex items-center justify-center border border-blue-500/20 group-hover:scale-110 transition-transform">
-                       <Lock className="w-12 h-12 text-blue-400" />
-                    </div>
-                    <div>
-                       <h4 className="text-2xl font-black uppercase italic mb-2">Secured Transmissions</h4>
-                       <p className="text-slate-400 text-sm font-bold leading-relaxed">Identity remains a ghost until you confirm a node match. End-to-end encrypted comms only.</p>
-                       <div className="flex items-center gap-2 mt-4 text-[8px] font-black text-blue-400 uppercase tracking-widest">
-                          <Fingerprint className="w-3 h-3" /> VERIFIED CRYPTO-NODE
-                       </div>
-                    </div>
+        {/* ─── HAPPY RIDE HACKS ────────────────────────── */}
+        <section id="hacks" className="py-60 bg-gradient-to-b from-transparent via-purple-600/5 to-transparent relative overflow-hidden">
+           <div className="container max-w-7xl mx-auto px-6 relative z-10">
+              <div className="text-left mb-32">
+                 <div className="inline-flex items-center gap-3 px-8 py-3 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-[0.6em] mb-12 text-purple-400">
+                    <ZapIcon className="w-5 h-5 animate-bounce" /> MAXIMIZE YOUR MOTION
                  </div>
+                 <h2 className="text-7xl md:text-[11rem] font-black tracking-tighter uppercase italic leading-[0.8] mb-12">
+                    HAPPY RIDE<br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-white to-purple-400 animate-gradient-x">HACKS.</span>
+                 </h2>
+              </div>
 
-                 <div className="bg-white/[0.03] border border-white/5 rounded-[4rem] p-10 flex flex-col md:flex-row items-center gap-10 text-left group hover:bg-white/[0.06] transition-all">
-                    <div className="w-24 h-24 bg-green-600/10 rounded-[2.5rem] flex-shrink-0 flex items-center justify-center border border-green-500/20 group-hover:scale-110 transition-transform">
-                       <ShieldCheck className="w-12 h-12 text-green-400" />
-                    </div>
-                    <div>
-                       <h4 className="text-2xl font-black uppercase italic mb-2">Platform Ledger</h4>
-                       <p className="text-slate-400 text-sm font-bold leading-relaxed">Secure, simple, and one-click settlements via UPI. No cash, no debt, no awkwardness.</p>
-                       <div className="flex items-center gap-2 mt-4 text-[8px] font-black text-green-400 uppercase tracking-widest">
-                          <Banknote className="w-3 h-3" /> SECURE SETTLEMENT ENGINE
-                       </div>
-                    </div>
-                 </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                 {[
+                   { title: 'Treat with Greet', d: 'A smile is the best commute start. Be the energy you want to ride with.', icon: Smile, vibe: 'ENERGY', benefit: 'DOPAMINE BOOST', color: 'blue' },
+                   { title: 'The Silent Node', d: 'Respect "No Yelling" and low volume. Deep work or total zen.', icon: VolumeX, vibe: 'FOCUS', benefit: 'DEEP WORK', color: 'purple' },
+                   { title: 'In-Ride Settle', d: 'Settle via UPI during the ride. Zero friction, zero debt.', icon: Banknote, vibe: 'FLOW', benefit: 'ZERO FRICTION', color: 'green' },
+                   { title: 'Nexus Integrity', d: 'Privacy first. Keep all coordination inside the JOOL network.', icon: ShieldCheck, vibe: 'STEALTH', benefit: 'DATA PRIVACY', color: 'red' },
+                   { title: 'Time Discipline', d: 'Punctuality is the ultimate respect. Be the node that others rely on.', icon: Clock, vibe: 'TRUST', benefit: 'TIME SAVED', color: 'amber' },
+                   { title: 'Zero Spam Signal', d: 'Keep the signals clean. Relevant commute updates only.', icon: Radio, vibe: 'SIGNAL', benefit: 'NO NOISE', color: 'cyan' }
+                 ].map((hack, i) => (
+                   <div key={i} className="group relative bg-white/[0.02] border border-white/10 rounded-[5rem] p-12 hover:bg-white/[0.08] transition-all duration-700 overflow-hidden text-left flex flex-col">
+                      <div className="flex justify-between items-center mb-12">
+                         <div className={`w-24 h-24 bg-${hack.color}-500/10 rounded-[2.5rem] flex items-center justify-center group-hover:rotate-[360deg] transition-transform duration-1000 border border-${hack.color}-500/20 relative shadow-2xl shadow-${hack.color}-500/20`}>
+                            <hack.icon className={`w-12 h-12 text-${hack.color}-400 relative z-10`} />
+                         </div>
+                         <div className="text-right">
+                            <p className={`text-[12px] font-black text-${hack.color}-500 uppercase tracking-widest mb-1 italic`}>{hack.vibe}</p>
+                            <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em]">{hack.benefit}</span>
+                         </div>
+                      </div>
+                      <h4 className="text-4xl font-black text-white uppercase italic mb-8 tracking-tighter group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-slate-500 transition-all">
+                         {hack.title}
+                      </h4>
+                      <p className="text-lg text-slate-400 font-bold leading-tight mb-12 opacity-60 group-hover:opacity-100 transition-opacity flex-1">
+                         {hack.d}
+                      </p>
+                   </div>
+                 ))}
               </div>
            </div>
         </section>
 
-        {/* ─── THE SHIFT ────────────────────────── */}
-        <section id="shift" className="py-20 relative border-t border-white/5">
-           <div className="container max-w-7xl mx-auto px-6 text-left">
-              <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">THE SYSTEMIC NEXUS</p>
-              <h2 className="text-6xl md:text-9xl font-black tracking-tighter italic uppercase leading-[0.8] mb-40">
-                 FROM CHAOS TO<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600">INFRASTRUCTURE.</span>
-              </h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
-                 <div className="bg-white/[0.02] border border-white/5 rounded-[5rem] p-12">
-                    <h3 className="text-3xl font-black uppercase italic mb-10">THE CHAOS</h3>
-                    <div className="space-y-6 opacity-40 grayscale">
-                       {['Unvetted Chat Groups', 'Phone Numbers Leaked', 'Unpredictable Pricing', 'Safety Hazards'].map((t, i) => (
-                         <div key={i} className="flex items-center gap-4 py-4 border-b border-white/5">
-                            <XCircle className="w-5 h-5 text-red-500" /> <span className="font-bold text-xl uppercase italic">{t}</span>
-                         </div>
-                       ))}
-                    </div>
+        {/* ─── DEFINE YOUR STATUS ────────────────────────── */}
+        <section id="premium" className="py-40 relative">
+           <div className="container max-w-7xl mx-auto px-6">
+              <div className="flex flex-col lg:flex-row items-end justify-between gap-10 mb-32">
+                 <div className="max-w-2xl text-left">
+                    <p className="text-amber-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">MEMBERSHIP ARCHITECTURE</p>
+                    <h2 className="text-5xl md:text-7xl font-black tracking-tighter italic uppercase leading-none">
+                       DEFINE YOUR<br /><span className="text-amber-500">STATUS.</span>
+                    </h2>
                  </div>
-                 <div className="bg-blue-600/10 border border-blue-500/20 rounded-[5rem] p-12 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-20 opacity-5">
-                       <ZapIcon className="w-64 h-64 text-blue-500" />
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                 {/* STANDARD */}
+                 <div className="bg-white/[0.02] border border-white/10 p-12 rounded-[4rem] flex flex-col hover:bg-white/[0.04] transition-all group text-left h-full">
+                    <div className="mb-12">
+                       <h3 className="text-2xl font-black uppercase italic mb-2">Standard</h3>
                     </div>
-                    <h3 className="text-3xl font-black uppercase italic mb-10">THE SYNDICATE</h3>
-                    <div className="space-y-6">
-                       {['Society Verified Nodes', 'Masked Identity', 'Fixed Ledger Rates', 'Emergency SOS Grid'].map((t, i) => (
-                         <div key={i} className="flex items-center gap-4 py-4 border-b border-blue-500/10">
-                            <CheckCircle2 className="w-5 h-5 text-blue-400" /> <span className="font-bold text-xl uppercase italic">{t}</span>
-                         </div>
+                    <ul className="space-y-6 flex-1">
+                       {['Access to public corridors', 'Standard profile verification', 'Core ride matching'].map((feat, i) => (
+                         <li key={i} className="flex items-center gap-3 text-sm text-slate-400 font-bold">
+                            <CheckCircle2 className="w-4 h-4 text-blue-500" /> {feat}
+                         </li>
                        ))}
+                    </ul>
+                    <Link href="/register" className="mt-12 w-full py-5 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-center hover:bg-white/10 transition-all">
+                       Join Free
+                    </Link>
+                 </div>
+
+                 {/* PREMIUM */}
+                 <div className="bg-blue-600/10 border border-blue-500/30 p-12 rounded-[4rem] flex flex-col relative overflow-hidden group hover:scale-[1.05] transition-all shadow-[0_30px_60px_-15px_rgba(34,197,94,0.2)] text-left h-full">
+                    <div className="mb-12">
+                       <h3 className="text-2xl font-black uppercase italic mb-2">Premium</h3>
                     </div>
+                    <ul className="space-y-6 flex-1">
+                       {['AI-priority matching engine', 'Verified Corporate Badge', 'Unlimited private corridors'].map((feat, i) => (
+                         <li key={i} className="flex items-center gap-3 text-sm text-white/80 font-bold">
+                            <ZapIcon className="w-4 h-4 text-blue-400 animate-pulse" /> {feat}
+                         </li>
+                       ))}
+                    </ul>
+                    <Link href="/exclusive-benefits" className="mt-12 w-full py-5 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest text-center hover:bg-blue-500 transition-all shadow-2xl relative z-10">
+                       Upgrade to Premium
+                    </Link>
+                 </div>
+
+                 {/* ELITE */}
+                 <div className="bg-gradient-to-br from-amber-500/20 to-transparent border border-amber-500/40 p-12 rounded-[4rem] flex flex-col relative overflow-hidden group hover:scale-[1.05] transition-all shadow-[0_30px_60px_-15px_rgba(245,158,11,0.2)] text-left h-full">
+                    <div className="mb-12">
+                       <h3 className="text-2xl font-black uppercase italic mb-2">Elite</h3>
+                    </div>
+                    <ul className="space-y-6 flex-1">
+                       {['Elite Gold profile mark', 'Top-of-queue corridor access', 'Executive networking access'].map((feat, i) => (
+                         <li key={i} className="flex items-center gap-3 text-sm text-amber-200/80 font-bold">
+                            <Crown className="w-4 h-4 text-amber-500 animate-pulse" /> {feat}
+                         </li>
+                       ))}
+                    </ul>
+                    <Link href="/profile" className="mt-12 w-full py-5 bg-amber-500 text-black rounded-2xl text-[10px] font-black uppercase tracking-widest text-center hover:bg-amber-400 transition-all shadow-2xl relative z-10">
+                       Claim Elite Status
+                    </Link>
                  </div>
               </div>
            </div>
@@ -389,7 +532,7 @@ export default function HomePage() {
 
       <footer className="container mx-auto px-6 py-20 border-t border-white/5">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-           <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">© 2026 JOOL TECHNOLOGY SYNDICATE • V10.3</p>
+           <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">© 2026 JOOL TECHNOLOGY SYNDICATE • V10.4</p>
            <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">System Online</span>
@@ -423,7 +566,6 @@ function OptimizationCard({
 
   return (
     <div className="bg-white/[0.03] border border-white/5 rounded-[4.5rem] p-12 relative overflow-hidden group hover:bg-white/[0.06] transition-all duration-700 flex flex-col justify-between hover:-translate-y-2">
-       {/* Realism Elements */}
        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity" />
        
        {badge && (
@@ -452,7 +594,6 @@ function OptimizationCard({
           </p>
        </div>
 
-       {/* Interactive Bottom Bar */}
        <div className={`flex items-center justify-between p-5 rounded-[2rem] bg-white/5 border border-white/5 group-hover:border-white/10 transition-colors`}>
           <div className="flex items-center gap-3">
              <div className={`w-2 h-2 rounded-full animate-pulse ${c.split(' ')[0].replace('text', 'bg')}`} />
