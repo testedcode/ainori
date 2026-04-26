@@ -52,7 +52,7 @@ export default function JoolNav({ adminMode = false }: { adminMode?: boolean }) 
         <div className="max-w-7xl mx-auto px-6 md:px-12 py-3 flex items-center gap-4">
 
           {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-2 group flex-shrink-0">
+          <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
             <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
               <Car className="w-5 h-5 text-white" />
             </div>

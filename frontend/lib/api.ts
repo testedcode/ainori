@@ -29,7 +29,10 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 || error.response?.status === 503) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-      window.location.href = '/login'
+      // Only redirect to login if we're not already on the landing page
+      if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }
