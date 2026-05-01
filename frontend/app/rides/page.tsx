@@ -291,30 +291,32 @@ function CardView({
             </div>
          </div>
 
-         {/* ROUTE INFO */}
+         {/* ROUTE + VEHICLE — single compact glanceable row */}
          <div className="px-8 pb-4">
-            {/* Route pill — high contrast so users never misread pickup/drop */}
-            <div className="flex items-center gap-2 mb-4 p-3 bg-white/[0.06] border border-white/15 rounded-2xl">
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <MapPin className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                  <span className="text-[11px] font-black uppercase tracking-wider text-white/80 truncate">{ride.pickup_point}</span>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-white/30 shrink-0" />
-                <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-white/80 truncate text-right">{ride.drop_point}</span>
-                  <MapPin className="w-3.5 h-3.5 text-green-400 shrink-0" />
-                </div>
+            <div className="flex items-center gap-2 mb-4 px-3 py-2.5 bg-gradient-to-r from-blue-500/10 via-white/[0.02] to-green-500/10 border border-white/15 rounded-2xl">
+               {/* FROM */}
+               <div className="flex items-center gap-2 min-w-0 flex-1">
+                 <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0 shadow-[0_0_8px_rgba(96,165,250,0.9)]" />
+                 <span className="text-[11px] font-black text-white uppercase tracking-wide truncate">{ride.pickup_point}</span>
+               </div>
+               {/* Arrow */}
+               <span className="text-white/25 text-[9px] font-black shrink-0 px-0.5 leading-none">▶</span>
+               {/* TO */}
+               <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
+                 <span className="text-[11px] font-black text-white uppercase tracking-wide truncate text-right">{ride.drop_point}</span>
+                 <span className="w-2 h-2 rounded-full bg-green-400 shrink-0 shadow-[0_0_8px_rgba(74,222,128,0.9)]" />
+               </div>
+               {/* Vehicle — separated by thin divider */}
+               {(ride.vehicle_make || ride.vehicle_model) && (
+                 <>
+                   <div className="w-px h-4 bg-white/15 mx-1.5 shrink-0" />
+                   <div className="flex items-center gap-1.5 shrink-0">
+                     <span className="text-sm leading-none">{ride.vehicle_type === 'bike' ? '🏍️' : ride.vehicle_type === 'suv' ? '🚙' : ride.vehicle_type === 'muv' ? '🚐' : '🚗'}</span>
+                     <span className="text-[10px] font-black text-white/60 max-w-[72px] truncate">{[ride.vehicle_make, ride.vehicle_model].filter(Boolean).join(' ')}</span>
+                   </div>
+                 </>
+               )}
             </div>
-            {/* Vehicle info strip — clearly visible, not shy */}
-            {(ride.vehicle_make || ride.vehicle_model) && (
-              <div className="flex items-center gap-3 mb-4 px-4 py-3 bg-white/[0.06] border border-white/15 rounded-2xl">
-                <span className="text-lg leading-none">
-                  {ride.vehicle_type === 'bike' ? '🏍️' : ride.vehicle_type === 'suv' ? '🚙' : ride.vehicle_type === 'muv' ? '🚐' : '🚗'}
-                </span>
-                <span className="text-[12px] font-black text-white/85 tracking-tight">{[ride.vehicle_make, ride.vehicle_model].filter(Boolean).join(' ')}</span>
-                {ride.vehicle_type && <span className="text-[9px] font-black text-white/40 uppercase tracking-widest ml-auto bg-white/5 px-2 py-0.5 rounded-lg">{ride.vehicle_type.toUpperCase()}</span>}
-              </div>
-            )}
 
             {/* ACTION SECTION */}
                {isOwnRide ? (

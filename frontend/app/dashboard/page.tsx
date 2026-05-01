@@ -7,11 +7,18 @@ import {
   Car, Plus, Search, Settings, LogOut, User, Sparkles, 
   ChevronRight, Leaf, Clock, Banknote, ShieldCheck, 
   Calendar, MapPin, CheckCircle2, Timer, Bookmark, Users, Zap, AlertCircle,
-  Building2, Home
+  Building2, Home, ArrowRight
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
 import JoolNav from '../components/JoolNav'
+
+const fmtTime = (raw: string) => raw ? raw.slice(0, 5) : '--:--'
+const fmtDate = (raw: string) => {
+  if (!raw) return ''
+  const d = new Date(raw.includes('T') ? raw : raw + 'T00:00:00')
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+}
 
 const OFFICE_KEYWORDS = ['rcp', 'reliance', 'jio', 'mbp', 'mindspace', 'tc', 'ghansoli', 'office']
 
@@ -532,59 +539,96 @@ export default function DashboardPage() {
                   <Link href="/offer-ride" className="px-10 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-green-400 uppercase tracking-widest hover:bg-green-600 hover:text-white transition-all">Initialize Fleet</Link>
                 </div>
               ) : (
-                offeredRides.map(ride => (
-                  <div key={ride.id} className="bg-white/[0.03] border border-white/10 rounded-[3rem] p-10 hover:bg-white/[0.06] transition-all relative overflow-hidden group">
-                     <div className="flex justify-between items-start mb-10">
-                        <div>
-                           <h4 className="text-2xl font-black text-white italic uppercase tracking-tight mb-4">{ride.corridor_name}</h4>
-                           <div className="flex items-center gap-3">
-                              <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg text-[10px] font-black uppercase tracking-widest text-white/60 border border-white/5">
-                                 <Calendar className="w-3 h-3 text-blue-400" /> {ride.ride_date}
-                              </div>
-                              <div className={`flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg text-[10px] font-black uppercase tracking-widest border border-white/5 ${
-                                 (ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'text-green-400' : 'text-blue-400'
-                              }`}>
-                                 {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? <Home className="w-3 h-3" /> : <Building2 className="w-3 h-3" />}
-                                 {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'To Home' : 'To Office'}
-                              </div>
-                           </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                           <div className="px-4 py-1.5 bg-green-600/20 text-green-400 border border-green-500/30 rounded-full text-[9px] font-black uppercase tracking-widest">
-                              Hosting
-                           </div>
-                           {ride.available_seats === 1 && (
-                             <div className="px-3 py-1 bg-red-600 text-white rounded-lg text-[8px] font-black uppercase tracking-widest animate-pulse">
-                                Critical Capacity
-                             </div>
-                           )}
-                        </div>
-                     </div>
+                offeredRides.map(ride => {
+                  const isToHome = ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)
+                  const pendingCount = ride.pending_requests?.length || 0
+                  const confirmedCount = ride.confirmed_riders?.length || 0
+                  const filledSeats = confirmedCount
+                  const totalSeats = ride.total_seats || 4
+                  const fillPct = Math.round((filledSeats / totalSeats) * 100)
+                  return (
+                    <div key={ride.id} className={`border rounded-[2.5rem] p-8 transition-all relative overflow-hidden group ${
+                      pendingCount > 0
+                        ? 'bg-amber-500/5 border-amber-500/20 hover:bg-amber-500/10'
+                        : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06]'
+                    }`}>
 
-                     <div className="flex items-center gap-3 mb-10">
-                        {ride.confirmed_riders?.map(rider => (
-                           <div key={rider.id} className="w-12 h-12 rounded-2xl border-2 border-green-500/30 bg-slate-800 overflow-hidden shadow-2xl transition-transform hover:scale-110">
-                              {rider.avatar_url ? <img src={rider.avatar_url} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs font-black">{rider.name[0]}</div>}
-                           </div>
-                        ))}
-                        {Array.from({ length: ride.available_seats }).map((_, i) => (
-                           <div key={i} className="w-12 h-12 rounded-2xl border-2 border-white/5 border-dashed bg-white/5 flex items-center justify-center">
-                              <User className="w-4 h-4 text-white/10" />
-                           </div>
-                        ))}
-                     </div>
+                      {/* ROW 1: Time + Pending badge + Direction + Hosting */}
+                      <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center gap-3">
+                          <span className="text-4xl font-black italic text-white leading-none tracking-tighter">{fmtTime(ride.ride_time)}</span>
+                          {pendingCount > 0 && (
+                            <span className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/20 border border-amber-500/30 rounded-xl text-[9px] font-black text-amber-400 uppercase tracking-widest animate-pulse">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                              {pendingCount} Pending
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border ${
+                            isToHome
+                              ? 'bg-orange-500/15 border-orange-500/30 text-orange-400'
+                              : 'bg-blue-500/15 border-blue-500/30 text-blue-400'
+                          }`}>
+                            {isToHome ? <Home className="w-3 h-3" /> : <Building2 className="w-3 h-3" />}
+                            {isToHome ? 'To Home' : 'To Office'}
+                          </span>
+                          <span className="px-3 py-1.5 bg-green-600/20 text-green-400 border border-green-500/30 rounded-xl text-[9px] font-black uppercase tracking-widest">Hosting</span>
+                        </div>
+                      </div>
 
-                     {ride.pending_requests && ride.pending_requests.length > 0 ? (
-                        <Link href={`/rides/${ride.id}`} className="block w-full py-5 bg-amber-500 text-black rounded-[2rem] text-center text-[10px] font-black uppercase tracking-[0.3em] hover:bg-amber-400 transition-all shadow-2xl">
-                           Process {ride.pending_requests.length} Clearances
+                      {/* ROW 2: Date */}
+                      <div className="flex items-center gap-2 mb-4">
+                        <Calendar className="w-3 h-3 text-white/30" />
+                        <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">{fmtDate(ride.ride_date)}</span>
+                      </div>
+
+                      {/* ROW 3: Route pill */}
+                      <div className="flex items-center gap-2 mb-5 px-3 py-2.5 bg-gradient-to-r from-blue-500/10 via-white/[0.02] to-green-500/10 border border-white/12 rounded-2xl">
+                        <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0 shadow-[0_0_6px_rgba(96,165,250,0.8)]" />
+                        <span className="text-[11px] font-black text-white uppercase tracking-wide truncate flex-1">{ride.pickup_point}</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-white/25 shrink-0" />
+                        <span className="text-[11px] font-black text-white uppercase tracking-wide truncate flex-1 text-right">{ride.drop_point}</span>
+                        <span className="w-2 h-2 rounded-full bg-green-400 shrink-0 shadow-[0_0_6px_rgba(74,222,128,0.8)]" />
+                      </div>
+
+                      {/* ROW 4: Seat fill */}
+                      <div className="flex items-center gap-3 mb-5">
+                        <div className="flex items-center gap-1.5">
+                          {ride.confirmed_riders?.map((rider, i) => (
+                            <div key={i} className="w-9 h-9 rounded-xl border-2 border-green-500/40 bg-slate-800 overflow-hidden shadow-lg transition-transform hover:scale-110">
+                              {rider.avatar_url
+                                ? <img src={rider.avatar_url} className="w-full h-full object-cover" />
+                                : <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-green-400">{rider.name[0]}</div>}
+                            </div>
+                          ))}
+                          {Array.from({ length: Math.max(0, totalSeats - filledSeats) }).map((_, i) => (
+                            <div key={i} className="w-9 h-9 rounded-xl border border-dashed border-white/10 bg-white/[0.02] flex items-center justify-center">
+                              <User className="w-3.5 h-3.5 text-white/10" />
+                            </div>
+                          ))}
+                        </div>
+                        <div className="ml-auto flex flex-col items-end">
+                          <span className="text-[10px] font-black text-white/60">{filledSeats}/{totalSeats} filled</span>
+                          <div className="w-20 h-1.5 bg-white/10 rounded-full mt-1 overflow-hidden">
+                            <div className="h-full bg-green-400 rounded-full transition-all" style={{ width: `${fillPct}%` }} />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* ROW 5: Action */}
+                      {pendingCount > 0 ? (
+                        <Link href={`/rides/${ride.id}`} className="block w-full py-4 bg-amber-500 text-black rounded-[1.5rem] text-center text-[10px] font-black uppercase tracking-[0.3em] hover:bg-amber-400 transition-all shadow-xl">
+                          Process {pendingCount} Clearance{pendingCount > 1 ? 's' : ''}
                         </Link>
-                     ) : (
-                        <Link href={`/rides/${ride.id}`} className="block w-full py-5 bg-white/5 border border-white/10 text-white/40 rounded-[2rem] text-center text-[10px] font-black uppercase tracking-[0.3em] hover:bg-white/10 transition-all">
-                           Command Center ↗
+                      ) : (
+                        <Link href={`/rides/${ride.id}`} className="block w-full py-4 bg-white/5 border border-white/10 text-white/40 rounded-[1.5rem] text-center text-[10px] font-black uppercase tracking-[0.3em] hover:bg-white/10 transition-all">
+                          Command Center ↗
                         </Link>
-                     )}
-                  </div>
-                ))
+                      )}
+                    </div>
+                  )
+                })
               )}
             </div>
           </div>

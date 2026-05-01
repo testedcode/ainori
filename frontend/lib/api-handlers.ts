@@ -649,7 +649,26 @@ export async function handleCreateRide(pool: Pool, body: unknown, auth: Auth) {
     if (autoCorr?.rows?.length > 0) actualCorridorId = autoCorr.rows[0].id
   }
 
-  // 3) Insert Ride into Live Database
+  // 3) Provider publish guardrails: max 1 ride per corridor per direction per day
+  const sameDirectionRide = await pool.query(`
+    SELECT id FROM rides
+    WHERE user_id = $1 AND corridor_id = $2 AND ride_date = $3 AND direction = $4
+    AND status NOT IN ('cancelled')
+  `, [auth.userId, actualCorridorId, b.ride_date, direction])
+  if (sameDirectionRide.rows.length > 0) {
+    const dirLabel = direction === 'to_home' ? 'To Home' : 'To Office'
+    return errResponse(`You already have a ${dirLabel} ride on this corridor for ${b.ride_date}`, 400)
+  }
+  const allRidesForDay = await pool.query(`
+    SELECT count(*)::int as cnt FROM rides
+    WHERE user_id = $1 AND corridor_id = $2 AND ride_date = $3
+    AND status NOT IN ('cancelled')
+  `, [auth.userId, actualCorridorId, b.ride_date])
+  if (allRidesForDay.rows[0].cnt >= 2) {
+    return errResponse(`You've shared your max 2 rides on this corridor for ${b.ride_date}`, 400)
+  }
+
+  // 4) Insert Ride into Live Database
   const r = await pool.query(
     `INSERT INTO rides (user_id, corridor_id, vehicle_id, ride_date, ride_time, pickup_point, drop_point, route_description, price_per_seat, available_seats, total_seats, status, direction)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'open', $12) RETURNING id`,
@@ -761,15 +780,39 @@ export async function handleCreateRideRequest(pool: Pool, rideId: number, body: 
   if (existing.rows.length > 0 && (existing.rows[0].status === 'pending' || existing.rows[0].status === 'accepted'))
     return errResponse('You already have a request for this ride', 409)
 
-  // Guardrail: Multi-booking prevention on same corridor/day
-  const sameDay = await pool.query(`
-    SELECT rr.status FROM ride_requests rr 
-    JOIN rides r ON rr.ride_id = r.id 
-    WHERE rr.user_id = $1 AND r.corridor_id = (SELECT corridor_id FROM rides WHERE id = $2) 
-    AND r.ride_date = (SELECT ride_date FROM rides WHERE id = $2)
-    AND rr.status = 'accepted'
-  `, [auth.userId, rideId])
-  if (sameDay.rows.length > 0) return errResponse('Error: You already have a confirmed ride on this corridor today', 400)
+  // ─── DIRECTION-AWARE GUARDRAILS (IST-aware) ───────────────────────────────
+  const targetRideInfo = await pool.query(
+    `SELECT corridor_id, direction, ride_date FROM rides WHERE id = $1`, [rideId])
+  const { corridor_id: tCorridorId, direction: tDirection, ride_date: tDate } = targetRideInfo.rows[0]
+
+  // IST today: UTC+5:30
+  const istToday = new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10)
+  const TIER_LIMIT = 2  // Premium default; wire to tier-config when free tier ships
+
+  if (tDate <= istToday) {
+    // Guard 1: Same corridor + same direction already confirmed → block
+    const sameDir = await pool.query(`
+      SELECT rr.id FROM ride_requests rr
+      JOIN rides r ON rr.ride_id = r.id
+      WHERE rr.user_id = $1 AND r.corridor_id = $2 AND r.direction = $3
+      AND r.ride_date = $4 AND rr.status = 'accepted'
+    `, [auth.userId, tCorridorId, tDirection, tDate])
+    if (sameDir.rows.length > 0) {
+      const dirLabel = tDirection === 'to_home' ? 'home' : 'office'
+      return errResponse(`Error: You already have a confirmed ride to ${dirLabel} on this corridor for ${tDate}`, 400)
+    }
+
+    // Guard 2: Daily trip cap (across all corridors/directions)
+    const totalConfirmed = await pool.query(`
+      SELECT count(*)::int as cnt FROM ride_requests rr
+      JOIN rides r ON rr.ride_id = r.id
+      WHERE rr.user_id = $1 AND r.ride_date = $2 AND rr.status = 'accepted'
+    `, [auth.userId, tDate])
+    if (totalConfirmed.rows[0].cnt >= TIER_LIMIT) {
+      return errResponse(`Error: You've completed your ${TIER_LIMIT} trips for ${tDate}. Book for tomorrow!`, 400)
+    }
+  }
+
   const r = await pool.query(
     `INSERT INTO ride_requests (ride_id, user_id, seats_requested, comment, status) VALUES ($1, $2, $3, $4, 'pending') RETURNING id`,
     [rideId, auth.userId, b.seats_requested, b.comment || null]
@@ -806,19 +849,31 @@ export async function handleUpdateRideRequest(pool: Pool, rideId: number, reques
       `, [rideId])
     }
 
-    // Auto-Cancel seeker's other pending requests for SAME corridor/direction/day
+    // Step 1: Cancel same corridor+direction pending (existing behaviour)
     const rideInfo = await pool.query(`SELECT corridor_id, direction, ride_date FROM rides WHERE id = $1`, [rideId])
     const { corridor_id, direction, ride_date } = rideInfo.rows[0]
     await pool.query(`
       UPDATE ride_requests 
-      SET status = 'rejected', comment = 'Auto-cancelled: You were accepted for another ride on this route', updated_at = CURRENT_TIMESTAMP 
-      WHERE user_id = $1 
-      AND id != $2 
-      AND status = 'pending'
-      AND ride_id IN (
-        SELECT id FROM rides WHERE corridor_id = $3 AND direction = $4 AND ride_date = $5
-      )
+      SET status = 'rejected', comment = 'Auto-cancelled: Confirmed on another ride for this route', updated_at = CURRENT_TIMESTAMP 
+      WHERE user_id = $1 AND id != $2 AND status = 'pending'
+      AND ride_id IN (SELECT id FROM rides WHERE corridor_id = $3 AND direction = $4 AND ride_date = $5)
     `, [rider.rows[0].user_id, requestId, corridor_id, direction, ride_date])
+
+    // Step 2: If user now has 2 confirmed trips for that day → cancel ALL remaining pending
+    const TIER_LIMIT = 2
+    const confirmedForDay = await pool.query(`
+      SELECT count(*)::int as cnt FROM ride_requests rr
+      JOIN rides r ON rr.ride_id = r.id
+      WHERE rr.user_id = $1 AND r.ride_date = $2 AND rr.status = 'accepted'
+    `, [rider.rows[0].user_id, ride_date])
+    if (confirmedForDay.rows[0].cnt >= TIER_LIMIT) {
+      await pool.query(`
+        UPDATE ride_requests 
+        SET status = 'rejected', comment = 'Auto-cancelled: Daily trip limit reached', updated_at = CURRENT_TIMESTAMP 
+        WHERE user_id = $1 AND status = 'pending'
+        AND ride_id IN (SELECT id FROM rides WHERE ride_date = $2)
+      `, [rider.rows[0].user_id, ride_date])
+    }
   } else if (b.status === 'rejected' && currentStatus === 'accepted') {
     await pool.query(`UPDATE rides SET available_seats = available_seats + $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`, [seats_requested, rideId])
   }
