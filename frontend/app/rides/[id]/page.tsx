@@ -644,7 +644,7 @@ export default function RideDetailPage() {
                     onClick={() => {
                       api.post(`/rides/${rideId}/messages`, { message: "📍 I am at the pickup spot!" })
                       setRiderAtSpot(true)
-                      toast.success('Notified host — you're at the spot!')
+                      toast.success("Notified host - you are at the spot!")
                     }}
                     className="w-full py-4 bg-blue-600/20 border border-blue-500/30 text-blue-400 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2"
                   >
