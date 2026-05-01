@@ -26,8 +26,10 @@ function fmtDate(raw: string) {
 }
 function fmtTime(raw: string) {
   if (!raw) return ''
-  const t = raw.includes('T') ? new Date(raw).toTimeString() : raw
-  return t.slice(0, 5)
+  // HH:MM:SS or HH:MM direct string
+  if (!raw.includes('T') && !raw.includes('Z')) return raw.slice(0, 5)
+  // ISO datetime string
+  return new Date(raw).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
 interface RidePaymentInfo { id?: number; rider_status?: string; giver_status?: string }
@@ -90,9 +92,18 @@ export default function HistoryPage() {
     return true
   })
 
-  const recent = filtered.filter(r => ['Today', 'Yesterday'].includes(fmtDate(r.ride_date)))
-  const upcoming = filtered.filter(r => new Date(r.ride_date + 'T' + r.ride_time) > new Date() && !['Today', 'Yesterday'].includes(fmtDate(r.ride_date)))
-  const past = filtered.filter(r => new Date(r.ride_date + 'T' + r.ride_time) <= new Date() && !['Today', 'Yesterday'].includes(fmtDate(r.ride_date)))
+  // IST-aware date windows
+  const istNow = new Date(Date.now() + 5.5 * 3600 * 1000)
+  const istToday = istNow.toISOString().slice(0, 10)
+  const istTomorrow = new Date(Date.now() + 5.5 * 3600 * 1000 + 86400000).toISOString().slice(0, 10)
+  const istYesterday = new Date(Date.now() + 5.5 * 3600 * 1000 - 86400000).toISOString().slice(0, 10)
+  const activeWindow = [istYesterday, istToday, istTomorrow]
+
+  const getDatePart = (r: Ride) => r.ride_date.includes('T') ? r.ride_date.slice(0, 10) : r.ride_date
+
+  const upcoming = filtered.filter(r => getDatePart(r) > istToday)
+  const active   = filtered.filter(r => activeWindow.includes(getDatePart(r)))
+  const archive  = filtered.filter(r => getDatePart(r) < istYesterday)
 
   return (
     <div className="min-h-screen bg-[#05070a] text-white font-sans pb-32">
@@ -130,13 +141,13 @@ export default function HistoryPage() {
           </div>
         ) : (
           <div className="space-y-16">
-            {recent.length > 0 && (
+            {active.length > 0 && (
               <section>
                 <h2 className="text-xs font-black text-amber-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                  <Zap className="w-3.5 h-3.5 fill-amber-400" /> RECENT ACTIVITY — TODAY & YESTERDAY
+                  <Zap className="w-3.5 h-3.5 fill-amber-400" /> ACTIVE — YESTERDAY · TODAY · TOMORROW
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {recent.map(ride => <HistoryCard key={ride.id} ride={ride} isRecent currentUserId={currentUserId} onRate={handleRate} />)}
+                  {active.map(ride => <HistoryCard key={ride.id} ride={ride} isRecent currentUserId={currentUserId} onRate={handleRate} />)}
                 </div>
               </section>
             )}
@@ -152,13 +163,13 @@ export default function HistoryPage() {
             )}
             <section>
               <h2 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-6">Archive</h2>
-              {past.length === 0 && recent.length === 0 && upcoming.length === 0 ? (
+              {archive.length === 0 && active.length === 0 && upcoming.length === 0 ? (
                 <div className="py-20 bg-white/5 border border-white/10 rounded-[2.5rem] border-dashed text-center">
                   <p className="text-white/20 font-black text-[10px] uppercase tracking-widest">No rides yet</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {past.map(ride => <HistoryCard key={ride.id} ride={ride} isPast currentUserId={currentUserId} onRate={handleRate} />)}
+                  {archive.map(ride => <HistoryCard key={ride.id} ride={ride} isPast currentUserId={currentUserId} onRate={handleRate} />)}
                 </div>
               )}
             </section>

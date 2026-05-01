@@ -69,6 +69,9 @@ export default function RideDetailPage() {
   const [updatingStage, setUpdatingStage] = useState(false)
   const [markingAllPayment, setMarkingAllPayment] = useState(false)
   const [ridePayments, setRidePayments] = useState<any[]>([])
+  const [riderAtSpot, setRiderAtSpot] = useState(false)
+  const [riderMarkedComplete, setRiderMarkedComplete] = useState(false)
+  const [myPaymentStatus, setMyPaymentStatus] = useState<string | null>(null)  // local optimistic state
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   // ─── HIGH-FIDELITY COMPONENTS ─────────────────────────────────────────────
@@ -238,7 +241,8 @@ export default function RideDetailPage() {
       const payload = asGiver ? { giver_status: 'received' } : { rider_status: 'done' }
       await api.put(`/rides/${rideId}/payments/${riderId}`, payload)
       toast.success(asGiver ? `✅ Received from ${riderName || 'rider'}!` : '✅ Payment marked as done!')
-      fetchAll() // Refresh to show updated status
+      if (!asGiver) setMyPaymentStatus('done')  // optimistic local state for rider
+      fetchAll()
     } catch (e: any) {
       toast.error(e?.response?.data?.error || 'Failed')
     } finally { setMarkingPayment(null) }
@@ -632,19 +636,50 @@ export default function RideDetailPage() {
               </div>
             )}
 
-            {/* Rider Control: At Spot */}
+            {/* Rider Control: At Spot + Mark Complete */}
             {!isOwner && isAccepted && ride.status !== 'completed' && (
-              <div className="mt-8">
-                <button
-                  onClick={() => {
-                    api.post(`/rides/${rideId}/messages`, { message: "📍 I am at the pickup spot!" })
-                    toast.success('Notified host you are at the spot!')
-                  }}
-                  className="w-full py-4 bg-blue-600/20 border border-blue-500/30 text-blue-400 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2"
-                >
-                  <MapPin className="w-4 h-4" />
-                  I'm at the spot
-                </button>
+              <div className="mt-8 space-y-3">
+                {!riderAtSpot ? (
+                  <button
+                    onClick={() => {
+                      api.post(`/rides/${rideId}/messages`, { message: "📍 I am at the pickup spot!" })
+                      setRiderAtSpot(true)
+                      toast.success('Notified host — you're at the spot!')
+                    }}
+                    className="w-full py-4 bg-blue-600/20 border border-blue-500/30 text-blue-400 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                  >
+                    <MapPin className="w-4 h-4" />
+                    I'm at the spot
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 px-4 py-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
+                    <MapPin className="w-4 h-4 text-blue-400" />
+                    <span className="text-[11px] font-black text-blue-400 uppercase tracking-widest">At pickup — host notified</span>
+                  </div>
+                )}
+
+                {(riderAtSpot || ride.status === 'at_pickup' || ride.status === 'starting') && !riderMarkedComplete && (
+                  <button
+                    onClick={() => {
+                      if (confirm('Mark this ride as completed from your side?')) {
+                        api.post(`/rides/${rideId}/messages`, { message: "✅ I've reached my destination. Trip done!" })
+                        setRiderMarkedComplete(true)
+                        toast.success('Ride marked complete on your end!', { icon: '🏁' })
+                      }
+                    }}
+                    className="w-full py-4 bg-green-600/20 border border-green-500/30 text-green-400 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-green-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                  >
+                    <Flag className="w-4 h-4" />
+                    Mark Ride Done
+                  </button>
+                )}
+
+                {riderMarkedComplete && (
+                  <div className="flex items-center gap-2 px-4 py-3 bg-green-500/10 border border-green-500/20 rounded-2xl">
+                    <CheckCircle2 className="w-4 h-4 text-green-400" />
+                    <span className="text-[11px] font-black text-green-400 uppercase tracking-widest">You've marked this ride complete</span>
+                  </div>
+                )}
               </div>
             )}
           </GlassPanel>
@@ -953,39 +988,48 @@ export default function RideDetailPage() {
               )}
 
               {/* UPI App deep link buttons — shown to accepted riders */}
-              {isAccepted && (
-                <div className="space-y-3">
-                  <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Pay via app</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { label: 'GPay', emoji: '🟢', scheme: `gpay://upi/pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR&tn=Ainori+Ride+${rideId}` },
-                      { label: 'PhonePe', emoji: '🟣', scheme: `phonepe://pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR` },
-                      { label: 'Paytm', emoji: '🔵', scheme: `paytmmp://pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR` },
-                      { label: 'CRED', emoji: '⚫', scheme: `cred://pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR` },
-                      { label: 'BHIM', emoji: '🟠', scheme: `upi://pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR&tn=Ainori+Ride` },
-                      { label: 'Amazon', emoji: '🟡', scheme: `amazonpay://pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR` },
-                    ].map(app => (
-                      <button
-                        key={app.label}
-                        onClick={() => { window.location.href = app.scheme }}
-                        className="flex flex-col items-center gap-1.5 p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all active:scale-95"
-                      >
-                        <span className="text-xl">{app.emoji}</span>
-                        <span className="text-[9px] font-black text-white/60 uppercase tracking-wide">{app.label}</span>
-                      </button>
-                    ))}
+              {isAccepted && (() => {
+                const myUserId = Number(user?.id || user?.userId)
+                const myPay = ridePayments.find((p: any) => Number(p.rider_id) === myUserId)
+                const alreadyPaid = myPaymentStatus === 'done' || myPay?.rider_status === 'done'
+                return (
+                  <div className="space-y-3">
+                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Pay via app</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { label: 'GPay', emoji: '🟢', scheme: `gpay://upi/pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR&tn=Ainori+Ride+${rideId}` },
+                        { label: 'PhonePe', emoji: '🟣', scheme: `phonepe://pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR` },
+                        { label: 'Paytm', emoji: '🔵', scheme: `paytmmp://pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR` },
+                        { label: 'CRED', emoji: '⚫', scheme: `cred://pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR` },
+                        { label: 'BHIM', emoji: '🟠', scheme: `upi://pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR&tn=Ainori+Ride` },
+                        { label: 'Amazon', emoji: '🟡', scheme: `amazonpay://pay?pa=${ride.upi_id}&pn=${encodeURIComponent(ride.user_name)}&am=${ride.price_per_seat * (myRequest?.seats_requested || 1)}&cu=INR` },
+                      ].map(app => (
+                        <button
+                          key={app.label}
+                          onClick={() => { window.location.href = app.scheme }}
+                          className="flex flex-col items-center gap-1.5 p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all active:scale-95"
+                        >
+                          <span className="text-xl">{app.emoji}</span>
+                          <span className="text-[9px] font-black text-white/60 uppercase tracking-wide">{app.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {/* Mark payment done */}
+                    <button
+                      onClick={() => handleMarkPayment(myUserId, false)}
+                      disabled={alreadyPaid || markingPayment !== null}
+                      className={`w-full py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                        alreadyPaid
+                          ? 'bg-green-500/10 border border-green-500/20 text-green-400 cursor-default'
+                          : 'bg-green-600/20 border border-green-500/30 text-green-400 hover:bg-green-600/30'
+                      }`}
+                    >
+                      {markingPayment !== null ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                      {alreadyPaid ? '✓ Payment Confirmed' : 'Mark Payment Done'}
+                    </button>
                   </div>
-                  {/* Mark payment done */}
-                  <button
-                    onClick={() => handleMarkPayment(Number(user?.userId || user?.id), false)}
-                    disabled={markingPayment !== null}
-                    className="w-full py-3 bg-green-600/20 border border-green-500/30 text-green-400 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-green-600/30 transition-all flex items-center justify-center gap-2"
-                  >
-                    {markingPayment !== null ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                    Mark Payment Done
-                  </button>
-                </div>
-              )}
+                )
+              })()}
 
               {/* Host: mark received per rider */}
               {isOwner && acceptedRequests.length > 0 && (

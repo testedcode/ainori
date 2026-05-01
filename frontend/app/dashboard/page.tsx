@@ -396,7 +396,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ─── EXECUTIVE ACCESS REQUESTS (PENDING) ────────────────────────── */}
-        {myRequests.length > 0 && (
+        {myRequests.filter(r => r.status === 'pending' || r.status === 'accepted').length > 0 && (
           <section className="mb-20">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
               <div className="flex items-center gap-4">
@@ -421,7 +421,8 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {myRequests.slice(0, 6).map(req => (
+              {myRequests.filter(r => r.status === 'pending' || r.status === 'accepted').slice(0, 6).map(req => (
+
                 <Link key={req.id} href={`/rides/${req.ride_id}`}
                   className={`group block border rounded-[2.5rem] p-8 hover:scale-[1.02] transition-all relative overflow-hidden ${
                     req.status === 'accepted' ? 'bg-green-500/5 border-green-500/20 shadow-[0_20px_40px_rgba(34,197,94,0.05)]'
