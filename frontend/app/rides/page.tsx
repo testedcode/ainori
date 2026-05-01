@@ -260,13 +260,22 @@ function CardView({
                   ))}
                </div>
                <span className="text-[9px] font-extrabold text-amber-400 uppercase tracking-widest flex-1">
-                  {(ride.confirmed_riders?.length || 0) > 0
-                    ? `${ride.confirmed_riders?.length} also requesting`
+                   {(ride.confirmed_riders?.length || 0) > 0
+                    ? `${ride.confirmed_riders?.length} rider${(ride.confirmed_riders?.length || 0) > 1 ? 's' : ''} confirmed`
+                    : Number(ride.pending_count) > 0
+                    ? `${ride.pending_count} request${Number(ride.pending_count) > 1 ? 's' : ''} pending`
                     : 'Be the first to join!'}
                </span>
+               {/* Live pending badge */}
+               {Number(ride.pending_count) > 0 && (
+                 <span className="flex items-center gap-1 text-[8px] font-black text-orange-400 bg-orange-400/10 border border-orange-400/30 px-2 py-1 rounded-lg shrink-0 animate-pulse">
+                   <span className="w-1.5 h-1.5 rounded-full bg-orange-400 inline-block" />
+                   {ride.pending_count} LIVE
+                 </span>
+               )}
                {/* Vehicle info chip */}
                {(ride.vehicle_make || ride.vehicle_type) && (
-                 <span className="flex items-center gap-1 text-[8px] font-black text-white/30 bg-white/5 px-2 py-1 rounded-lg shrink-0">
+                 <span className="flex items-center gap-1 text-[8px] font-black text-white/40 bg-white/5 px-2 py-1 rounded-lg shrink-0">
                    {ride.vehicle_type === 'bike' ? '🏍️' : ride.vehicle_type === 'suv' ? '🚙' : ride.vehicle_type === 'muv' ? '🚐' : '🚗'}
                    {ride.vehicle_make ? ` ${ride.vehicle_make}` : ''}
                  </span>
@@ -284,25 +293,26 @@ function CardView({
 
          {/* ROUTE INFO */}
          <div className="px-8 pb-4">
-            <div className="flex items-center gap-4 text-white/40 mb-4">
-                <div className="flex items-center gap-2 group/pin">
-                  <MapPin className="w-3.5 h-3.5 text-blue-500 group-hover/pin:scale-110 transition-transform" />
-                  <span className="text-[10px] font-black uppercase tracking-widest truncate max-w-[100px]">{ride.pickup_point}</span>
+            {/* Route pill — high contrast so users never misread pickup/drop */}
+            <div className="flex items-center gap-2 mb-4 p-3 bg-white/[0.06] border border-white/15 rounded-2xl">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <MapPin className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  <span className="text-[11px] font-black uppercase tracking-wider text-white/80 truncate">{ride.pickup_point}</span>
                 </div>
-                <ArrowRight className="w-3 h-3 text-white/5" />
-                <div className="flex items-center gap-2 group/pin">
-                  <MapPin className="w-3.5 h-3.5 text-blue-500 group-hover/pin:scale-110 transition-transform" />
-                  <span className="text-[10px] font-black uppercase tracking-widest truncate max-w-[100px]">{ride.drop_point}</span>
+                <ArrowRight className="w-3.5 h-3.5 text-white/30 shrink-0" />
+                <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-white/80 truncate text-right">{ride.drop_point}</span>
+                  <MapPin className="w-3.5 h-3.5 text-green-400 shrink-0" />
                 </div>
             </div>
-            {/* Vehicle info strip */}
+            {/* Vehicle info strip — clearly visible, not shy */}
             {(ride.vehicle_make || ride.vehicle_model) && (
-              <div className="flex items-center gap-2 mb-4 p-2.5 bg-white/[0.03] border border-white/5 rounded-2xl">
-                <span className="text-base">
+              <div className="flex items-center gap-3 mb-4 px-4 py-3 bg-white/[0.06] border border-white/15 rounded-2xl">
+                <span className="text-lg leading-none">
                   {ride.vehicle_type === 'bike' ? '🏍️' : ride.vehicle_type === 'suv' ? '🚙' : ride.vehicle_type === 'muv' ? '🚐' : '🚗'}
                 </span>
-                <span className="text-xs font-black text-white/50">{[ride.vehicle_make, ride.vehicle_model].filter(Boolean).join(' ')}</span>
-                {ride.vehicle_type && <span className="text-[8px] font-black text-white/20 uppercase tracking-widest ml-auto">{ride.vehicle_type}</span>}
+                <span className="text-[12px] font-black text-white/85 tracking-tight">{[ride.vehicle_make, ride.vehicle_model].filter(Boolean).join(' ')}</span>
+                {ride.vehicle_type && <span className="text-[9px] font-black text-white/40 uppercase tracking-widest ml-auto bg-white/5 px-2 py-0.5 rounded-lg">{ride.vehicle_type.toUpperCase()}</span>}
               </div>
             )}
 
