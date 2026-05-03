@@ -99,10 +99,11 @@ export default function NotificationManager() {
   const handleTestNotification = async () => {
     setLoading(true)
     try {
-      await api.post('/auth/push-test', {})
-      toast.success('Test signal sent! Check your lock screen.', { icon: '🚀' })
-    } catch (err) {
-      toast.error('Test signal failed. Verify Vercel keys.')
+      const res = await api.post('/auth/push-test', {})
+      toast.success(res.message || 'Test signal sent!', { icon: '🚀' })
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || 'Test signal failed'
+      toast.error(msg, { duration: 6000 })
     } finally {
       setLoading(false)
     }
