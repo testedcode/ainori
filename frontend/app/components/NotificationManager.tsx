@@ -96,6 +96,18 @@ export default function NotificationManager() {
     }
   }
 
+  const handleTestNotification = async () => {
+    setLoading(true)
+    try {
+      await api.post('/auth/push-test', {})
+      toast.success('Test signal sent! Check your lock screen.', { icon: '🚀' })
+    } catch (err) {
+      toast.error('Test signal failed. Verify Vercel keys.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const unsubscribe = async () => {
     setLoading(true)
     try {
@@ -138,16 +150,26 @@ export default function NotificationManager() {
           </div>
         </div>
         
-        <button
-          onClick={isSubscribed ? unsubscribe : subscribe}
-          className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${
-            isSubscribed 
-              ? 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20' 
-              : 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:bg-blue-500'
-          }`}
-        >
-          {isSubscribed ? 'DISABLE' : 'ENABLE'}
-        </button>
+        <div className="flex gap-2">
+          {isSubscribed && (
+            <button
+              onClick={handleTestNotification}
+              className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              TEST
+            </button>
+          )}
+          <button
+            onClick={isSubscribed ? unsubscribe : subscribe}
+            className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${
+              isSubscribed 
+                ? 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20' 
+                : 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:bg-blue-500'
+            }`}
+          >
+            {isSubscribed ? 'DISABLE' : 'ENABLE'}
+          </button>
+        </div>
       </div>
       
       {!isSubscribed && (

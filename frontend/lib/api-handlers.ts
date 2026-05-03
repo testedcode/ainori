@@ -1436,6 +1436,32 @@ export async function handleRateRide(pool: Pool, rideId: number, body: unknown, 
   return jsonResponse({ message: 'Rating submitted' }, 201)
 }
 
+export async function handlePushTest(pool: Pool, auth: Auth) {
+  const r = await pool.query(`SELECT push_subscription FROM users WHERE id = $1`, [auth.userId])
+  if (!r.rows[0]?.push_subscription) return errResponse('No push subscription found for your user', 404)
+  
+  const webpush = require('web-push')
+  webpush.setVapidDetails(
+    'mailto:support@ainori.in',
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BH03JOrkRvMsAsTc4Zq2mZeqIIZHyXZMt_bgpJVALjdVhygUKBA4G_zF1EvoJRFc-42ERcMSg8gtAU53EJueJjY',
+    process.env.VAPID_PRIVATE_KEY || 'ivfqaqwh7zfslTcLm9lUY-umxZKiXYXDFF0BIap14eY'
+  )
+
+  const payload = JSON.stringify({
+    title: 'Ainori System Check 🛰️',
+    body: 'Test signal received. Your phone is successfully linked to the syndicate node.',
+    url: '/dashboard'
+  })
+
+  try {
+    await webpush.sendNotification(JSON.parse(r.rows[0].push_subscription), payload)
+    return jsonResponse({ message: 'Test push sent' })
+  } catch (e: any) {
+    console.error('Push test failed:', e.message)
+    return errResponse('Push delivery failed: ' + e.message, 500)
+  }
+}
+
 export async function handleFixSchema(pool: Pool) {
   try {
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS approved BOOLEAN DEFAULT false`)
