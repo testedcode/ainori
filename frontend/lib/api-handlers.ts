@@ -608,14 +608,24 @@ export async function handleGetRide(pool: Pool, id: number) {
 
 export async function handleCreateRide(pool: Pool, body: unknown, auth: Auth) {
   const b = body as { corridor_id?: number; vehicle_id?: number; ride_date?: string; ride_time?: string; pickup_point?: string; drop_point?: string; route_description?: string; price_per_seat?: number; available_seats?: number; direction?: string }
-  if (!b?.corridor_id || !b?.vehicle_id || !b?.ride_date || !b?.ride_time || !b?.pickup_point || !b?.drop_point || b?.price_per_seat == null || b?.available_seats == null)
-    return errResponse('corridor_id, vehicle_id, ride_date, ride_time, pickup_point, drop_point, price_per_seat, available_seats required', 400)
+  
+  // 1) Validate required fields with specific errors
+  if (!b?.corridor_id) return errResponse('Corridor selection is required', 400)
+  if (!b?.ride_date) return errResponse('Ride date is required', 400)
+  if (!b?.ride_time) return errResponse('Departure time is required', 400)
+  if (!b?.pickup_point) return errResponse('Pickup point is required', 400)
+  if (!b?.drop_point) return errResponse('Drop point is required', 400)
+  if (b?.price_per_seat == null) return errResponse('Price per seat is required', 400)
+  if (b?.available_seats == null) return errResponse('Available seats is required', 400)
   
   const direction = b.direction || 'to_office' 
-  const rideDate = b.ride_date  // Already a string like '2026-04-12'
+  const rideDate = b.ride_date 
   const today = new Date().toISOString().slice(0, 10)
   const maxDate = new Date(Date.now() + 6 * 86400000).toISOString().slice(0, 10)
-  if (rideDate < yesterday(today) || rideDate > maxDate) return errResponse('Ride date must be today or within next 5 days', 400)
+  
+  if (rideDate < yesterday(today) || rideDate > maxDate) {
+    return errResponse('Ride date must be today or within the next 5 days', 400)
+  }
 
   function yesterday(d: string) {
     const dt = new Date(d)
@@ -623,58 +633,80 @@ export async function handleCreateRide(pool: Pool, body: unknown, auth: Auth) {
     return dt.toISOString().slice(0, 10)
   }
 
-  // 1) Verify or Auto-Create Vehicle to satisfy Foreign Key
+  // 2) Vehicle Handling: Auto-assign or auto-create if missing
   let actualVehicleId = b.vehicle_id
-  const v = await pool.query(`SELECT total_seats FROM vehicles WHERE id = $1 AND user_id = $2`, [b.vehicle_id, auth.userId]).catch(() => ({ rows: [] }))
-  const totalSeats = v?.rows?.length > 0 ? v.rows[0].total_seats : 4
-  if (v?.rows?.length === 0) {
-    const autoVeh = await pool.query(
-      `INSERT INTO vehicles (user_id, vehicle_type, make, model, vehicle_number, total_seats, default_available_seats) 
-       VALUES ($1, 'car', 'Ainori', 'Demo Vehicle', $2, 4, 3) RETURNING id`, 
-      [auth.userId, `MH-AUTO-${auth.userId}-${Date.now()}`]
-    ).catch(() => ({ rows: [] }))
-    if (autoVeh?.rows?.length > 0) actualVehicleId = autoVeh.rows[0].id
+  let totalSeats = 4
+
+  if (!actualVehicleId || isNaN(actualVehicleId)) {
+    // Try to find any existing vehicle for this user
+    const existingVeh = await pool.query(`SELECT id, total_seats FROM vehicles WHERE user_id = $1 LIMIT 1`, [auth.userId])
+    if (existingVeh.rows.length > 0) {
+      actualVehicleId = existingVeh.rows[0].id
+      totalSeats = existingVeh.rows[0].total_seats
+    } else {
+      // Auto-create a demo vehicle for the user
+      const autoVeh = await pool.query(
+        `INSERT INTO vehicles (user_id, vehicle_type, make, model, vehicle_number, total_seats, default_available_seats) 
+         VALUES ($1, 'car', 'Ainori', 'Mission Craft', $2, 4, 3) RETURNING id`, 
+        [auth.userId, `JOOL-${auth.userId}-${Math.floor(Math.random() * 1000)}`]
+      )
+      actualVehicleId = autoVeh.rows[0].id
+      totalSeats = 4
+    }
+  } else {
+    // Verify provided vehicle
+    const v = await pool.query(`SELECT total_seats FROM vehicles WHERE id = $1 AND user_id = $2`, [actualVehicleId, auth.userId])
+    if (v.rows.length > 0) {
+      totalSeats = v.rows[0].total_seats
+    } else {
+      // Fallback if vehicle_id sent but not found
+      const fallbackVeh = await pool.query(`SELECT id, total_seats FROM vehicles WHERE user_id = $1 LIMIT 1`, [auth.userId])
+      if (fallbackVeh.rows.length > 0) {
+        actualVehicleId = fallbackVeh.rows[0].id
+        totalSeats = fallbackVeh.rows[0].total_seats
+      }
+    }
   }
 
-  if (b.available_seats > totalSeats) return errResponse('Available seats cannot exceed vehicle capacity', 400)
+  if (b.available_seats > totalSeats) return errResponse(`Available seats (${b.available_seats}) cannot exceed vehicle capacity (${totalSeats})`, 400)
 
-  // 2) Verify or Auto-Create Corridor to satisfy Foreign Key
+  // 3) Corridor Verification
   let actualCorridorId = b.corridor_id
-  const access = await pool.query(`SELECT 1 FROM corridors WHERE id = $1 AND is_active = true`, [b.corridor_id]).catch(() => ({ rows: [] }))
-  if (access?.rows?.length === 0) {
-    const autoCorr = await pool.query(
-      `INSERT INTO corridors (name, location_from, location_to, is_active) 
-       VALUES ('Demo Corridor', 'System', 'HQ', true) RETURNING id`
-    ).catch(() => ({ rows: [] }))
-    if (autoCorr?.rows?.length > 0) actualCorridorId = autoCorr.rows[0].id
-  }
+  const corridorCheck = await pool.query(`SELECT 1 FROM corridors WHERE id = $1`, [b.corridor_id])
+  if (corridorCheck.rows.length === 0) return errResponse('Selected corridor is invalid', 400)
 
-  // 3) Provider publish guardrails: max 1 ride per corridor per direction per day
+  // 4) Provider limits (Relaxed for Admins)
+  const isAdmin = auth.role === 'admin'
+  const maxPerDirection = isAdmin ? 10 : 1
+  const maxPerDay = isAdmin ? 20 : 2
+
   const sameDirectionRide = await pool.query(`
     SELECT id FROM rides
-    WHERE user_id = $1 AND corridor_id = $2 AND ride_date = $3 AND direction = $4
+    WHERE user_id = $1 AND corridor_id = $2 AND ride_date = $3 AND direction = $4 AND ride_time = $5
     AND status NOT IN ('cancelled')
-  `, [auth.userId, actualCorridorId, b.ride_date, direction])
+  `, [auth.userId, actualCorridorId, b.ride_date, direction, b.ride_time])
+  
   if (sameDirectionRide.rows.length > 0) {
-    const dirLabel = direction === 'to_home' ? 'To Home' : 'To Office'
-    return errResponse(`You already have a ${dirLabel} ride on this corridor for ${b.ride_date}`, 400)
+    return errResponse(`You already have a ride at ${b.ride_time} on this corridor for ${b.ride_date}`, 400)
   }
+
   const allRidesForDay = await pool.query(`
     SELECT count(*)::int as cnt FROM rides
     WHERE user_id = $1 AND corridor_id = $2 AND ride_date = $3
     AND status NOT IN ('cancelled')
   `, [auth.userId, actualCorridorId, b.ride_date])
-  if (allRidesForDay.rows[0].cnt >= 2) {
-    return errResponse(`You've shared your max 2 rides on this corridor for ${b.ride_date}`, 400)
+
+  if (allRidesForDay.rows[0].cnt >= maxPerDay) {
+    return errResponse(`Limit reached: You've shared ${allRidesForDay.rows[0].cnt} rides on this corridor for ${b.ride_date}`, 400)
   }
 
-  // 4) Insert Ride into Live Database
+  // 5) Insert Ride into Live Database
   const r = await pool.query(
     `INSERT INTO rides (user_id, corridor_id, vehicle_id, ride_date, ride_time, pickup_point, drop_point, route_description, price_per_seat, available_seats, total_seats, status, direction)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'open', $12) RETURNING id`,
     [auth.userId, actualCorridorId, actualVehicleId, b.ride_date, b.ride_time, b.pickup_point, b.drop_point, b.route_description || null, b.price_per_seat, b.available_seats, totalSeats, direction]
   )
-  return jsonResponse({ id: r.rows[0].id, message: 'Ride created' }, 201)
+  return jsonResponse({ id: r.rows[0].id, message: 'Ride published successfully' }, 201)
 }
 
 export async function handleUpdateRide(pool: Pool, id: number, body: unknown, auth: Auth) {

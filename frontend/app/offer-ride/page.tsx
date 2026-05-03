@@ -153,7 +153,8 @@ export default function OfferRidePage() {
       toast.success('🎉 Ride Published!')
       router.push('/dashboard')
     } catch (e: any) {
-      toast.error(e.message || 'Publish failed')
+      const serverError = e.response?.data?.error || e.message || 'Publish failed'
+      toast.error(serverError)
     } finally { setLoading(false) }
   }
 
