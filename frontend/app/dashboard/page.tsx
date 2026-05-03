@@ -654,8 +654,8 @@ export default function DashboardPage() {
                 offeredRides.map(ride => {
                   const isToHome = ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)
                   const pendingCount = ride.pending_requests?.length || 0
-                  const confirmedCount = ride.confirmed_riders?.length || 0
-                  const filledSeats = confirmedCount
+                  const confirmedRiders = ride.confirmed_riders || []
+                  const filledSeats = confirmedRiders.reduce((acc, curr) => acc + (curr.seats_requested || 1), 0)
                   const totalSeats = ride.total_seats || 4
                   const fillPct = Math.round((filledSeats / totalSeats) * 100)
                   return (
@@ -705,28 +705,48 @@ export default function DashboardPage() {
                       </div>
 
                       {/* ROW 4: Seat fill */}
-                      <div className="flex items-center gap-3 mb-5">
-                        <div className="flex items-center gap-1.5">
-                          {ride.confirmed_riders?.map((rider, i) => (
-                            <div key={i} className="w-9 h-9 rounded-xl border-2 border-green-500/40 bg-slate-800 overflow-hidden shadow-lg transition-transform hover:scale-110">
-                              {rider.avatar_url
-                                ? <img src={rider.avatar_url} className="w-full h-full object-cover" />
-                                : <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-green-400">{rider.name[0]}</div>}
-                            </div>
-                          ))}
-                          {Array.from({ length: Math.max(0, totalSeats - filledSeats) }).map((_, i) => (
-                            <div key={i} className="w-9 h-9 rounded-xl border border-dashed border-white/10 bg-white/[0.02] flex items-center justify-center">
-                              <User className="w-3.5 h-3.5 text-white/10" />
-                            </div>
-                          ))}
-                        </div>
-                        <div className="ml-auto flex flex-col items-end">
-                          <span className="text-[10px] font-black text-white/60">{filledSeats}/{totalSeats} filled</span>
-                          <div className="w-20 h-1.5 bg-white/10 rounded-full mt-1 overflow-hidden">
-                            <div className="h-full bg-green-400 rounded-full transition-all" style={{ width: `${fillPct}%` }} />
-                          </div>
-                        </div>
-                      </div>
+                       <div className="flex items-center gap-4 mb-5">
+                         <div className="flex items-center gap-2">
+                           {/* Host / Pilot Seat */}
+                           <div className="relative group/host">
+                              <div className="w-10 h-10 rounded-xl border-2 border-amber-400 bg-slate-900 overflow-hidden shadow-[0_0_15px_rgba(251,191,36,0.3)]">
+                                {ride.user_avatar_url 
+                                  ? <img src={ride.user_avatar_url} className="w-full h-full object-cover" />
+                                  : <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-amber-400">{ride.driver_name?.[0]}</div>}
+                              </div>
+                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-amber-400 rounded-full border-2 border-[#0f172a] flex items-center justify-center">
+                                 <Crown className="w-2 h-2 text-black" />
+                              </div>
+                           </div>
+
+                           <div className="w-px h-6 bg-white/10 mx-1" />
+
+                           {/* Rider Seats */}
+                           <div className="flex items-center gap-1.5">
+                             {confirmedRiders.flatMap((r: any) => Array.from({ length: r.seats_requested || 1 }).map((_, idx) => (
+                               <div key={`${r.id}-${idx}`} className="w-10 h-10 rounded-xl border-2 border-green-500/40 bg-slate-800 overflow-hidden shadow-lg transition-transform hover:scale-110">
+                                 {r.avatar_url
+                                   ? <img src={r.avatar_url} className="w-full h-full object-cover" />
+                                   : <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-green-400">{r.name?.[0]}</div>}
+                               </div>
+                             )))}
+                             {Array.from({ length: Math.max(0, totalSeats - filledSeats) }).map((_, i) => (
+                               <div key={`empty-${i}`} className="w-10 h-10 rounded-xl border border-dashed border-white/10 bg-white/[0.02] flex items-center justify-center">
+                                 <User className="w-4 h-4 text-white/5" />
+                               </div>
+                             ))}
+                           </div>
+                         </div>
+                         <div className="ml-auto flex flex-col items-end">
+                           <div className="flex items-baseline gap-1">
+                              <span className="text-xl font-black text-white italic">{filledSeats}</span>
+                              <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">/ {totalSeats} FILLED</span>
+                           </div>
+                           <div className="w-24 h-1.5 bg-white/10 rounded-full mt-1 overflow-hidden border border-white/5">
+                             <div className="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full transition-all duration-700" style={{ width: `${fillPct}%` }} />
+                           </div>
+                         </div>
+                       </div>
 
                       {/* ROW 5: Action */}
                       <div className="grid grid-cols-2 gap-3 mb-4">
