@@ -1438,14 +1438,21 @@ export async function handleRateRide(pool: Pool, rideId: number, body: unknown, 
 
 export async function handlePushTest(pool: Pool, auth: Auth) {
   const r = await pool.query(`SELECT push_subscription FROM users WHERE id = $1`, [auth.userId])
-  if (!r.rows[0]?.push_subscription) return errResponse('No push subscription found for your user', 404)
+  if (!r.rows[0]?.push_subscription) return errResponse('Device not linked. Click DISABLE and then ENABLE again on your phone.', 404)
   
+  const pubKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+  const privKey = process.env.VAPID_PRIVATE_KEY
+
+  if (!pubKey || !privKey) {
+    return errResponse(`Keys missing in Vercel. Need: ${!pubKey ? 'PUBLIC_KEY ' : ''}${!privKey ? 'PRIVATE_KEY' : ''}`, 500)
+  }
+
   const webpush = require('web-push')
-  webpush.setVapidDetails(
-    'mailto:support@ainori.in',
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BH03JOrkRvMsAsTc4Zq2mZeqIIZHyXZMt_bgpJVALjdVhygUKBA4G_zF1EvoJRFc-42ERcMSg8gtAU53EJueJjY',
-    process.env.VAPID_PRIVATE_KEY || 'ivfqaqwh7zfslTcLm9lUY-umxZKiXYXDFF0BIap14eY'
-  )
+  try {
+    webpush.setVapidDetails('mailto:support@ainori.in', pubKey, privKey)
+  } catch (e: any) {
+    return errResponse('Vercel keys are invalid format. Check for extra spaces or typos.', 500)
+  }
 
   const payload = JSON.stringify({
     title: 'Ainori System Check 🛰️',
@@ -1455,10 +1462,10 @@ export async function handlePushTest(pool: Pool, auth: Auth) {
 
   try {
     await webpush.sendNotification(JSON.parse(r.rows[0].push_subscription), payload)
-    return jsonResponse({ message: 'Test push sent' })
+    return jsonResponse({ message: 'Test push sent successfully!' })
   } catch (e: any) {
     console.error('Push test failed:', e.message)
-    return errResponse('Push delivery failed: ' + e.message, 500)
+    return errResponse('Delivery failed. Your browser/phone rejected the message: ' + e.message, 500)
   }
 }
 
