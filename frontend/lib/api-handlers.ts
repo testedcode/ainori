@@ -1037,6 +1037,46 @@ export async function handleCreateMessage(pool: Pool, rideId: number, body: unkn
   )
   if (participant.rows.length === 0) return errResponse('You are not part of this ride', 403)
   const r = await pool.query(`INSERT INTO messages (ride_id, user_id, message) VALUES ($1, $2, $3) RETURNING id`, [rideId, auth.userId, b.message.trim()])
+
+  // TRIGGER PUSH NOTIFICATIONS FOR CHAT
+  try {
+    const participants = await pool.query(`
+      (SELECT user_id FROM rides WHERE id = $1)
+      UNION
+      (SELECT user_id FROM ride_requests WHERE ride_id = $1 AND status = 'accepted')
+    `, [rideId])
+    
+    const webpush = require('web-push')
+    webpush.setVapidDetails(
+      'mailto:support@ainori.in',
+      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BH03JOrkRvMsAsTc4Zq2mZeqIIZHyXZMt_bgpJVALjdVhygUKBA4G_zF1EvoJRFc-42ERcMSg8gtAU53EJueJjY',
+      process.env.VAPID_PRIVATE_KEY || 'ivfqaqwh7zfslTcLm9lUY-umxZKiXYXDFF0BIap14eY'
+    )
+
+    const senderInfo = await pool.query(`SELECT name FROM users WHERE id = $1`, [auth.userId])
+    const senderName = senderInfo.rows[0]?.name || 'Someone'
+    
+    const payload = JSON.stringify({
+      title: `New message in ride! 💬`,
+      body: `${senderName}: ${b.message.substring(0, 50)}${b.message.length > 50 ? '...' : ''}`,
+      url: `/rides/${rideId}`
+    })
+
+    for (const p of participants.rows) {
+      if (p.user_id === auth.userId) continue
+      const target = await pool.query(`SELECT push_subscription FROM users WHERE id = $1`, [p.user_id])
+      if (target.rows[0]?.push_subscription) {
+        try {
+          await webpush.sendNotification(JSON.parse(target.rows[0].push_subscription), payload)
+        } catch (e) {
+          console.warn('Chat push delivery failed for user', p.user_id)
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Chat push trigger error:', err)
+  }
+
   return jsonResponse({ id: r.rows[0].id, message: 'Message sent' }, 201)
 }
 
