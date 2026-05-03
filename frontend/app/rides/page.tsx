@@ -383,7 +383,7 @@ function RidesContent() {
   }, [])
 
   const [showFilled, setShowFilled] = useState(false)
-  const [liveOnly, setLiveOnly] = useState(true)
+  const [liveOnly, setLiveOnly] = useState(false)
   const [filter, setFilter] = useState({
     corridor: corridorParam || 'all',
     date: new Date().toISOString().split('T')[0],
@@ -501,11 +501,11 @@ function RidesContent() {
         const diffMins = (now.getTime() - rideDate.getTime()) / 60000
         
         // Rules for "Live Only":
-        // 1. Hide if it happened > 30 mins ago (grace period)
-        if (diffMins > 30) return false
+        // 1. Hide if it happened > 4 hours ago (grace period)
+        if (diffMins > 240) return false
         
-        // 2. Hide if it is > 2 hours in the future
-        if (diffMins < -120) return false
+        // 2. Hide if it is > 12 hours in the future
+        if (diffMins < -720) return false
       }
     }
     

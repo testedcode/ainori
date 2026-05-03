@@ -58,6 +58,10 @@ interface Ride {
   user_avatar_url?: string
   confirmed_riders?: { id: number; user_id: number; name: string; avatar_url: string; seats_requested: number }[]
   pending_requests?: { id: number; user_id: number; name: string; avatar_url: string; seats_requested: number; created_at: string }[]
+  vehicle_make?: string
+  vehicle_model?: string
+  vehicle_number?: string
+  vehicle_image_url?: string
 }
 
 const DEMO_MY_RIDES: Ride[] = [
@@ -533,44 +537,74 @@ export default function DashboardPage() {
                 </div>
               ) : (
                  bookedRides.map(ride => (
-                  <div key={ride.id} className="block bg-white/[0.03] border border-white/10 rounded-[3rem] p-10 hover:bg-white/[0.06] transition-all relative overflow-hidden group">
-                     <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform">
-                        <Bookmark className="w-32 h-32 text-white" />
+                   <div key={ride.id} className="block bg-white/[0.03] border border-white/10 rounded-[4rem] p-12 hover:bg-white/[0.06] transition-all relative overflow-hidden group shadow-2xl">
+                     <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:scale-110 transition-transform">
+                        <Bookmark className="w-48 h-48 text-white" />
                      </div>
                      
-                     <div className="flex justify-between items-start mb-8 relative z-10">
-                        <Link href={`/rides/${ride.id}`}>
-                           <h4 className="text-2xl font-black text-white italic uppercase tracking-tight mb-4 hover:text-blue-400 transition-colors">{ride.corridor_name}</h4>
-                           <div className="flex items-center gap-3 p-1 pr-4 bg-white/5 border border-white/10 rounded-full w-fit">
-                              <div className="w-8 h-8 rounded-full border-2 border-blue-500/50 overflow-hidden bg-slate-900 shadow-lg">
-                                 {ride.user_avatar_url ? (
-                                    <img src={ride.user_avatar_url} className="w-full h-full object-cover" />
-                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-[10px] font-black">{ride.driver_name?.[0]}</div>
-                                 )}
+                     {/* Background Vehicle Glow */}
+                     {ride.vehicle_image_url && (
+                        <div className="absolute inset-0 pointer-events-none opacity-[0.05]">
+                           <img src={ride.vehicle_image_url} alt="" className="w-full h-full object-cover" />
+                        </div>
+                     )}
+                     
+                     <div className="flex justify-between items-start mb-10 relative z-10">
+                        <Link href={`/rides/${ride.id}`} className="flex-1">
+                           <h4 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-6 hover:text-blue-400 transition-colors leading-none">{ride.corridor_name}</h4>
+                           
+                           <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-3 p-1.5 pr-6 bg-white/5 border border-white/10 rounded-full w-fit">
+                                 <div className="w-12 h-12 rounded-full border-2 border-blue-500/50 overflow-hidden bg-slate-900 shadow-xl">
+                                    {ride.user_avatar_url ? (
+                                       <img src={ride.user_avatar_url} className="w-full h-full object-cover" />
+                                    ) : (
+                                       <div className="w-full h-full flex items-center justify-center text-sm font-black">{ride.driver_name?.[0]}</div>
+                                    )}
+                                 </div>
+                                 <div>
+                                    <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] leading-none mb-1">Host Node</p>
+                                    <p className="text-sm font-black text-white uppercase tracking-tight">{ride.driver_name}</p>
+                                 </div>
                               </div>
-                              <div>
-                                 <p className="text-[7px] font-black text-white/20 uppercase tracking-widest leading-none mb-1">Host Node</p>
-                                 <p className="text-[10px] font-black text-white uppercase tracking-tighter">{ride.driver_name}</p>
-                              </div>
+
+                              {/* Vehicle Detail Badge */}
+                              {(ride.vehicle_make || ride.vehicle_number) && (
+                                 <div className="flex items-center gap-3 p-1.5 pr-6 bg-green-500/10 border border-green-500/20 rounded-full w-fit">
+                                    <div className="w-12 h-12 rounded-full bg-slate-900 border border-green-500/30 flex items-center justify-center text-xl shadow-xl">
+                                       {ride.vehicle_image_url ? (
+                                          <img src={ride.vehicle_image_url} className="w-full h-full object-cover rounded-full" />
+                                       ) : '🚗'}
+                                    </div>
+                                    <div>
+                                       <p className="text-[8px] font-black text-green-400/60 uppercase tracking-[0.3em] leading-none mb-1">Vehicle Signal</p>
+                                       <p className="text-xs font-black text-white uppercase tracking-widest">
+                                          {ride.vehicle_make} {ride.vehicle_model}
+                                          <span className="text-green-400/40 mx-2">|</span>
+                                          <span className="text-[10px] font-mono text-green-400">{ride.vehicle_number || 'PRO-NODE'}</span>
+                                       </p>
+                                    </div>
+                                 </div>
+                              )}
                            </div>
                         </Link>
-                        <div className="flex flex-col items-end gap-2">
-                           <div className="px-4 py-1.5 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-full text-[9px] font-black uppercase tracking-widest">
-                              Confirmed
+
+                        <div className="flex flex-col items-end gap-4">
+                           <div className="px-6 py-2 bg-blue-600 text-white border border-blue-400/30 rounded-2xl text-xs font-black uppercase tracking-[0.3em] shadow-[0_0_30px_rgba(37,99,235,0.4)]">
+                              CONFIRMED
                            </div>
-                           <div className="text-[10px] font-black text-white/40 uppercase tracking-widest">{fmtTime(ride.ride_time)}</div>
+                           <div className="text-6xl font-black text-white italic tracking-tighter drop-shadow-2xl">{fmtTime(ride.ride_time)}</div>
                         </div>
                      </div>
 
-                     <div className="flex items-center gap-6 relative z-10 mb-8">
-                        <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg text-[10px] font-black uppercase tracking-widest text-white/60 border border-white/5">
-                           <Calendar className="w-3 h-3 text-blue-400" /> {fmtDate(ride.ride_date)}
+                     <div className="flex items-center gap-6 relative z-10 mb-10">
+                        <div className="flex items-center gap-3 px-5 py-2.5 bg-white/5 rounded-2xl text-sm font-black uppercase tracking-widest text-white/60 border border-white/10">
+                           <Calendar className="w-4 h-4 text-blue-400" /> {fmtDate(ride.ride_date)}
                         </div>
-                        <div className={`flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg text-[10px] font-black uppercase tracking-widest border border-white/5 ${
+                        <div className={`flex items-center gap-3 px-5 py-2.5 bg-white/5 rounded-2xl text-sm font-black uppercase tracking-widest border border-white/10 ${
                            (ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'text-green-400' : 'text-blue-400'
                         }`}>
-                           {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? <Home className="w-3 h-3" /> : <Building2 className="w-3 h-3" />}
+                           {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? <Home className="w-4 h-4" /> : <Building2 className="w-4 h-4" />}
                            {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'To Home' : 'To Office'}
                         </div>
                      </div>

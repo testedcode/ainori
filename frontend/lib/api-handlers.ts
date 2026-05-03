@@ -510,11 +510,13 @@ export async function handleGetUserRides(pool: Pool, auth: Auth) {
            c.description as corridor_description,
            r.ride_date, r.ride_time, r.pickup_point, r.drop_point,
            r.price_per_seat, r.available_seats, r.total_seats, r.status, r.direction,
+           v.make as vehicle_make, v.model as vehicle_model, v.vehicle_number, v.image_url as vehicle_image_url,
            CASE WHEN r.user_id = $1 THEN 'host' ELSE 'rider' END as role
     FROM rides r 
     JOIN users u ON r.user_id = u.id 
     JOIN corridors c ON r.corridor_id = c.id
     LEFT JOIN ride_requests rr ON r.id = rr.ride_id
+    LEFT JOIN vehicles v ON r.vehicle_id = v.id
     WHERE r.user_id = $1 OR (rr.user_id = $1 AND rr.status = 'accepted')
     ORDER BY r.ride_date DESC, r.ride_time DESC
   `
