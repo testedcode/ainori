@@ -444,6 +444,19 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
   const day4 = new Date(Date.now() + 4 * 86400000).toISOString().slice(0, 10)
   const day5 = new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10)
 
+  // Emergency Seeding Check: Ensure corridors exist before querying
+  const corridorCount = await pool.query('SELECT count(*)::int as cnt FROM corridors')
+  if (corridorCount.rows[0].cnt === 0) {
+    console.warn('AUTO_SEED [handleGetRides]: Seeding emergency corridors')
+    for (const c of EMERGENCY_CORRIDORS) {
+      await pool.query(
+        `INSERT INTO corridors (id, city_id, name, location_from, location_to, is_active) 
+         VALUES ($1, 1, $2, $3, $4, true) ON CONFLICT DO NOTHING`,
+        [c.id, c.name, c.location_from, c.location_to]
+      ).catch(() => {})
+    }
+  }
+
   let query = `
     SELECT r.id, r.user_id, u.name as user_name, u.approved as user_approved, u.avatar_url as user_avatar_url,
            r.corridor_id, c.name as corridor_name,
@@ -452,8 +465,11 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
            r.status, r.direction, r.created_at, r.updated_at,
            v.image_url as vehicle_image_url, v.make as vehicle_make, v.model as vehicle_model, v.vehicle_type,
            (SELECT count(*) FROM ride_requests WHERE ride_id = r.id AND status = 'pending') as pending_count
-    FROM rides r JOIN users u ON r.user_id = u.id JOIN corridors c ON r.corridor_id = c.id
-    LEFT JOIN vehicles v ON r.vehicle_id = v.id WHERE 1=1
+    FROM rides r 
+    LEFT JOIN users u ON r.user_id = u.id 
+    LEFT JOIN corridors c ON r.corridor_id = c.id
+    LEFT JOIN vehicles v ON r.vehicle_id = v.id 
+    WHERE 1=1
   `
   const args: unknown[] = []
   let i = 1
