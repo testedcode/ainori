@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import JoolFooter from './components/JoolFooter'
+import InstallBanner from './components/InstallBanner'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -35,6 +36,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         {children}
+        <InstallBanner />
         <JoolFooter />
         <Toaster 
           position="top-right"
