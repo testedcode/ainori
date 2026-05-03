@@ -492,7 +492,7 @@ function RidesContent() {
 
   const filtered = rides.filter(r => {
     if (!showFilled && r.available_seats === 0) return false
-    if (r.status !== 'open' && r.status !== 'starting' && r.status !== 'at_pickup') return false // Allow active but not yet finished rides
+    if (r.status === 'cancelled' || r.status === 'finished') return false
     if (filter.corridor !== 'all' && r.corridor_id !== parseInt(filter.corridor)) return false
     
     const h = parseInt(r.ride_time.split(':')[0])
