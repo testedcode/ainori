@@ -108,7 +108,7 @@ export async function handleLogin(pool: Pool, body: unknown) {
     let r: any
     try {
       r = await pool.query(
-        `SELECT id, email, password_hash, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, approved, blocked, is_beta
+        `SELECT id, email, password_hash, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, approved, blocked, is_beta, push_subscription
          FROM users WHERE email = $1`,
         [b.email]
       )
@@ -151,6 +151,7 @@ export async function handleLogin(pool: Pool, body: unknown) {
       approved: row.approved || false,
       blocked: row.blocked || false,
       is_beta: row.is_beta || false,
+      push_subscription: row.push_subscription || null
     }
     console.log(`[AUTH] Login successful: ${user.email} (Role: ${user.role})`)
     return jsonResponse({ token, user })
@@ -167,7 +168,7 @@ export async function handleProfile(pool: Pool, auth: Auth) {
     
     try {
       const r = await pool.query(
-        `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, approved, blocked, is_beta, last_seen, created_at, updated_at
+        `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, approved, blocked, is_beta, push_subscription, last_seen, created_at, updated_at
          FROM users WHERE id = $1`,
         [auth.userId]
       )
@@ -888,6 +889,13 @@ export async function handleCreateRideRequest(pool: Pool, rideId: number, body: 
   return jsonResponse({ id: r.rows[0].id, message: 'Ride request created' }, 201)
 }
 
+export async function handleSavePushSubscription(pool: Pool, body: unknown, auth: Auth) {
+  const b = body as { subscription?: string }
+  if (!b?.subscription) return errResponse('subscription required', 400)
+  await pool.query(`UPDATE users SET push_subscription = $1 WHERE id = $2`, [b.subscription, auth.userId])
+  return jsonResponse({ message: 'Push subscription saved' })
+}
+
 export async function handleUpdateRideRequest(pool: Pool, rideId: number, requestId: number, body: unknown, auth: Auth) {
   const b = body as { status?: string }
   if (b?.status !== 'accepted' && b?.status !== 'rejected') return errResponse('status must be accepted or rejected', 400)
@@ -942,6 +950,29 @@ export async function handleUpdateRideRequest(pool: Pool, rideId: number, reques
         AND ride_id IN (SELECT id FROM rides WHERE ride_date = $2)
       `, [rider.rows[0].user_id, ride_date])
     }
+
+    // TRIGGER PUSH NOTIFICATION TO RIDER
+    try {
+      const riderInfo = await pool.query(`SELECT push_subscription, name FROM users WHERE id = $1`, [rider.rows[0].user_id])
+      if (riderInfo.rows[0].push_subscription) {
+        const webpush = require('web-push')
+        webpush.setVapidDetails(
+          'mailto:support@ainori.in',
+          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BH03JOrkRvMsAsTc4Zq2mZeqIIZHyXZMt_bgpJVALjdVhygUKBA4G_zF1EvoJRFc-42ERcMSg8gtAU53EJueJjY',
+          process.env.VAPID_PRIVATE_KEY || 'ivfqaqwh7zfslTcLm9lUY-umxZKiXYXDFF0BIap14eY'
+        )
+        const payload = JSON.stringify({
+          title: 'Ride Authorized! 🚗',
+          body: `Your request for ${rideInfo.rows[0].corridor_id} has been accepted.`,
+          url: `/rides/${rideId}`
+        })
+        await webpush.sendNotification(JSON.parse(riderInfo.rows[0].push_subscription), payload)
+      }
+    } catch (pushErr) {
+      console.warn('Push notification failed:', pushErr)
+    }
+
+    return jsonResponse({ message: 'Request updated' })
   } else if (b.status === 'rejected' && currentStatus === 'accepted') {
     await pool.query(`UPDATE rides SET available_seats = available_seats + $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`, [seats_requested, rideId])
   }

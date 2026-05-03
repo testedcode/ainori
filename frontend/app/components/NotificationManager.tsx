@@ -5,66 +5,125 @@ import { Bell, BellOff, CheckCircle2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '@/lib/api'
 
-// For a real production app, generate these via: npx web-push generate-vapid-keys
-const VAPID_PUBLIC_KEY = 'BEr7H1X3E_v3eM5Z_Z5eM5Z_Z5eM5Z_Z5eM5Z_Z5eM5Z_Z5eM5Z_Z5eM5Z_Z5eM5Z_Z5eM5Z_Z5eM5Z_Z5e' 
+// Use the real Public Key generated
+const VAPID_PUBLIC_KEY = 'BH03JOrkRvMsAsTc4Zq2mZeqIIZHyXZMt_bgpJVALjdVhygUKBA4G_zF1EvoJRFc-42ERcMSg8gtAU53EJueJjY' 
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 
 export default function NotificationManager() {
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [isSupported, setIsSupported] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
       setIsSupported(true)
       checkSubscription()
+    } else {
+      setLoading(false)
     }
   }, [])
 
   const checkSubscription = async () => {
-    const registration = await navigator.serviceWorker.ready
-    const subscription = await registration.pushManager.getSubscription()
-    setIsSubscribed(!!subscription)
+    try {
+      const registration = await navigator.serviceWorker.ready
+      const subscription = await registration.pushManager.getSubscription()
+      
+      // Also check if the user has a subscription in the DB
+      const userStr = localStorage.getItem('user')
+      if (userStr) {
+        const user = JSON.parse(userStr)
+        if (user.push_subscription) {
+          setIsSubscribed(true)
+        } else {
+          setIsSubscribed(!!subscription)
+        }
+      } else {
+        setIsSubscribed(!!subscription)
+      }
+    } catch (err) {
+      console.error('Error checking subscription:', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const subscribe = async () => {
+    setLoading(true)
     try {
-      // 1. Register service worker
       const registration = await navigator.serviceWorker.register('/sw.js')
       await navigator.serviceWorker.ready
 
-      // 2. Request permission
       const permission = await Notification.requestPermission()
       if (permission !== 'granted') {
         toast.error('Notification permission denied')
+        setLoading(false)
         return
       }
 
-      // 3. Subscribe to push manager
-      // In a real scenario, we use the actual VAPID key
-      // For now, we are just mocking the "Successful" state to show the user
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      })
+
+      // Save to backend
+      await api.post('/auth/push-subscription', { subscription: JSON.stringify(subscription) })
+      
+      // Update local storage to persist state
+      const userStr = localStorage.getItem('user')
+      if (userStr) {
+        const user = JSON.parse(userStr)
+        user.push_subscription = JSON.stringify(subscription)
+        localStorage.setItem('user', JSON.stringify(user))
+      }
+
       setIsSubscribed(true)
       toast.success('Notifications enabled!', { icon: '🔔' })
-      
-      // 4. Save to backend (Future implementation)
-      // const sub = await registration.pushManager.subscribe({...})
-      // await api.post('/profile/subscription', sub)
-
     } catch (err) {
       console.error('Subscription failed:', err)
       toast.error('Failed to enable notifications')
+    } finally {
+      setLoading(false)
     }
   }
 
   const unsubscribe = async () => {
-    const registration = await navigator.serviceWorker.ready
-    const subscription = await registration.pushManager.getSubscription()
-    if (subscription) {
-      await subscription.unsubscribe()
-      setIsSubscribed(false)
-      toast('Notifications disabled', { icon: '🔕' })
+    setLoading(true)
+    try {
+      const registration = await navigator.serviceWorker.ready
+      const subscription = await registration.pushManager.getSubscription()
+      if (subscription) {
+        await subscription.unsubscribe()
+        await api.post('/auth/push-subscription', { subscription: null })
+        
+        const userStr = localStorage.getItem('user')
+        if (userStr) {
+          const user = JSON.parse(userStr)
+          user.push_subscription = null
+          localStorage.setItem('user', JSON.stringify(user))
+        }
+
+        setIsSubscribed(false)
+        toast('Notifications disabled', { icon: '🔕' })
+      }
+    } catch (err) {
+      console.error('Unsubscribe failed:', err)
+    } finally {
+      setLoading(false)
     }
   }
 
   if (!isSupported) return null
+  if (loading) return <div className="h-24 bg-white/5 rounded-3xl animate-pulse mb-6" />
 
   return (
     <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-6">
