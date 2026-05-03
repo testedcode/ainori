@@ -480,7 +480,7 @@ function RidesContent() {
 
   const filtered = rides.filter(r => {
     if (!showFilled && r.available_seats === 0) return false
-    if (r.status !== 'open') return false // Hide started or completed rides from explorer
+    if (r.status !== 'open' && r.status !== 'starting') return false // Allow open and starting rides
     if (filter.corridor !== 'all' && r.corridor_id !== parseInt(filter.corridor)) return false
     
     const h = parseInt(r.ride_time.split(':')[0])
@@ -502,8 +502,8 @@ function RidesContent() {
         const diffMins = (now.getTime() - rideDate.getTime()) / 60000
         
         // Rules for "Live Only":
-        // 1. Hide if it happened > 30 mins ago
-        if (diffMins > 30) return false
+        // 1. Hide if it happened > 60 mins ago
+        if (diffMins > 60) return false
         
         // 2. Hide if it is > 24 hours in the future
         if (diffMins < -1440) return false

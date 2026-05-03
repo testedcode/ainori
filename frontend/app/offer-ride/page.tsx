@@ -18,10 +18,10 @@ interface Corridor { id: number; name: string; location_from: string; location_t
 interface Vehicle { id: number; make: string; model: string; vehicle_number: string; total_seats: number; vehicle_type: string; color?: string }
 
 const CORRIDORS_DEFAULT: Corridor[] = [
-  { id: 1, name: 'Casa Rio', location_from: 'Casa Rio', location_to: 'RCP' },
-  { id: 2, name: 'Casa Bella', location_from: 'Casa Bella', location_to: 'RCP' },
-  { id: 3, name: 'Lakeshore', location_from: 'Lakeshore', location_to: 'RCP' },
-  { id: 4, name: 'Kharghar', location_from: 'Kharghar', location_to: 'RCP' },
+  { id: 101, name: 'Casa Rio TO RCP', location_from: 'Casa Rio Palava', location_to: 'RCP Reliance Corporate Park' },
+  { id: 102, name: 'Casa Bella To RCP', location_from: 'Casa Bella Palava', location_to: 'RCP Reliance Corporate Park' },
+  { id: 103, name: 'Kharghar To RCP', location_from: 'Kharghar', location_to: 'RCP' },
+  { id: 104, name: 'Any Country', location_from: 'Any City', location_to: 'Any Place' },
 ]
 
 const DRAFT_KEY = 'jool_ride_draft'
@@ -70,15 +70,10 @@ export default function OfferRidePage() {
       api.get('/vehicles') as unknown as Promise<Vehicle[]>,
       api.get('/user/rides') as unknown as Promise<any[]>
     ]).then(([c, v, ur]) => {
-      if (Array.isArray(c)) {
-        // Merge with defaults to ensure Lakeshore etc. are never lost even if DB is inconsistent
-        const merged = [...CORRIDORS_DEFAULT]
-        c.forEach(apiC => {
-          if (!merged.find(m => String(m.id) === String(apiC.id) || m.name === apiC.name)) {
-            merged.push(apiC)
-          }
-        })
-        setCorridors(merged)
+      if (Array.isArray(c) && c.length > 0) {
+        setCorridors(c)
+      } else {
+        setCorridors(CORRIDORS_DEFAULT)
       }
       
       if (!localStorage.getItem(DRAFT_KEY) && Array.isArray(ur) && ur.length > 0) {

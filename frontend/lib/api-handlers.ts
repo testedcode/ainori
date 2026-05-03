@@ -258,16 +258,16 @@ export async function handleGetCities(pool: Pool) {
 
 export async function handleUpdateCityStatus(pool: Pool, id: number, body: unknown, _auth: Auth) {
   const b = body as { status?: string }
-  if (b?.status !== 'active' && b?.status !== 'locked') return errResponse('status must be active or locked', 400)
+  if (b?.status !== 'active' && b?.status !== 'locked' && b?.status !== 'starting') return errResponse('status must be active, locked or starting', 400)
   await pool.query(`UPDATE cities SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`, [b.status, id])
   return jsonResponse({ message: 'City status updated' })
 }
 
 const EMERGENCY_CORRIDORS = [
-  { id: 1, name: 'Casa Rio', location_from: 'Casa Rio', location_to: 'RCP', is_active: true, city_name: 'Mumbai' },
-  { id: 2, name: 'Casa Bella', location_from: 'Casa Bella', location_to: 'RCP', is_active: true, city_name: 'Mumbai' },
-  { id: 3, name: 'Lakeshore', location_from: 'Lakeshore', location_to: 'RCP', is_active: true, city_name: 'Mumbai' },
-  { id: 4, name: 'Kharghar', location_from: 'Kharghar', location_to: 'RCP', is_active: true, city_name: 'Mumbai' },
+  { id: 101, name: 'Casa Rio TO RCP', description: 'Casa Rio Palava to RCP' },
+  { id: 102, name: 'Casa Bella To RCP', description: 'Casa Bella to RCP' },
+  { id: 103, name: 'Kharghar To RCP', description: 'Kharghar to RCP' },
+  { id: 104, name: 'Any Country', description: 'Any City to Any Place' }
 ]
 
 export async function handleGetCorridors(pool: Pool, searchParams: URLSearchParams) {
