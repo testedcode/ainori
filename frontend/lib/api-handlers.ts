@@ -145,12 +145,12 @@ export async function handleLogin(pool: Pool, body: unknown) {
       role: finalRole,
       carbon_credits: row.carbon_credits,
       upi_id: row.upi_id,
+      is_beta: row.is_beta || false,
+      approved: row.approved || false,
+      blocked: row.blocked || false,
       avatar_url: row.avatar_url || null,
       bio: row.bio || null,
       qr_code_url: row.qr_code_url || null,
-      approved: row.approved || false,
-      blocked: row.blocked || false,
-      is_beta: row.is_beta || false,
       push_subscription: row.push_subscription || null
     }
     console.log(`[AUTH] Login successful: ${user.email} (Role: ${user.role})`)
@@ -168,22 +168,24 @@ export async function handleProfile(pool: Pool, auth: Auth) {
     
     try {
       const r = await pool.query(
-        `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, approved, blocked, is_beta, push_subscription, last_seen, created_at, updated_at
+        `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, approved, blocked, is_beta, last_seen, created_at, updated_at
          FROM users WHERE id = $1`,
         [auth.userId]
       )
       if (r.rows.length === 0) return errResponse('User not found', 404)
       return jsonResponse(r.rows[0])
     } catch (e: any) {
-      console.warn('handleProfile full select failed, trying base columns', e.message)
-      // Fallback if schema hasn't synced successfully
+      console.warn('handleProfile full select failed, trying legacy columns', e.message)
       const r2 = await pool.query(
-        `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, approved, blocked, is_beta, last_seen, created_at, updated_at
+        `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, approved, blocked, is_beta, last_seen, created_at, updated_at
          FROM users WHERE id = $1`,
         [auth.userId]
-      )
+      ).catch(() => pool.query(
+        `SELECT id, email, name, phone, city, role, carbon_credits, upi_id, last_seen, created_at, updated_at FROM users WHERE id = $1`,
+        [auth.userId]
+      ))
       if (r2.rows.length === 0) return errResponse('User not found', 404)
-      return jsonResponse({ ...r2.rows[0], avatar_url: null, bio: null, qr_code_url: null })
+      return jsonResponse(r2.rows[0])
     }
   } catch (e: any) {
     console.error('Fatal DB error in handleProfile:', e.message)
@@ -237,9 +239,11 @@ export async function handleUpdateProfile(pool: Pool, body: unknown, auth: Auth)
         }
         if (baseUpdates.length > 0) {
            baseArgs.push(auth.userId)
-           const baseQuery = `UPDATE users SET ${baseUpdates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${j} RETURNING id, email, name, phone, city, carbon_credits, upi_id, last_seen, created_at, updated_at`
-           const rb = await pool.query(baseQuery, baseArgs)
-           if (rb.rows.length > 0) return jsonResponse({ ...rb.rows[0], avatar_url: null, bio: null, qr_code_url: null })
+           const baseQuery = `UPDATE users SET ${baseUpdates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${j} RETURNING id, email, name, phone, city, role, avatar_url, carbon_credits, upi_id, last_seen, created_at, updated_at`
+           const rb = await pool.query(baseQuery, baseArgs).catch(() => {
+             return pool.query(`UPDATE users SET ${baseUpdates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${j} RETURNING id, email, name, phone, city, role, carbon_credits, upi_id, last_seen, created_at, updated_at`, baseArgs)
+           })
+           if (rb.rows.length > 0) return jsonResponse(rb.rows[0])
         }
       }
     }
