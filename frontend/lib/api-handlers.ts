@@ -264,10 +264,10 @@ export async function handleUpdateCityStatus(pool: Pool, id: number, body: unkno
 }
 
 const EMERGENCY_CORRIDORS = [
-  { id: 101, name: 'Casa Rio TO RCP', description: 'Casa Rio Palava to RCP' },
-  { id: 102, name: 'Casa Bella To RCP', description: 'Casa Bella to RCP' },
-  { id: 103, name: 'Kharghar To RCP', description: 'Kharghar to RCP' },
-  { id: 104, name: 'Any Country', description: 'Any City to Any Place' }
+  { id: 101, name: 'Casa Rio TO RCP', location_from: 'Casa Rio Palava', location_to: 'RCP Reliance Corporate Park' },
+  { id: 102, name: 'Casa Bella To RCP', location_from: 'Casa Bella Palava', location_to: 'RCP Reliance Corporate Park' },
+  { id: 103, name: 'Kharghar To RCP', location_from: 'Kharghar', location_to: 'RCP' },
+  { id: 104, name: 'Any Country', location_from: 'Any City', location_to: 'Any Place' }
 ]
 
 export async function handleGetCorridors(pool: Pool, searchParams: URLSearchParams) {
