@@ -404,6 +404,17 @@ export default function RideDetailPage() {
       ) : (
         <main className="max-w-4xl mx-auto px-6 mt-12 space-y-6 animate-in fade-in duration-700">
 
+          {/* CANCELLATION BANNER */}
+          {ride.status === 'cancelled' && (
+            <div className="bg-red-500/20 border-2 border-red-500/30 rounded-[2rem] p-8 text-center animate-pulse">
+               <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <AlertCircle className="w-8 h-8 text-red-500" />
+               </div>
+               <h2 className="text-3xl font-black text-red-500 uppercase italic tracking-tighter">This trip has been cancelled</h2>
+               <p className="text-red-400/60 text-xs font-black uppercase tracking-widest mt-2">All associated requests and nodes have been de-synchronized</p>
+            </div>
+          )}
+
           {/* HEADER */}
           <div className="flex items-start justify-between gap-4 mb-8">
             <div className="flex items-center gap-4">

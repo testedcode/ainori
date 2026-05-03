@@ -465,20 +465,24 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
     query += ` AND r.ride_date = $${i++}`
     args.push(date)
   } else if (status !== 'all') {
-    query += ` AND r.ride_date IN ($${i++}, $${i++}, $${i++}, $${i++}, $${i++}, $${i++})`
-    args.push(today, day1, day2, day3, day4, day5)
+    // Default window: today -1 to +5 days to catch very recent or upcoming
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+    query += ` AND r.ride_date >= $${i++} AND r.ride_date <= $${i++}`
+    args.push(yesterday, day5)
   }
+  
   if (status && status !== 'all') {
     query += ` AND r.status = $${i++}`
     args.push(status)
-  } else if (!status) {
-    query += ` AND r.status IN ('open', 'partially_filled')`
+  } else if (!status || status === '') {
+    query += ` AND r.status IN ('open', 'partially_filled', 'full')`
   }
+  
   if (userId) {
     query += ` AND r.user_id = $${i++}`
     args.push(userId)
   }
-  query += ` ORDER BY r.ride_date, r.ride_time`
+  query += ` ORDER BY r.ride_date DESC, r.ride_time DESC`
   const r = await pool.query(query, args)
   
   const enriched = await Promise.all(r.rows.map(async (ride) => {
@@ -775,13 +779,18 @@ export async function handleUpdateRide(pool: Pool, id: number, body: unknown, au
 export async function handleCancelRide(pool: Pool, id: number, auth: Auth) {
   const r = await pool.query(`UPDATE rides SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP WHERE id = $1 AND user_id = $2 RETURNING id`, [id, auth.userId])
   if (r.rowCount === 0) return errResponse('Ride not found', 404)
+  
+  // Cascade cancellation to requests and payments
+  await pool.query(`UPDATE ride_requests SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP WHERE ride_id = $1`, [id])
+  await pool.query(`UPDATE payments SET rider_status = 'cancelled', giver_status = 'cancelled' WHERE ride_id = $1`, [id])
+  
   return jsonResponse({ message: 'Ride cancelled' })
 }
 
 export async function handleGetUserRequests(pool: Pool, auth: Auth) {
   const r = await pool.query(
     `SELECT rr.id, rr.ride_id, rr.user_id, rr.seats_requested, rr.comment, rr.status,
-            r.ride_date, r.ride_time, r.pickup_point, r.drop_point, r.direction, c.name as corridor_name
+            r.ride_date, r.ride_time, r.pickup_point, r.drop_point, r.direction, r.status as ride_status, c.name as corridor_name
      FROM ride_requests rr
      JOIN rides r ON rr.ride_id = r.id
      JOIN corridors c ON r.corridor_id = c.id

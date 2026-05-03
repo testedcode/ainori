@@ -185,6 +185,31 @@ export default function DashboardPage() {
       if (Array.isArray(ridesRes)) setMyRides(ridesRes as unknown as Ride[])
     } catch { toast.error('Action failed') }
   }
+  const handleMarkAtSpot = async (rideId: number) => {
+    try {
+      await api.post(`/rides/${rideId}/messages`, { message: "I'm at the pickup spot! 📍" })
+      toast.success("Host notified: You're at the spot!")
+      // Refresh to update UI if needed
+    } catch { toast.error('Failed to send notification') }
+  }
+
+  const handleMarkComplete = async (rideId: number) => {
+    try {
+      await api.put(`/rides/${rideId}/payments/${user?.id}`, { rider_status: 'done' })
+      toast.success("Ride marked as complete!")
+      // Refresh
+      const ridesRes = await api.get('/user/rides')
+      if (Array.isArray(ridesRes)) setMyRides(ridesRes as unknown as Ride[])
+    } catch { toast.error('Update failed') }
+  }
+
+  const handleMarkPayment = async (rideId: number) => {
+    try {
+      // For dashboard quick-action, we assume marking rider_status as done is enough
+      // or we can redirect to the ride detail page for full payment flow
+      router.push(`/rides/${rideId}?action=payment`)
+    } catch { }
+  }
 
   const handleClearAllRequests = async () => {
     try {
@@ -215,11 +240,11 @@ export default function DashboardPage() {
     return aToOffice ? 1 : -1
   })
   
-  const upcomingRides = myRides.filter(r => r.ride_date >= todayStr)
-  const pastRides = myRides.filter(r => r.ride_date < todayStr)
+  const upcomingRides = myRides.filter(r => r.ride_date >= todayStr && r.status !== 'cancelled')
+  const pastRides = myRides.filter(r => r.ride_date < todayStr || r.status === 'cancelled')
   
-  const bookedRides = upcomingRides.filter(r => r.role === 'co-commuter' || r.role === 'rider')
-  const offeredRides = upcomingRides.filter(r => r.role === 'host' || r.role === 'driver')
+  const bookedRides = upcomingRides.filter(r => (r.role === 'co-commuter' || r.role === 'rider'))
+  const offeredRides = upcomingRides.filter(r => (r.role === 'host' || r.role === 'driver'))
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white pb-20 font-sans overflow-x-hidden relative">
@@ -440,11 +465,12 @@ export default function DashboardPage() {
                   
                   <div className="flex items-center justify-between mb-8">
                     <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
-                      req.status === 'accepted' ? 'bg-green-500/20 border-green-500/30 text-green-400'
+                      req.ride_status === 'cancelled' || req.status === 'cancelled' ? 'bg-red-500/20 border-red-500/30 text-red-400'
+                      : req.status === 'accepted' ? 'bg-green-500/20 border-green-500/30 text-green-400'
                       : req.status === 'rejected' ? 'bg-white/5 border-white/10 text-white/30'
                       : 'bg-amber-500/20 border-amber-500/30 text-amber-400'
                     }`}>
-                      {req.status === 'accepted' ? 'Authorized' : req.status === 'rejected' ? 'Denied' : 'In Progress'}
+                      {req.ride_status === 'cancelled' || req.status === 'cancelled' ? 'Cancelled' : req.status === 'accepted' ? 'Authorized' : req.status === 'rejected' ? 'Denied' : 'In Progress'}
                     </span>
                     <span className="font-mono text-white/20 text-[10px] font-black uppercase tracking-widest">Node #{req.ride_id}</span>
                   </div>
@@ -506,15 +532,15 @@ export default function DashboardPage() {
                   <Link href="/rides" className="px-10 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-blue-400 uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all">Explore Corridors</Link>
                 </div>
               ) : (
-                bookedRides.map(ride => (
-                  <Link key={ride.id} href={`/rides/${ride.id}`} className="block bg-white/[0.03] border border-white/10 rounded-[3rem] p-10 hover:bg-white/[0.06] transition-all relative overflow-hidden group">
+                 bookedRides.map(ride => (
+                  <div key={ride.id} className="block bg-white/[0.03] border border-white/10 rounded-[3rem] p-10 hover:bg-white/[0.06] transition-all relative overflow-hidden group">
                      <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform">
                         <Bookmark className="w-32 h-32 text-white" />
                      </div>
                      
                      <div className="flex justify-between items-start mb-8 relative z-10">
-                        <div>
-                           <h4 className="text-2xl font-black text-white italic uppercase tracking-tight mb-4">{ride.corridor_name}</h4>
+                        <Link href={`/rides/${ride.id}`}>
+                           <h4 className="text-2xl font-black text-white italic uppercase tracking-tight mb-4 hover:text-blue-400 transition-colors">{ride.corridor_name}</h4>
                            <div className="flex items-center gap-3 p-1 pr-4 bg-white/5 border border-white/10 rounded-full w-fit">
                               <div className="w-8 h-8 rounded-full border-2 border-blue-500/50 overflow-hidden bg-slate-900 shadow-lg">
                                  {ride.user_avatar_url ? (
@@ -528,15 +554,18 @@ export default function DashboardPage() {
                                  <p className="text-[10px] font-black text-white uppercase tracking-tighter">{ride.driver_name}</p>
                               </div>
                            </div>
-                        </div>
-                        <div className="px-4 py-1.5 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-full text-[9px] font-black uppercase tracking-widest">
-                           Confirmed
+                        </Link>
+                        <div className="flex flex-col items-end gap-2">
+                           <div className="px-4 py-1.5 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-full text-[9px] font-black uppercase tracking-widest">
+                              Confirmed
+                           </div>
+                           <div className="text-[10px] font-black text-white/40 uppercase tracking-widest">{fmtTime(ride.ride_time)}</div>
                         </div>
                      </div>
 
-                     <div className="flex items-center gap-6 relative z-10">
+                     <div className="flex items-center gap-6 relative z-10 mb-8">
                         <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg text-[10px] font-black uppercase tracking-widest text-white/60 border border-white/5">
-                           <Calendar className="w-3 h-3 text-blue-400" /> {ride.ride_date}
+                           <Calendar className="w-3 h-3 text-blue-400" /> {fmtDate(ride.ride_date)}
                         </div>
                         <div className={`flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg text-[10px] font-black uppercase tracking-widest border border-white/5 ${
                            (ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'text-green-400' : 'text-blue-400'
@@ -545,7 +574,32 @@ export default function DashboardPage() {
                            {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'To Home' : 'To Office'}
                         </div>
                      </div>
-                  </Link>
+
+                     {/* QUICK ACTIONS */}
+                     <div className="grid grid-cols-3 gap-3 relative z-10 pt-6 border-t border-white/5">
+                        <button 
+                          onClick={() => handleMarkAtSpot(ride.id)}
+                          className="flex flex-col items-center gap-2 p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-cyan-500/10 hover:border-cyan-500/30 transition-all group/btn"
+                        >
+                           <MapPin className="w-4 h-4 text-cyan-400 group-hover/btn:scale-110 transition-transform" />
+                           <span className="text-[8px] font-black uppercase tracking-widest">At Spot</span>
+                        </button>
+                        <button 
+                          onClick={() => handleMarkComplete(ride.id)}
+                          className="flex flex-col items-center gap-2 p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-green-500/10 hover:border-green-500/30 transition-all group/btn"
+                        >
+                           <CheckCircle2 className="w-4 h-4 text-green-400 group-hover/btn:scale-110 transition-transform" />
+                           <span className="text-[8px] font-black uppercase tracking-widest">Finish</span>
+                        </button>
+                        <button 
+                          onClick={() => handleMarkPayment(ride.id)}
+                          className="flex flex-col items-center gap-2 p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-purple-500/10 hover:border-purple-500/30 transition-all group/btn"
+                        >
+                           <Banknote className="w-4 h-4 text-purple-400 group-hover/btn:scale-110 transition-transform" />
+                           <span className="text-[8px] font-black uppercase tracking-widest">Payment</span>
+                        </button>
+                     </div>
+                  </div>
                 ))
               )}
             </div>
@@ -641,6 +695,21 @@ export default function DashboardPage() {
                       </div>
 
                       {/* ROW 5: Action */}
+                      <div className="grid grid-cols-2 gap-3 mb-4">
+                        <button 
+                          onClick={() => handleMarkAtSpot(ride.id)}
+                          className="flex items-center justify-center gap-2 py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-cyan-500/10 hover:border-cyan-500/30 transition-all text-[9px] font-black uppercase tracking-widest"
+                        >
+                          <MapPin className="w-3.5 h-3.5 text-cyan-400" /> At Pickup
+                        </button>
+                        <button 
+                          onClick={() => handleMarkComplete(ride.id)}
+                          className="flex items-center justify-center gap-2 py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-green-500/10 hover:border-green-500/30 transition-all text-[9px] font-black uppercase tracking-widest"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-400" /> Finish
+                        </button>
+                      </div>
+
                       {pendingCount > 0 ? (
                         <Link href={`/rides/${ride.id}`} className="block w-full py-4 bg-amber-500 text-black rounded-[1.5rem] text-center text-[10px] font-black uppercase tracking-[0.3em] hover:bg-amber-400 transition-all shadow-xl">
                           Process {pendingCount} Clearance{pendingCount > 1 ? 's' : ''}

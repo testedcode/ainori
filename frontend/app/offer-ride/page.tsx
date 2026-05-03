@@ -141,11 +141,13 @@ export default function OfferRidePage() {
       if (postRoundTrip) {
         const [h, m] = form.ride_time.split(':').map(Number)
         const returnTime = `${String((h + 10) % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+        const returnDir = direction === 'to_office' ? 'to_home' : 'to_office'
         await api.post('/rides', {
           ...payload,
           ride_time: returnTime,
           pickup_point: form.drop_point,
           drop_point: form.pickup_point,
+          direction: returnDir,
         })
       }
 
