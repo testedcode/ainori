@@ -457,6 +457,16 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
     }
   }
 
+  // Legacy Migration: Map rides with temporary 101-104 IDs back to 1-4
+  try {
+    await pool.query(`UPDATE rides SET corridor_id = 1 WHERE corridor_id = 101`)
+    await pool.query(`UPDATE rides SET corridor_id = 2 WHERE corridor_id = 102`)
+    await pool.query(`UPDATE rides SET corridor_id = 3 WHERE corridor_id = 103`)
+    await pool.query(`UPDATE rides SET corridor_id = 4 WHERE corridor_id = 104`)
+  } catch (migErr) {
+    console.warn('Legacy migration failed (probably already fixed):', migErr)
+  }
+
   let query = `
     SELECT r.id, r.user_id, u.name as user_name, u.approved as user_approved, u.avatar_url as user_avatar_url,
            r.corridor_id, c.name as corridor_name,
