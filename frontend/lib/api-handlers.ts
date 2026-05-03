@@ -490,17 +490,13 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
   if (date) {
     query += ` AND r.ride_date::date = $${i++}`
     args.push(date)
-  } else if (status !== 'all') {
-    // Default window: today -1 to +5 days to catch very recent or upcoming
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
-    query += ` AND r.ride_date::date >= $${i++} AND r.ride_date::date <= $${i++}`
-    args.push(yesterday, day5)
   }
   
   if (status && status !== 'all') {
     query += ` AND r.status = $${i++}`
     args.push(status)
-  } else if (!status || status === '') {
+  } else {
+    // Default: show all active/bookable/in-progress statuses
     query += ` AND r.status IN ('open', 'partially_filled', 'full', 'starting', 'at_pickup')`
   }
   

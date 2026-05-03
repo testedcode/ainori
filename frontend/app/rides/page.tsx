@@ -514,8 +514,8 @@ function RidesContent() {
         const diffMins = (now.getTime() - rideDate.getTime()) / 60000
         
         // Rules for "Live Only":
-        // 1. Hide if it happened > 12 hours ago (Relaxed from 30/60m to prevent confusion)
-        if (diffMins > 720) return false
+        // 1. Hide if it happened > 30 mins ago (Restoring original stable behavior)
+        if (diffMins > 30) return false
         
         // 2. Hide if it is > 24 hours in the future
         if (diffMins < -1440) return false
