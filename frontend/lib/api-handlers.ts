@@ -749,7 +749,7 @@ export async function handleCancelRide(pool: Pool, id: number, auth: Auth) {
 export async function handleGetUserRequests(pool: Pool, auth: Auth) {
   const r = await pool.query(
     `SELECT rr.id, rr.ride_id, rr.user_id, rr.seats_requested, rr.comment, rr.status,
-            r.ride_date, r.ride_time, r.pickup_point, r.drop_point, c.name as corridor_name
+            r.ride_date, r.ride_time, r.pickup_point, r.drop_point, r.direction, c.name as corridor_name
      FROM ride_requests rr
      JOIN rides r ON rr.ride_id = r.id
      JOIN corridors c ON r.corridor_id = c.id

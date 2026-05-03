@@ -380,6 +380,12 @@ export default function RideDetailPage() {
   const acceptedRequests = requests.filter(r => r.status === 'accepted')
   const totalAcceptedSeats = acceptedRequests.reduce((s, r) => s + r.seats_requested, 0)
 
+  // Only show rider completion controls within 36h of the ride's scheduled time
+  // (handles hosts who never mark ride complete in DB)
+  const rideDateTime = ride ? new Date(ride.ride_date.split('T')[0] + 'T' + ride.ride_time) : null
+  const hoursSinceRide = rideDateTime ? (Date.now() - rideDateTime.getTime()) / 3600000 : 0
+  const isWithinRiderWindow = hoursSinceRide < 36
+
   return (
     <div className={`min-h-screen font-sans pb-32 transition-all duration-1000 ${theme.bg}`}>
       <VibeCanvas vibe={vibe} />
@@ -655,7 +661,7 @@ export default function RideDetailPage() {
             )}
 
             {/* Rider Control: At Spot + Mark Complete */}
-            {!isOwner && isAccepted && ride.status !== 'completed' && (
+            {!isOwner && isAccepted && ride.status !== 'completed' && isWithinRiderWindow && (
               <div className="mt-8 space-y-3">
                 {!riderAtSpot ? (
                   <button

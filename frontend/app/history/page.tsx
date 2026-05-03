@@ -31,6 +31,12 @@ function fmtTime(raw: string) {
   // ISO datetime string
   return new Date(raw).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false })
 }
+function fmtFullDate(raw: string) {
+  if (!raw) return ''
+  const dStr = raw.includes('T') ? raw.split('T')[0] : raw
+  const d = new Date(dStr + 'T12:00:00')
+  return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })
+}
 
 interface RidePaymentInfo { id?: number; rider_status?: string; giver_status?: string }
 interface Rider { id: number; user_id: number; name: string; avatar_url: string; seats_requested: number; user_rating?: number }
@@ -284,10 +290,20 @@ function HistoryCard({
               {isOwner ? <Car className="w-3 h-3 text-amber-400" /> : <User className="w-3 h-3 text-blue-400" />}
               {isOwner ? 'Command Center' : `Joined · ${ride.user_name || 'Host'}`}
             </p>
+            {ride.direction && (
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest mt-1.5 border ${
+                ride.direction === 'to_home'
+                  ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                  : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+              }`}>
+                {ride.direction === 'to_home' ? '🏠 To Home' : '🏢 To Office'}
+              </span>
+            )}
           </div>
-          <div className="text-right">
+          <div className="text-right shrink-0 ml-3">
             <p className="text-xs font-black text-white leading-none">{fmtDate(ride.ride_date)}</p>
-            <p className="text-[10px] text-white/30 font-bold mt-1">{fmtTime(ride.ride_time)}</p>
+            <p className="text-[10px] font-black text-white/50 mt-0.5">{fmtFullDate(ride.ride_date)}</p>
+            <p className="text-sm font-black text-white mt-1 tracking-wide">{fmtTime(ride.ride_time)}</p>
           </div>
         </div>
 

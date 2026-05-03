@@ -199,6 +199,14 @@ export default function DashboardPage() {
   const currentHour = new Date().getHours()
   const isMorning = currentHour >= 5 && currentHour < 14
   
+  // IST-aware yesterday cutoff — only show access requests for rides from yesterday onwards
+  const istYesterday = new Date(Date.now() + 5.5 * 3600 * 1000 - 86400000).toISOString().slice(0, 10)
+  const relevantRequests = myRequests.filter(r => {
+    if (r.status !== 'pending' && r.status !== 'accepted') return false
+    const rideDate = (r.ride_date || '').split('T')[0]
+    return rideDate >= istYesterday
+  })
+  
   // Sort corridors based on time of day (Heuristic: To Office in morning, To Home in evening)
   const sortedCorridors = [...corridors].sort((a, b) => {
     const aToOffice = a.name.toLowerCase().includes('→ rcp') || a.location_to.toLowerCase() === 'rcp'
@@ -396,7 +404,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ─── EXECUTIVE ACCESS REQUESTS (PENDING) ────────────────────────── */}
-        {myRequests.filter(r => r.status === 'pending' || r.status === 'accepted').length > 0 && (
+        {relevantRequests.length > 0 && (
           <section className="mb-20">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
               <div className="flex items-center gap-4">
@@ -421,7 +429,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {myRequests.filter(r => r.status === 'pending' || r.status === 'accepted').slice(0, 6).map(req => (
+              {relevantRequests.slice(0, 6).map(req => (
 
                 <Link key={req.id} href={`/rides/${req.ride_id}`}
                   className={`group block border rounded-[2.5rem] p-8 hover:scale-[1.02] transition-all relative overflow-hidden ${
@@ -443,15 +451,24 @@ export default function DashboardPage() {
 
                   <h4 className="font-black text-white text-xl mb-2 italic uppercase">{req.corridor_name || 'Corridor Node'}</h4>
                   
-                  <div className="flex items-center gap-4 mt-3">
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
                     <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl">
                       <Calendar className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                      <span className="text-[13px] font-black text-white uppercase tracking-widest">{fmtDate(req.ride_date)}</span>
+                      <span className="text-[12px] font-black text-white uppercase tracking-widest">{fmtDate(req.ride_date)}</span>
                     </div>
                     <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl">
                       <Clock className="w-3.5 h-3.5 text-green-400 shrink-0" />
-                      <span className="text-[13px] font-black text-white tracking-wider">{fmtTime(req.ride_time)}</span>
+                      <span className="text-[12px] font-black text-white tracking-wider">{fmtTime(req.ride_time)}</span>
                     </div>
+                    {req.direction && (
+                      <span className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
+                        req.direction === 'to_home'
+                          ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                          : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                      }`}>
+                        {req.direction === 'to_home' ? '🏠 To Home' : '🏢 To Office'}
+                      </span>
+                    )}
                   </div>
 
                   {req.status === 'accepted' && (
