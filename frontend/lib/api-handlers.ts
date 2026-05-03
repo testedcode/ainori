@@ -115,7 +115,7 @@ export async function handleLogin(pool: Pool, body: unknown) {
     } catch (e: any) {
       console.warn('Login full select failed, trying base columns', e.message)
       r = await pool.query(
-        `SELECT id, email, password_hash, name, phone, city, role, carbon_credits, upi_id, approved, blocked, is_beta
+        `SELECT id, email, password_hash, name, phone, city, role, carbon_credits, upi_id, avatar_url, bio, qr_code_url, approved, blocked, is_beta
          FROM users WHERE email = $1`,
         [b.email]
       )
@@ -237,7 +237,7 @@ export async function handleUpdateProfile(pool: Pool, body: unknown, auth: Auth)
         }
         if (baseUpdates.length > 0) {
            baseArgs.push(auth.userId)
-           const baseQuery = `UPDATE users SET ${baseUpdates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${j} RETURNING id, email, name, phone, city, role, carbon_credits, upi_id, last_seen, created_at, updated_at`
+           const baseQuery = `UPDATE users SET ${baseUpdates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${j} RETURNING id, email, name, phone, city, carbon_credits, upi_id, last_seen, created_at, updated_at`
            const rb = await pool.query(baseQuery, baseArgs)
            if (rb.rows.length > 0) return jsonResponse({ ...rb.rows[0], avatar_url: null, bio: null, qr_code_url: null })
         }
@@ -961,9 +961,11 @@ export async function handleUpdateRideRequest(pool: Pool, rideId: number, reques
           process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BH03JOrkRvMsAsTc4Zq2mZeqIIZHyXZMt_bgpJVALjdVhygUKBA4G_zF1EvoJRFc-42ERcMSg8gtAU53EJueJjY',
           process.env.VAPID_PRIVATE_KEY || 'ivfqaqwh7zfslTcLm9lUY-umxZKiXYXDFF0BIap14eY'
         )
+        const rideData = await pool.query(`SELECT c.name FROM rides r JOIN corridors c ON r.corridor_id = c.id WHERE r.id = $1`, [rideId])
+        const corridorName = rideData.rows[0]?.name || 'your ride'
         const payload = JSON.stringify({
           title: 'Ride Authorized! 🚗',
-          body: `Your request for ${rideInfo.rows[0].corridor_id} has been accepted.`,
+          body: `Your request for ${corridorName} has been accepted.`,
           url: `/rides/${rideId}`
         })
         await webpush.sendNotification(JSON.parse(riderInfo.rows[0].push_subscription), payload)
