@@ -7,7 +7,7 @@ import {
   Car, Plus, Search, Settings, LogOut, User, Sparkles, 
   ChevronRight, Leaf, Clock, Banknote, ShieldCheck, 
   Calendar, MapPin, CheckCircle2, Timer, Bookmark, Users, Zap, AlertCircle,
-  Building2, Home, ArrowRight
+  Building2, Home, ArrowRight, Crown
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
