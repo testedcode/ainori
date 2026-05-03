@@ -597,15 +597,15 @@ export default function DashboardPage() {
                         </div>
                      </div>
 
-                     <div className="flex items-center gap-6 relative z-10 mb-10">
-                        <div className="flex items-center gap-3 px-5 py-2.5 bg-white/5 rounded-2xl text-sm font-black uppercase tracking-widest text-white/60 border border-white/10">
-                           <Calendar className="w-4 h-4 text-blue-400" /> {fmtDate(ride.ride_date)}
+                     <div className="flex flex-col md:flex-row md:items-center gap-4 relative z-10 mb-10">
+                        <div className="flex items-center gap-3 px-6 py-3 bg-white/5 rounded-2xl text-lg font-black uppercase tracking-widest text-white border border-white/10 shadow-xl">
+                           <Calendar className="w-5 h-5 text-blue-400" /> {fmtDate(ride.ride_date)}
                         </div>
-                        <div className={`flex items-center gap-3 px-5 py-2.5 bg-white/5 rounded-2xl text-sm font-black uppercase tracking-widest border border-white/10 ${
+                        <div className={`flex items-center gap-3 px-6 py-3 bg-white/5 rounded-2xl text-lg font-black uppercase tracking-widest border border-white/10 shadow-xl ${
                            (ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'text-green-400' : 'text-blue-400'
                         }`}>
-                           {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? <Home className="w-4 h-4" /> : <Building2 className="w-4 h-4" />}
-                           {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'To Home' : 'To Office'}
+                           {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? <Home className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
+                           {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'Return Home' : 'To Office'}
                         </div>
                      </div>
 
@@ -655,9 +655,9 @@ export default function DashboardPage() {
                   const isToHome = ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)
                   const pendingCount = ride.pending_requests?.length || 0
                   const confirmedRiders = ride.confirmed_riders || []
-                  const filledSeats = confirmedRiders.reduce((acc, curr) => acc + (curr.seats_requested || 1), 0)
-                  const totalSeats = ride.total_seats || 4
-                  const fillPct = Math.round((filledSeats / totalSeats) * 100)
+                  const riderOccupancy = confirmedRiders.reduce((acc, curr) => acc + (curr.seats_requested || 1), 0)
+                  const riderSlots = (ride.total_seats || 4) - 1
+                  const fillPct = riderSlots > 0 ? Math.round((riderOccupancy / riderSlots) * 100) : 0
                   return (
                     <div key={ride.id} className={`border rounded-[2.5rem] p-8 transition-all relative overflow-hidden group ${
                       pendingCount > 0
@@ -730,7 +730,7 @@ export default function DashboardPage() {
                                    : <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-green-400">{r.name?.[0]}</div>}
                                </div>
                              )))}
-                             {Array.from({ length: Math.max(0, totalSeats - filledSeats) }).map((_, i) => (
+                             {Array.from({ length: Math.max(0, riderSlots - riderOccupancy) }).map((_, i) => (
                                <div key={`empty-${i}`} className="w-10 h-10 rounded-xl border border-dashed border-white/10 bg-white/[0.02] flex items-center justify-center">
                                  <User className="w-4 h-4 text-white/5" />
                                </div>
@@ -738,12 +738,17 @@ export default function DashboardPage() {
                            </div>
                          </div>
                          <div className="ml-auto flex flex-col items-end">
-                           <div className="flex items-baseline gap-1">
-                              <span className="text-xl font-black text-white italic">{filledSeats}</span>
-                              <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">/ {totalSeats} FILLED</span>
+                           <div className="text-right">
+                             <p className="text-4xl font-black text-white italic tracking-tighter leading-none">
+                               {riderOccupancy}
+                               <span className="text-[10px] font-black text-white/20 uppercase tracking-widest not-italic ml-2">/ {riderSlots} {riderOccupancy === riderSlots ? 'FULL' : 'FILLED'}</span>
+                             </p>
                            </div>
-                           <div className="w-24 h-1.5 bg-white/10 rounded-full mt-1 overflow-hidden border border-white/5">
-                             <div className="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full transition-all duration-700" style={{ width: `${fillPct}%` }} />
+                           <div className="w-full min-w-[8rem] h-2 bg-white/5 rounded-full mt-2 overflow-hidden border border-white/5">
+                             <div 
+                               className="h-full bg-gradient-to-r from-amber-400 to-amber-300 rounded-full transition-all duration-1000"
+                               style={{ width: `${fillPct}%` }}
+                             />
                            </div>
                          </div>
                        </div>

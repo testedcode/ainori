@@ -70,7 +70,16 @@ export default function OfferRidePage() {
       api.get('/vehicles') as unknown as Promise<Vehicle[]>,
       api.get('/user/rides') as unknown as Promise<any[]>
     ]).then(([c, v, ur]) => {
-      if (Array.isArray(c) && c.length > 0) setCorridors(c)
+      if (Array.isArray(c)) {
+        // Merge with defaults to ensure Lakeshore etc. are never lost even if DB is inconsistent
+        const merged = [...CORRIDORS_DEFAULT]
+        c.forEach(apiC => {
+          if (!merged.find(m => String(m.id) === String(apiC.id) || m.name === apiC.name)) {
+            merged.push(apiC)
+          }
+        })
+        setCorridors(merged)
+      }
       
       if (!localStorage.getItem(DRAFT_KEY) && Array.isArray(ur) && ur.length > 0) {
         const lastRide = ur[0]

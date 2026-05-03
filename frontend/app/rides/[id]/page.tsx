@@ -557,14 +557,14 @@ export default function RideDetailPage() {
                 {/* Seat progress bar */}
                 <div className="w-full md:w-40">
                   <div className="flex justify-between mb-1">
-                    <span className="text-[9px] text-white/30 uppercase font-black">Seats</span>
-                    <span className="text-[9px] font-black text-white">{ride.available_seats} / {ride.total_seats} free</span>
+                    <span className="text-[9px] text-white/30 uppercase font-black">Rider Occupancy</span>
+                    <span className="text-[9px] font-black text-white">{(ride.total_seats - 1) - ride.available_seats} / {ride.total_seats - 1} filled</span>
                   </div>
                   <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
-                        width: `${((ride.total_seats - ride.available_seats) / ride.total_seats) * 100}%`,
+                        width: `${(((ride.total_seats - 1) - ride.available_seats) / (ride.total_seats - 1)) * 100}%`,
                         background: ride.available_seats === 0 ? '#ef4444' : ride.available_seats <= 1 ? '#f59e0b' : '#22c55e'
                       }}
                     />

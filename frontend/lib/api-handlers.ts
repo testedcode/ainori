@@ -641,14 +641,14 @@ export async function handleCreateRide(pool: Pool, body: unknown, auth: Auth) {
 
   // 2) Vehicle Handling: Auto-assign or auto-create if missing
   let actualVehicleId = b.vehicle_id
-  let totalSeats = 4
+  let totalVehicleCapacity = 4
 
   if (!actualVehicleId || isNaN(actualVehicleId)) {
     // Try to find any existing vehicle for this user
     const existingVeh = await pool.query(`SELECT id, total_seats FROM vehicles WHERE user_id = $1 LIMIT 1`, [auth.userId])
     if (existingVeh.rows.length > 0) {
       actualVehicleId = existingVeh.rows[0].id
-      totalSeats = existingVeh.rows[0].total_seats
+      totalVehicleCapacity = existingVeh.rows[0].total_seats
     } else {
       // Auto-create a demo vehicle for the user
       const autoVeh = await pool.query(
@@ -657,24 +657,27 @@ export async function handleCreateRide(pool: Pool, body: unknown, auth: Auth) {
         [auth.userId, `JOOL-${auth.userId}-${Math.floor(Math.random() * 1000)}`]
       )
       actualVehicleId = autoVeh.rows[0].id
-      totalSeats = 4
+      totalVehicleCapacity = 4
     }
   } else {
     // Verify provided vehicle
     const v = await pool.query(`SELECT total_seats FROM vehicles WHERE id = $1 AND user_id = $2`, [actualVehicleId, auth.userId])
     if (v.rows.length > 0) {
-      totalSeats = v.rows[0].total_seats
+      totalVehicleCapacity = v.rows[0].total_seats
     } else {
       // Fallback if vehicle_id sent but not found
       const fallbackVeh = await pool.query(`SELECT id, total_seats FROM vehicles WHERE user_id = $1 LIMIT 1`, [auth.userId])
       if (fallbackVeh.rows.length > 0) {
         actualVehicleId = fallbackVeh.rows[0].id
-        totalSeats = fallbackVeh.rows[0].total_seats
+        totalVehicleCapacity = fallbackVeh.rows[0].total_seats
       }
     }
   }
 
-  if (b.available_seats > totalSeats) return errResponse(`Available seats (${b.available_seats}) cannot exceed vehicle capacity (${totalSeats})`, 400)
+  // Seat Count Logic: total_seats for the RIDE = available_seats + 1 (host)
+  const tripTotalSeats = (b.available_seats || 0) + 1
+
+  if (tripTotalSeats > totalVehicleCapacity) return errResponse(`Total trip occupancy (${tripTotalSeats}) cannot exceed vehicle capacity (${totalVehicleCapacity})`, 400)
 
   // 3) Corridor Verification
   let actualCorridorId = b.corridor_id
@@ -710,7 +713,7 @@ export async function handleCreateRide(pool: Pool, body: unknown, auth: Auth) {
   const r = await pool.query(
     `INSERT INTO rides (user_id, corridor_id, vehicle_id, ride_date, ride_time, pickup_point, drop_point, route_description, price_per_seat, available_seats, total_seats, status, direction)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'open', $12) RETURNING id`,
-    [auth.userId, actualCorridorId, actualVehicleId, b.ride_date, b.ride_time, b.pickup_point, b.drop_point, b.route_description || null, b.price_per_seat, b.available_seats, totalSeats, direction]
+    [auth.userId, actualCorridorId, actualVehicleId, b.ride_date, b.ride_time, b.pickup_point, b.drop_point, b.route_description || null, b.price_per_seat, b.available_seats, tripTotalSeats, direction]
   )
   return jsonResponse({ id: r.rows[0].id, message: 'Ride published successfully' }, 201)
 }
