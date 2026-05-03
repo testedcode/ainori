@@ -264,10 +264,10 @@ export async function handleUpdateCityStatus(pool: Pool, id: number, body: unkno
 }
 
 const EMERGENCY_CORRIDORS = [
-  { id: 101, name: 'Casa Rio TO RCP', location_from: 'Casa Rio Palava', location_to: 'RCP Reliance Corporate Park' },
-  { id: 102, name: 'Casa Bella To RCP', location_from: 'Casa Bella Palava', location_to: 'RCP Reliance Corporate Park' },
-  { id: 103, name: 'Kharghar To RCP', location_from: 'Kharghar', location_to: 'RCP' },
-  { id: 104, name: 'Any Country', location_from: 'Any City', location_to: 'Any Place' }
+  { id: 1, name: 'Casa Rio TO RCP', location_from: 'Casa Rio Palava', location_to: 'RCP Reliance Corporate Park' },
+  { id: 2, name: 'Casa Bella To RCP', location_from: 'Casa Bella Palava', location_to: 'RCP Reliance Corporate Park' },
+  { id: 3, name: 'Kharghar To RCP', location_from: 'Kharghar', location_to: 'RCP' },
+  { id: 4, name: 'Any Country', location_from: 'Any City', location_to: 'Any Place' }
 ]
 
 export async function handleGetCorridors(pool: Pool, searchParams: URLSearchParams) {
@@ -462,12 +462,12 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
     args.push(corridorId)
   }
   if (date) {
-    query += ` AND r.ride_date = $${i++}`
+    query += ` AND r.ride_date::date = $${i++}`
     args.push(date)
   } else if (status !== 'all') {
     // Default window: today -1 to +5 days to catch very recent or upcoming
     const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
-    query += ` AND r.ride_date >= $${i++} AND r.ride_date <= $${i++}`
+    query += ` AND r.ride_date::date >= $${i++} AND r.ride_date::date <= $${i++}`
     args.push(yesterday, day5)
   }
   
@@ -475,7 +475,7 @@ export async function handleGetRides(pool: Pool, searchParams: URLSearchParams) 
     query += ` AND r.status = $${i++}`
     args.push(status)
   } else if (!status || status === '') {
-    query += ` AND r.status IN ('open', 'partially_filled', 'full')`
+    query += ` AND r.status IN ('open', 'partially_filled', 'full', 'starting', 'at_pickup')`
   }
   
   if (userId) {

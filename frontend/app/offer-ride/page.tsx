@@ -18,10 +18,10 @@ interface Corridor { id: number; name: string; location_from: string; location_t
 interface Vehicle { id: number; make: string; model: string; vehicle_number: string; total_seats: number; vehicle_type: string; color?: string }
 
 const CORRIDORS_DEFAULT: Corridor[] = [
-  { id: 101, name: 'Casa Rio TO RCP', location_from: 'Casa Rio Palava', location_to: 'RCP Reliance Corporate Park' },
-  { id: 102, name: 'Casa Bella To RCP', location_from: 'Casa Bella Palava', location_to: 'RCP Reliance Corporate Park' },
-  { id: 103, name: 'Kharghar To RCP', location_from: 'Kharghar', location_to: 'RCP' },
-  { id: 104, name: 'Any Country', location_from: 'Any City', location_to: 'Any Place' },
+  { id: 1, name: 'Casa Rio TO RCP', location_from: 'Casa Rio Palava', location_to: 'RCP Reliance Corporate Park' },
+  { id: 2, name: 'Casa Bella To RCP', location_from: 'Casa Bella Palava', location_to: 'RCP Reliance Corporate Park' },
+  { id: 3, name: 'Kharghar To RCP', location_from: 'Kharghar', location_to: 'RCP' },
+  { id: 4, name: 'Any Country', location_from: 'Any City', location_to: 'Any Place' },
 ]
 
 const DRAFT_KEY = 'jool_ride_draft'

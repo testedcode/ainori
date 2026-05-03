@@ -224,12 +224,24 @@ function CardView({
                </div>
             </div>
 
-            <div className="flex flex-col items-end gap-2 shrink-0">
-               {isOwnRide && (
-                  <div className="px-3 py-1 bg-amber-400 text-black rounded-lg text-[8px] font-black uppercase tracking-widest shadow-xl">
-                     YOUR FLEET
-                  </div>
-               )}
+             <div className="flex flex-col items-end gap-2 shrink-0">
+                <div className="flex items-center gap-2 mb-1">
+                   {ride.status === 'starting' && (
+                      <span className="px-3 py-1 bg-cyan-500 text-white rounded-lg text-[8px] font-black uppercase tracking-widest animate-pulse shadow-lg shadow-cyan-500/20">
+                         Starting...
+                      </span>
+                   )}
+                   {ride.status === 'at_pickup' && (
+                      <span className="px-3 py-1 bg-green-500 text-white rounded-lg text-[8px] font-black uppercase tracking-widest animate-bounce shadow-lg shadow-green-500/20">
+                         At Spot
+                      </span>
+                   )}
+                </div>
+                {isOwnRide && (
+                   <div className="px-3 py-1 bg-amber-400 text-black rounded-lg text-[8px] font-black uppercase tracking-widest shadow-xl">
+                      YOUR FLEET
+                   </div>
+                )}
                {ride.user_approved && !isOwnRide && (
                   <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-600/20 border border-blue-500/30 rounded-lg shadow-lg">
                      <Crown className="w-3 h-3 text-blue-400" />
@@ -480,7 +492,7 @@ function RidesContent() {
 
   const filtered = rides.filter(r => {
     if (!showFilled && r.available_seats === 0) return false
-    if (r.status !== 'open' && r.status !== 'starting') return false // Allow open and starting rides
+    if (r.status !== 'open' && r.status !== 'starting' && r.status !== 'at_pickup') return false // Allow active but not yet finished rides
     if (filter.corridor !== 'all' && r.corridor_id !== parseInt(filter.corridor)) return false
     
     const h = parseInt(r.ride_time.split(':')[0])
@@ -687,7 +699,8 @@ function RidesContent() {
                   {Object.entries(VIBE_CONFIG).map(([id, v]) => {
                      const active = filter.vibeTag === id
                      const h = new Date().getHours() // Re-fetch current hour for visibility check
-                     const isVisible = id === 'all' || 
+                     const isTodayNode = filter.date === new Date().toISOString().split('T')[0]
+                     const isVisible = id === 'all' || !isTodayNode || 
                                       (h < 14 && ['6-7','7-8','8-9','9-10','10-11','12-24'].includes(id)) ||
                                       (h >= 12 && ['16-18','18-20','20-22','22-24'].includes(id))
                      
