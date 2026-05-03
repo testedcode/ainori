@@ -294,8 +294,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   if (pathStr === 'support/ticket') return h.handleCreateTicket(pool, body)
   if (pathStr === 'support/feedback') return h.handleCreateFeedback(pool, body)
-  if (pathStr === 'auth/push-subscription') return h.handleSavePushSubscription(pool, body, (await requireAuth(request)).auth!)
-  if (pathStr === 'auth/push-test') return h.handlePushTest(pool, (await requireAuth(request)).auth!)
 
   const r = await requireAuth(request)
   if ('error' in r) {
@@ -303,6 +301,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return r.error
   }
   const { auth } = r
+
+  if (pathStr === 'auth/push-subscription') return h.handleSavePushSubscription(pool, body, auth)
+  if (pathStr === 'auth/push-test') return h.handlePushTest(pool, auth)
 
   if (pathStr === 'vehicles') return h.handleCreateVehicle(pool, body, auth)
   if (pathStr === 'rides') {
