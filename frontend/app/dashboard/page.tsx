@@ -12,6 +12,7 @@ import {
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
 import JoolNav from '../components/JoolNav'
+import NotificationManager from '../components/NotificationManager'
 
 const fmtTime = (raw: string) => raw ? raw.slice(0, 5) : '--:--'
 const fmtDate = (raw: string) => {
@@ -258,6 +259,8 @@ export default function DashboardPage() {
 
       <main className="max-w-7xl mx-auto px-6 md:px-12 mt-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
         
+        <NotificationManager />
+
         {/* ─── DYNAMIC AUTHORIZATION HERO ────────────────────────────────────────── */}
         {user?.approved ? (
           <section className="relative mb-20 overflow-hidden animate-in fade-in zoom-in-95 duration-1000">

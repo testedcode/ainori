@@ -1364,6 +1364,7 @@ export async function handleFixSchema(pool: Pool) {
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS approved BOOLEAN DEFAULT false`)
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS blocked BOOLEAN DEFAULT false`)
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_beta BOOLEAN DEFAULT false`)
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS push_subscription TEXT`)
     return jsonResponse({ message: 'Database schema synchronized successfully.' })
   } catch (e: any) {
     return errResponse('Schema sync failed: ' + e.message, 500)
