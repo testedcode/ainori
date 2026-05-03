@@ -216,6 +216,7 @@ function HistoryCard({
   const [marking, setMarking] = useState<number | null>(null)
   const [payments, setPayments] = useState<any[]>([])
   const [loadingPayments, setLoadingPayments] = useState(false)
+  const [localRiderPaid, setLocalRiderPaid] = useState(false)  // optimistic state for rider
 
   const isOwner = ride.role === 'host'
 
@@ -229,7 +230,7 @@ function HistoryCard({
   }, [ride.id, isOwner])
 
   const myPayment = isOwner ? null : ride.payment_info
-  const riderPaid = myPayment?.rider_status === 'done'
+  const riderPaid = localRiderPaid || myPayment?.rider_status === 'done'
   const giverReceived = myPayment?.giver_status === 'received'
   const isPending = isOwner 
     ? payments.some(p => p.giver_status !== 'received')
@@ -244,6 +245,9 @@ function HistoryCard({
       
       if (isOwner) {
         setPayments(prev => prev.map(p => p.rider_id === riderId ? { ...p, ...payload } : p))
+      } else {
+        // Rider marking payment done — update optimistic local state
+        setLocalRiderPaid(true)
       }
       
       toast.success(asGiver ? `✅ Received from ${riderName || 'rider'}!` : '✅ Payment marked done!')
@@ -366,21 +370,23 @@ function HistoryCard({
               <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">Payment Status</p>
               <div className="flex items-center gap-2">
                  <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${giverReceived ? 'bg-green-500/20 text-green-400' : riderPaid ? 'bg-amber-400/20 text-amber-400' : 'bg-white/10 text-white/40'}`}>
-                   {giverReceived ? 'SETTLED ✓' : riderPaid ? 'SENT' : 'UNPAID'}
+                   {giverReceived ? 'SETTLED ✓' : riderPaid ? 'SENT ✓' : 'UNPAID'}
                  </span>
               </div>
             </div>
-            {!giverReceived && (
+            {!riderPaid && !giverReceived ? (
               <button
                 onClick={e => doMark(e, Number(currentUserId), false)}
-                disabled={riderPaid || marking !== null}
-                className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                  riderPaid ? 'bg-white/5 text-white/20' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_10px_30px_rgba(37,99,235,0.3)]'
-                }`}
+                disabled={marking !== null}
+                className="px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all bg-blue-600 hover:bg-blue-500 text-white shadow-[0_10px_30px_rgba(37,99,235,0.3)]"
               >
-                {marking === currentUserId ? <Loader2 className="w-3 h-3 animate-spin" /> : riderPaid ? 'Pending Host' : 'I have paid'}
+                {marking === currentUserId ? <Loader2 className="w-3 h-3 animate-spin" /> : 'I have paid'}
               </button>
-            )}
+            ) : riderPaid && !giverReceived ? (
+              <span className="px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-white/5 text-white/30 border border-white/10">
+                Pending Host
+              </span>
+            ) : null}
           </div>
         )}
 

@@ -443,9 +443,15 @@ export default function DashboardPage() {
 
                   <h4 className="font-black text-white text-xl mb-2 italic uppercase">{req.corridor_name || 'Corridor Node'}</h4>
                   
-                  <div className="flex items-center gap-6 text-[10px] text-white/40 font-black uppercase tracking-widest">
-                    <span className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5" />{req.ride_date}</span>
-                    <span className="flex items-center gap-2"><Clock className="w-3.5 h-3.5" />{req.ride_time}</span>
+                  <div className="flex items-center gap-4 mt-3">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl">
+                      <Calendar className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                      <span className="text-[13px] font-black text-white uppercase tracking-widest">{fmtDate(req.ride_date)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl">
+                      <Clock className="w-3.5 h-3.5 text-green-400 shrink-0" />
+                      <span className="text-[13px] font-black text-white tracking-wider">{fmtTime(req.ride_time)}</span>
+                    </div>
                   </div>
 
                   {req.status === 'accepted' && (

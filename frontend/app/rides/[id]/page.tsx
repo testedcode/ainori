@@ -205,6 +205,24 @@ export default function RideDetailPage() {
     return () => clearInterval(interval)
   }, [rideId])
 
+  // Restore riderAtSpot from chat messages (persisted via chat)
+  useEffect(() => {
+    if (!user || !messages.length) return
+    const myUserId = Number(user?.id || user?.userId)
+    const atSpotMsg = messages.find(
+      (m: any) => Number(m.user_id) === myUserId && m.message.includes('at the pickup spot')
+    )
+    if (atSpotMsg) setRiderAtSpot(true)
+  }, [messages, user])
+
+  // Restore riderMarkedComplete from payment status (persisted via payments DB)
+  useEffect(() => {
+    if (!user || !ridePayments.length) return
+    const myUserId = Number(user?.id || user?.userId)
+    const myPay = ridePayments.find((p: any) => Number(p.rider_id) === myUserId)
+    if (myPay?.rider_status === 'done') setRiderMarkedComplete(true)
+  }, [ridePayments, user])
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages.length])
@@ -658,11 +676,14 @@ export default function RideDetailPage() {
                   </div>
                 )}
 
-                {(riderAtSpot || ride.status === 'at_pickup' || ride.status === 'starting') && !riderMarkedComplete && (
+                {!riderMarkedComplete && (
                   <button
                     onClick={() => {
                       if (confirm('Mark this ride as completed from your side?')) {
                         api.post(`/rides/${rideId}/messages`, { message: "✅ I've reached my destination. Trip done!" })
+                        // Also persist completion state via payment mark (rider_status = 'done')
+                        const myUserId = Number(user?.id || user?.userId)
+                        handleMarkPayment(myUserId, false)
                         setRiderMarkedComplete(true)
                         toast.success('Ride marked complete on your end!', { icon: '🏁' })
                       }
@@ -677,7 +698,7 @@ export default function RideDetailPage() {
                 {riderMarkedComplete && (
                   <div className="flex items-center gap-2 px-4 py-3 bg-green-500/10 border border-green-500/20 rounded-2xl">
                     <CheckCircle2 className="w-4 h-4 text-green-400" />
-                    <span className="text-[11px] font-black text-green-400 uppercase tracking-widest">You've marked this ride complete</span>
+                    <span className="text-[11px] font-black text-green-400 uppercase tracking-widest">You've marked this ride complete ✓</span>
                   </div>
                 )}
               </div>
