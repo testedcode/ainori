@@ -11,8 +11,8 @@ export default function Dashboard() {
     const fetchData = async () => {
       try {
         const [ridesRes, requestsRes] = await Promise.all([
-          api.get('/user/rides'),
-          api.get('/user/requests')
+          api.get('/user/rides') as Promise<any>,
+          api.get('/user/requests') as Promise<any>
         ]);
         setRides(ridesRes || []);
         setRequests(requestsRes || []);

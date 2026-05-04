@@ -8,7 +8,7 @@ export default function BookResults() {
 
   useEffect(() => {
     // In a real flow, we'd read search params from URL. For this simple app, we just load all open rides.
-    api.get('/rides').then(res => {
+    (api.get('/rides') as Promise<any>).then(res => {
       setRides(res?.rides || res || []);
       setLoading(false);
     }).catch(err => {
