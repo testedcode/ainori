@@ -1,4 +1,30 @@
+"use client";
+import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
+
 export default function Dashboard() {
+  const [rides, setRides] = useState<any[]>([]);
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [ridesRes, requestsRes] = await Promise.all([
+          api.get('/user/rides'),
+          api.get('/user/requests')
+        ]);
+        setRides(ridesRes || []);
+        setRequests(requestsRes || []);
+      } catch (e) {
+        console.error("Failed to fetch dashboard data", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   return (
     <div className="screen active">
       <div className="layout">
@@ -18,27 +44,56 @@ export default function Dashboard() {
             <div className="metric-row">
               <div className="metric"><strong>$38</strong><span>saved this month</span></div>
               <div className="metric"><strong>21.4 kg</strong><span>CO2 avoided</span></div>
-              <div className="metric"><strong>18</strong><span>shared trips</span></div>
+              <div className="metric"><strong>{rides.length + requests.length}</strong><span>shared trips</span></div>
             </div>
           </div>
-          <div className="two-col">
-            <div className="panel">
-              <h3>Upcoming booking</h3>
-              <article className="ride-card mt-16">
-                <div className="ride-top"><div className="driver"><span className="avatar green">AS</span><div><h4>Monday morning</h4><span>Aarav - Downtown to North</span></div></div><div className="price"><strong>8:22</strong><span>AM</span></div></div>
-                <div className="tag-row"><span className="tag green">Confirmed</span><span className="tag">Rear left</span><span className="tag">Track live</span></div>
-                <a href="/book/success" className="primary-btn mt-12" style={{width: '100%', display: 'inline-flex', textAlign: 'center'}}>Open ticket</a>
-              </article>
+          
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px' }}>Loading your trips...</div>
+          ) : (
+            <div className="two-col">
+              <div className="panel">
+                <h3>Upcoming bookings ({requests.length})</h3>
+                {requests.length === 0 ? (
+                  <p className="mt-16 muted">You haven't booked any upcoming rides.</p>
+                ) : (
+                  requests.map((req: any, i: number) => (
+                    <article className="ride-card mt-16" key={i}>
+                      <div className="ride-top">
+                        <div className="driver">
+                          <span className="avatar green">{req.host_name?.charAt(0) || 'H'}</span>
+                          <div><h4>{req.ride_date}</h4><span>{req.pickup_point} to {req.drop_point}</span></div>
+                        </div>
+                        <div className="price"><strong>{req.ride_time}</strong></div>
+                      </div>
+                      <div className="tag-row"><span className={`tag ${req.status === 'approved' ? 'green' : ''}`}>{req.status}</span></div>
+                      <a href="/book/success" className="primary-btn mt-12" style={{width: '100%', display: 'inline-flex', textAlign: 'center'}}>Open ticket</a>
+                    </article>
+                  ))
+                )}
+              </div>
+              <div className="panel">
+                <h3>Your shared routes ({rides.length})</h3>
+                {rides.length === 0 ? (
+                  <p className="mt-16 muted">You haven't shared any routes yet.</p>
+                ) : (
+                  rides.map((ride: any, i: number) => (
+                    <article className="ride-card mt-16" key={i}>
+                      <div className="ride-top">
+                        <div className="driver">
+                          <span className="avatar">YOU</span>
+                          <div><h4>{ride.ride_date}</h4><span>{ride.pickup_point} to {ride.drop_point} - {ride.available_seats} seats open</span></div>
+                        </div>
+                        <div className="price"><strong>{ride.ride_time}</strong></div>
+                      </div>
+                      <div className="tag-row"><span className="tag green">Active</span></div>
+                      <a href="/share/published" className="secondary-btn mt-12" style={{width: '100%', display: 'inline-flex', textAlign: 'center'}}>Manage listing</a>
+                    </article>
+                  ))
+                )}
+              </div>
             </div>
-            <div className="panel">
-              <h3>Your shared route</h3>
-              <article className="ride-card mt-16">
-                <div className="ride-top"><div className="driver"><span className="avatar">YOU</span><div><h4>Evening return</h4><span>North to Downtown - 2 seats open</span></div></div><div className="price"><strong>6:35</strong><span>PM</span></div></div>
-                <div className="tag-row"><span className="tag gold">2 requests</span><span className="tag green">Verified riders</span></div>
-                <a href="/share/published" className="secondary-btn mt-12" style={{width: '100%', display: 'inline-flex', textAlign: 'center'}}>Manage listing</a>
-              </article>
-            </div>
-          </div>
+          )}
         </section>
       </div>
     </div>
