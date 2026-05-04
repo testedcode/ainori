@@ -1,0 +1,1299 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CommuteShare - Clickable Ride Share UI Prototype</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-2: #eef4ff;
+      --ink: #102033;
+      --muted: #637083;
+      --muted-2: #8b96a8;
+      --line: #dce4ef;
+      --primary: #185cff;
+      --primary-2: #0ed6a8;
+      --accent: #ffb037;
+      --danger: #ff5470;
+      --good: #16b77a;
+      --shadow: 0 24px 70px rgba(15, 35, 70, 0.13);
+      --soft-shadow: 0 14px 40px rgba(15, 35, 70, 0.09);
+      --radius-xl: 32px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-sm: 12px;
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background:
+        radial-gradient(circle at top left, rgba(14, 214, 168, 0.22), transparent 28rem),
+        radial-gradient(circle at top right, rgba(24, 92, 255, 0.20), transparent 30rem),
+        linear-gradient(180deg, #fbfdff 0%, var(--bg) 46%, #eef3fa 100%);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .page-shell { max-width: 1440px; margin: 0 auto; padding: 22px; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      background: rgba(255,255,255,0.78);
+      border: 1px solid rgba(220,228,239,0.9);
+      backdrop-filter: blur(16px);
+      padding: 12px 14px 12px 18px;
+      border-radius: 28px;
+      position: sticky;
+      top: 14px;
+      z-index: 20;
+      box-shadow: 0 10px 35px rgba(16, 32, 51, 0.08);
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 900; letter-spacing: -0.04em; }
+    .brand-mark {
+      width: 42px; height: 42px; border-radius: 16px;
+      display: grid; place-items: center;
+      color: white; font-weight: 950;
+      background: linear-gradient(135deg, var(--primary), #0938b8 48%, var(--primary-2));
+      box-shadow: 0 12px 25px rgba(24, 92, 255, 0.30);
+    }
+    .brand small { display:block; font-size: 12px; color: var(--muted); letter-spacing: 0; font-weight: 700; margin-top: 1px; }
+
+    .nav { display:flex; align-items:center; gap: 6px; flex-wrap: wrap; justify-content: center; }
+    .nav button, .segmented button, .ghost-btn, .chip-btn {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 800;
+      transition: 180ms ease;
+    }
+    .nav button:hover, .ghost-btn:hover, .chip-btn:hover { background: #edf3ff; color: var(--ink); }
+    .nav button.active, .segmented button.active, .chip-btn.active {
+      background: #102033;
+      color: white;
+      box-shadow: 0 10px 20px rgba(16, 32, 51, 0.16);
+    }
+
+    .top-actions { display:flex; align-items:center; gap: 10px; }
+    .segmented { display:flex; align-items:center; gap: 4px; padding: 4px; border-radius: 999px; background: #edf3ff; border: 1px solid #dfe8f4; }
+    .segmented button { padding: 9px 13px; }
+    .primary-btn, .secondary-btn, .dark-btn, .light-btn, .danger-btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 13px 18px;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      white-space: nowrap;
+    }
+    .primary-btn { color: white; background: linear-gradient(135deg, var(--primary), #0f48db); box-shadow: 0 16px 30px rgba(24, 92, 255, 0.28); }
+    .secondary-btn { color: #072d27; background: linear-gradient(135deg, var(--primary-2), #8bf3d5); box-shadow: 0 16px 30px rgba(14, 214, 168, 0.24); }
+    .dark-btn { color: white; background: #102033; box-shadow: 0 14px 28px rgba(16, 32, 51, 0.18); }
+    .light-btn { color: var(--ink); background: #eef4ff; border: 1px solid #dbe5f4; }
+    .danger-btn { color:white; background: var(--danger); }
+    .primary-btn:hover, .secondary-btn:hover, .dark-btn:hover, .light-btn:hover { transform: translateY(-1px); }
+
+    .view { display:none; }
+    .view.active { display:block; }
+    .screen { display:none; animation: rise 250ms ease both; }
+    .screen.active { display:block; }
+    @keyframes rise { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
+
+    .hero {
+      display:grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(420px, 0.95fr);
+      gap: 28px;
+      padding: 34px 0 24px;
+      align-items: stretch;
+    }
+    .hero-card, .panel, .floating-panel {
+      background: rgba(255,255,255,0.84);
+      border: 1px solid rgba(220,228,239,0.92);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+    .hero-card { padding: 46px; position: relative; overflow: hidden; }
+    .hero-card:after {
+      content:""; position:absolute; width: 370px; height: 370px; right:-140px; top:-140px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(14,214,168,0.28), transparent 68%);
+      pointer-events:none;
+    }
+    .eyebrow { display:inline-flex; align-items:center; gap: 8px; color:#053b35; background:#dffbf3; border:1px solid #bef4e6; border-radius:999px; padding:8px 12px; font-weight:900; font-size: 13px; }
+    .dot { width:8px; height:8px; border-radius:50%; background: var(--primary-2); box-shadow: 0 0 0 5px rgba(14,214,168,0.22); }
+    h1 { font-size: clamp(44px, 6.2vw, 86px); line-height: 0.91; letter-spacing: -0.08em; margin: 22px 0 18px; max-width: 860px; }
+    h2 { font-size: clamp(30px, 3.3vw, 52px); line-height: 1; letter-spacing: -0.06em; margin: 0; }
+    h3 { font-size: 24px; letter-spacing:-0.04em; margin: 0; }
+    p { color: var(--muted); line-height: 1.6; }
+    .lead { font-size: 19px; max-width: 700px; margin-bottom: 26px; }
+    .hero-actions { display:flex; gap: 12px; flex-wrap: wrap; align-items:center; }
+    .metric-row { display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 32px; }
+    .metric { padding: 16px; border-radius: 20px; background: linear-gradient(180deg,#ffffff,#f3f7ff); border:1px solid #dce5f2; }
+    .metric strong { display:block; font-size: 26px; letter-spacing:-0.04em; }
+    .metric span { color: var(--muted); font-size: 13px; font-weight: 750; }
+
+    .route-preview { padding: 22px; min-height: 640px; position:relative; overflow:hidden; }
+    .mock-map {
+      min-height: 590px;
+      border-radius: 26px;
+      background:
+        linear-gradient(115deg, transparent 48%, rgba(24,92,255,0.09) 48% 52%, transparent 52%),
+        linear-gradient(35deg, transparent 34%, rgba(14,214,168,0.11) 34% 38%, transparent 38%),
+        repeating-linear-gradient(90deg, #edf4fb 0 56px, #f8fbff 56px 112px),
+        repeating-linear-gradient(0deg, rgba(16,32,51,0.04) 0 1px, transparent 1px 56px);
+      border:1px solid #dce5ef;
+      position:relative;
+      overflow:hidden;
+    }
+    .road {
+      position:absolute;
+      height: 12px;
+      border-radius: 99px;
+      background: rgba(16,32,51,0.09);
+      transform-origin:left center;
+    }
+    .road.r1 { width: 78%; left: 9%; top: 24%; transform: rotate(18deg); }
+    .road.r2 { width: 72%; left: 7%; top: 66%; transform: rotate(-14deg); }
+    .road.r3 { width: 50%; left: 25%; top: 47%; transform: rotate(65deg); }
+    .route-line {
+      position:absolute; width: 66%; height: 11px; left: 16%; top: 47%; border-radius: 999px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-2));
+      transform: rotate(-22deg);
+      box-shadow: 0 0 0 8px rgba(24,92,255,0.08), 0 12px 25px rgba(24,92,255,0.25);
+    }
+    .map-pin, .car-pin {
+      position:absolute; display:grid; place-items:center; font-weight:950;
+      box-shadow: 0 14px 25px rgba(16,32,51,0.18);
+    }
+    .map-pin { width: 42px; height: 42px; color:white; border-radius: 15px; background:#102033; }
+    .map-pin.start { left: 14%; top: 53%; }
+    .map-pin.end { right: 13%; top: 28%; background: var(--primary); }
+    .car-pin { width: 54px; height: 54px; border-radius: 20px; background:white; border:1px solid #dae4ef; color:var(--primary); }
+    .car-pin.c1 { left: 47%; top: 41%; }
+    .car-pin.c2 { left: 59%; top: 34%; }
+    .car-pin.c3 { left: 33%; top: 49%; }
+    .map-label { position:absolute; font-weight:900; padding:8px 12px; border-radius:999px; background:rgba(255,255,255,0.86); color:var(--ink); border:1px solid #dfe7f2; box-shadow: var(--soft-shadow); }
+    .map-label.l1 { left: 11%; top: 61%; }
+    .map-label.l2 { right: 9%; top: 20%; }
+    .floating-panel { position:absolute; padding: 16px; border-radius: 24px; z-index:3; }
+    .float-search { left: 44px; top: 44px; width: min(430px, calc(100% - 88px)); }
+    .float-ride { right: 44px; bottom: 44px; width: min(370px, calc(100% - 88px)); }
+    .search-line { display:grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items:center; }
+    .mini-input { display:flex; gap:8px; align-items:center; background:#f6f9fe; border:1px solid #dfe8f4; padding: 12px; border-radius: 16px; min-width:0; }
+    .mini-input strong { white-space: nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .arrow-circle { width: 34px; height:34px; border-radius:50%; display:grid; place-items:center; background:#102033; color:white; font-weight:900; }
+
+    .layout { display:grid; grid-template-columns: 280px minmax(0, 1fr); gap: 20px; padding-top: 24px; }
+    .side-panel { position: sticky; top: 100px; align-self:start; padding: 18px; }
+    .side-title { font-size: 13px; text-transform: uppercase; letter-spacing:0.12em; color:var(--muted); font-weight: 950; margin-bottom: 14px; }
+    .flow-step { display:flex; gap: 12px; align-items:flex-start; padding: 13px; border-radius: 18px; color: var(--muted); font-weight: 800; }
+    .flow-step.active { background:#edf3ff; color: var(--ink); }
+    .flow-step.done .step-no { background: var(--primary-2); color:#053b35; }
+    .step-no { width: 30px; height:30px; border-radius: 11px; display:grid; place-items:center; background:#e6edf6; color:var(--muted); font-weight: 950; flex: 0 0 auto; }
+    .flow-step.active .step-no { background: var(--primary); color:white; }
+    .flow-step small { display:block; font-weight:700; color: var(--muted-2); margin-top:3px; }
+
+    .content-grid { display:grid; gap: 20px; }
+    .panel { padding: 24px; }
+    .section-head { display:flex; justify-content:space-between; align-items:flex-start; gap:18px; margin-bottom: 20px; }
+    .section-head p { margin: 8px 0 0; }
+    .form-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .field { display:grid; gap: 8px; }
+    .field label { font-size: 13px; color:var(--muted); font-weight: 900; }
+    .field input, .field select, .field textarea {
+      border:1px solid #dbe5f1;
+      background:#f9fbff;
+      border-radius: 18px;
+      padding: 15px 16px;
+      color:var(--ink);
+      outline: none;
+      min-width: 0;
+      transition: border 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: rgba(24,92,255,0.55); box-shadow: 0 0 0 4px rgba(24,92,255,0.09); background:white; }
+    .field textarea { min-height: 106px; resize: vertical; }
+    .field.wide { grid-column: 1 / -1; }
+
+    .choice-row, .filter-row { display:flex; flex-wrap:wrap; gap: 10px; align-items:center; }
+    .choice-card {
+      border:1px solid #dbe5f1;
+      background:#fff;
+      border-radius: 20px;
+      padding: 15px;
+      min-width: 170px;
+      flex: 1;
+      display:flex;
+      gap: 12px;
+      align-items:center;
+      transition: 160ms ease;
+    }
+    .choice-card:hover, .choice-card.active { border-color: rgba(24,92,255,0.55); box-shadow: 0 12px 28px rgba(24,92,255,0.10); transform: translateY(-1px); }
+    .icon-bubble { width: 42px; height: 42px; border-radius: 16px; background:#edf3ff; display:grid; place-items:center; font-weight: 950; color:var(--primary); flex:0 0 auto; }
+    .icon-bubble.green { background:#defbf3; color:#087560; }
+    .icon-bubble.gold { background:#fff3d8; color:#9b6200; }
+
+    .results-layout { display:grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 18px; align-items:start; }
+    .ride-list { display:grid; gap: 14px; }
+    .ride-card {
+      border:1px solid #dbe5f1;
+      border-radius: 26px;
+      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+      padding: 18px;
+      box-shadow: 0 10px 28px rgba(16,32,51,0.06);
+      transition: 160ms ease;
+    }
+    .ride-card:hover { transform: translateY(-2px); box-shadow: 0 18px 40px rgba(16,32,51,0.10); border-color: rgba(24,92,255,0.35); }
+    .ride-card.top-match { border-color: rgba(14,214,168,0.75); box-shadow: 0 18px 40px rgba(14,214,168,0.14); }
+    .ride-top { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; }
+    .driver { display:flex; align-items:center; gap: 12px; min-width:0; }
+    .avatar { width: 52px; height:52px; border-radius: 19px; background: linear-gradient(135deg,#102033,var(--primary)); color:white; display:grid; place-items:center; font-weight:950; box-shadow: 0 12px 24px rgba(24,92,255,0.22); flex:0 0 auto; }
+    .avatar.green { background: linear-gradient(135deg,#055f4d,var(--primary-2)); color:#ffffff; }
+    .avatar.gold { background: linear-gradient(135deg,#a76100,var(--accent)); color:#ffffff; }
+    .driver h4 { margin:0; font-size:17px; letter-spacing:-0.03em; }
+    .driver span { display:block; color: var(--muted); font-size:13px; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .price { text-align:right; }
+    .price strong { display:block; font-size:25px; letter-spacing:-0.04em; }
+    .price span { color: var(--muted); font-size:12px; font-weight:800; }
+    .tag-row { display:flex; flex-wrap:wrap; gap:8px; margin: 14px 0; }
+    .tag { display:inline-flex; gap:6px; align-items:center; border-radius:999px; padding:7px 10px; font-size:12px; color:#24364b; background:#eef4ff; font-weight:850; border:1px solid #dce7f5; }
+    .tag.green { background:#dffbf3; color:#075a4b; border-color:#bdf3e5; }
+    .tag.gold { background:#fff3d8; color:#865500; border-color:#ffe2a3; }
+    .tag.red { background:#fff0f3; color:#8d2037; border-color:#ffd1da; }
+    .ride-meta { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+    .meta-box { border:1px solid #e1e9f4; border-radius: 16px; padding: 12px; background:#f9fbff; min-width:0; }
+    .meta-box small { color:var(--muted); font-weight:850; display:block; }
+    .meta-box strong { display:block; margin-top: 4px; letter-spacing:-0.02em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .ride-actions { display:flex; justify-content:space-between; align-items:center; gap:10px; border-top:1px solid #e7eef7; padding-top: 14px; }
+    .route-mini { display:flex; align-items:center; gap: 8px; color:var(--muted); font-weight:850; font-size:13px; min-width:0; }
+    .route-mini b { color:var(--ink); }
+    .map-panel { padding: 12px; position: sticky; top: 100px; }
+    .map-panel .mock-map { min-height: 620px; }
+    .map-card-stat { position:absolute; left: 24px; bottom: 24px; right: 24px; background:rgba(255,255,255,0.90); border:1px solid #dce4ef; border-radius: 22px; padding: 15px; box-shadow: var(--soft-shadow); }
+
+    .detail-layout { display:grid; grid-template-columns: minmax(0, 1fr) 380px; gap:18px; align-items:start; }
+    .timeline { display:grid; gap: 16px; margin-top: 18px; }
+    .time-node { display:grid; grid-template-columns: 82px 28px minmax(0, 1fr); gap: 12px; align-items:start; }
+    .time-node .line-dot { width:22px; height:22px; border-radius:50%; background: var(--primary); margin-top:2px; position:relative; border:4px solid #eaf0ff; }
+    .time-node:not(:last-child) .line-dot:after { content:""; position:absolute; left:50%; top:18px; width:3px; height:56px; transform:translateX(-50%); background:#d9e3f1; border-radius:999px; }
+    .time-node small { color:var(--muted); font-weight:900; }
+    .time-node h4 { margin: 0 0 4px; letter-spacing:-0.03em; }
+    .time-node p { margin:0; font-size:14px; }
+    .trust-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 18px; }
+    .trust-card { background:#f8fbff; border:1px solid #dfe8f4; border-radius: 20px; padding:16px; }
+    .trust-card strong { display:block; margin: 8px 0 4px; letter-spacing:-0.02em; }
+    .summary-card { position: sticky; top: 100px; }
+    .summary-line { display:flex; justify-content:space-between; gap: 20px; padding: 12px 0; border-bottom:1px solid #e7eef7; color: var(--muted); font-weight:800; }
+    .summary-line strong { color: var(--ink); }
+    .summary-line.total { font-size:20px; color: var(--ink); border-bottom:0; }
+    .savings { padding:16px; border-radius: 22px; background: linear-gradient(135deg,#dffbf3,#eef4ff); border:1px solid #c8f1e8; margin-top: 16px; }
+    .savings strong { display:block; font-size: 22px; letter-spacing:-0.04em; }
+
+    .success-wrap { display:grid; grid-template-columns: minmax(0,1fr) 390px; gap: 20px; align-items:start; }
+    .success-card { padding: 34px; background: linear-gradient(135deg,#ffffff 0%,#eef4ff 100%); border-radius: var(--radius-xl); box-shadow: var(--shadow); border:1px solid #dce5f0; }
+    .success-mark { width:84px; height:84px; border-radius: 28px; display:grid; place-items:center; background: linear-gradient(135deg,var(--primary-2),#79f4d4); color:#053b35; font-size:38px; font-weight:950; box-shadow:0 20px 45px rgba(14,214,168,0.30); margin-bottom: 20px; }
+    .ticket { background:#102033; color:white; border-radius: 26px; padding: 22px; overflow:hidden; position:relative; box-shadow:var(--shadow); }
+    .ticket:before, .ticket:after { content:""; position:absolute; width:36px; height:36px; border-radius:50%; background:var(--bg); top:50%; transform:translateY(-50%); }
+    .ticket:before { left:-18px; } .ticket:after { right:-18px; }
+    .ticket p, .ticket span { color: rgba(255,255,255,0.76); }
+    .qr { width: 116px; height: 116px; border-radius: 18px; background:
+      linear-gradient(90deg,#fff 12px,transparent 12px) 0 0/28px 28px,
+      linear-gradient(#fff 12px,transparent 12px) 0 0/28px 28px,
+      #0ed6a8;
+      opacity:0.95; margin-left:auto; }
+
+    .two-col { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:18px; }
+    .preview-card { border:1px solid #dbe5f1; border-radius: 26px; padding: 18px; background:#fff; box-shadow: var(--soft-shadow); }
+    .vehicle-card { display:flex; gap: 14px; align-items:center; padding: 14px; border-radius: 22px; border:1px solid #dfe8f4; background:#f9fbff; }
+    .car-illus { width: 74px; height: 54px; border-radius: 18px; background:linear-gradient(135deg,#102033,#185cff); position:relative; box-shadow: 0 12px 24px rgba(24,92,255,0.22); flex:0 0 auto; }
+    .car-illus:before, .car-illus:after { content:""; position:absolute; bottom:-5px; width:16px; height:16px; background:white; border:4px solid #102033; border-radius:50%; }
+    .car-illus:before { left:12px; } .car-illus:after { right:12px; }
+
+    .design-system { display:grid; grid-template-columns: 1fr 1fr; gap:20px; padding-top: 24px; }
+    .token-grid { display:grid; grid-template-columns: repeat(4,1fr); gap:12px; }
+    .swatch { height: 88px; border-radius: 20px; padding: 12px; color:white; display:flex; flex-direction:column; justify-content:flex-end; font-weight:900; box-shadow: var(--soft-shadow); }
+    .swatch span { font-size:12px; opacity:0.82; margin-top:3px; font-family:var(--mono); }
+    .principles { display:grid; gap:12px; }
+    .principle { display:flex; gap:12px; align-items:flex-start; background:#f8fbff; border:1px solid #dfe8f4; border-radius: 20px; padding: 14px; }
+
+    .phone-stage { display:grid; grid-template-columns: 470px minmax(0, 1fr); gap: 28px; align-items:start; padding: 34px 0; }
+    .phone-shell {
+      width: 414px;
+      min-height: 850px;
+      margin: 0 auto;
+      border-radius: 48px;
+      background: #10141f;
+      padding: 14px;
+      box-shadow: 0 34px 90px rgba(16,32,51,0.30);
+      position: sticky;
+      top: 100px;
+    }
+    .phone-screen {
+      min-height: 820px;
+      border-radius: 38px;
+      overflow: hidden;
+      background: #f5f7fb;
+      position: relative;
+      border:1px solid rgba(255,255,255,0.15);
+    }
+    .mobile-screen { display:none; min-height: 820px; animation: rise 220ms ease both; }
+    .mobile-screen.active { display:block; }
+    .phone-notch { position:absolute; left:50%; top:10px; transform:translateX(-50%); width: 124px; height: 28px; border-radius:999px; background:#10141f; z-index: 4; }
+    .mobile-top {
+      padding: 52px 20px 14px;
+      background: linear-gradient(135deg,#102033,#185cff 72%,#0ed6a8);
+      color:white;
+    }
+    .mobile-top p, .mobile-top span { color: rgba(255,255,255,0.76); }
+    .mobile-content { padding: 16px; padding-bottom: 110px; }
+    .mobile-title { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom: 14px; }
+    .mobile-card { background:white; border:1px solid #dfe8f4; border-radius: 24px; padding:16px; box-shadow: 0 12px 28px rgba(16,32,51,0.08); margin-bottom: 12px; }
+    .mobile-field { display:flex; align-items:center; gap:10px; padding:13px; border-radius: 18px; background:#f7faff; border:1px solid #dfe8f4; margin-bottom: 10px; }
+    .mobile-field .point { width:12px; height:12px; border-radius:50%; background:var(--primary); flex:0 0 auto; }
+    .mobile-field .point.green { background:var(--primary-2); }
+    .mobile-field strong { display:block; font-size:15px; }
+    .mobile-field span { display:block; font-size:12px; color:var(--muted); margin-top:2px; }
+    .mini-map-mobile { height: 190px; border-radius: 26px; background:
+      linear-gradient(110deg, transparent 47%, rgba(24,92,255,0.12) 47% 52%, transparent 52%),
+      linear-gradient(35deg, transparent 26%, rgba(14,214,168,0.13) 26% 31%, transparent 31%),
+      repeating-linear-gradient(90deg,#edf4fb 0 48px,#f9fbff 48px 96px);
+      position:relative; overflow:hidden; border:1px solid #dfe8f4; margin-bottom: 12px;
+    }
+    .mini-map-mobile:before { content:""; position:absolute; width:75%; height:9px; left:10%; top:50%; border-radius:99px; background:linear-gradient(90deg,var(--primary),var(--primary-2)); transform:rotate(-19deg); box-shadow: 0 0 0 7px rgba(24,92,255,0.08); }
+    .mobile-result { display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:center; }
+    .mobile-driver { display:flex; align-items:center; gap:10px; min-width:0; }
+    .mobile-driver .avatar { width:46px; height:46px; border-radius:16px; }
+    .mobile-price { text-align:right; }
+    .mobile-price strong { display:block; font-size:22px; letter-spacing:-0.04em; }
+    .bottom-nav { position:absolute; left:10px; right:10px; bottom:10px; height:78px; border-radius: 28px; background: rgba(255,255,255,0.93); backdrop-filter: blur(16px); border:1px solid #dfe8f4; display:grid; grid-template-columns: repeat(4,1fr); gap:4px; padding: 8px; box-shadow:0 12px 28px rgba(16,32,51,0.14); z-index:5; }
+    .bottom-nav button { border:0; background:transparent; border-radius:20px; color: var(--muted); font-weight:900; font-size:12px; display:grid; gap:2px; place-items:center; }
+    .bottom-nav button.active { background:#102033; color:white; }
+    .bottom-nav b { font-size:18px; line-height: 1; }
+    .mobile-insights { display:grid; gap:16px; }
+    .insight-card { padding:18px; border-radius:24px; border:1px solid #dce5f0; background:rgba(255,255,255,0.86); box-shadow: var(--soft-shadow); }
+    .insight-card h3 { margin-bottom:6px; }
+    .screen-map { display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; margin-top: 16px; }
+    .screen-link { border:1px solid #dfe8f4; background:white; border-radius:20px; padding:14px; box-shadow:0 10px 24px rgba(16,32,51,0.06); transition:160ms ease; }
+    .screen-link:hover { transform:translateY(-2px); border-color:rgba(24,92,255,0.4); }
+    .screen-link strong { display:block; margin-bottom:4px; }
+    .screen-link span { color:var(--muted); font-size:13px; }
+
+    .mobile-full-btn { width:100%; margin-top: 10px; }
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+    .mt-8 { margin-top:8px; } .mt-12 { margin-top:12px; } .mt-16 { margin-top:16px; } .mt-20 { margin-top:20px; } .mt-28 { margin-top:28px; }
+    .mb-0 { margin-bottom:0; }
+    .center { text-align:center; }
+    .hide { display:none !important; }
+
+    @media (max-width: 1180px) {
+      .hero, .phone-stage { grid-template-columns: 1fr; }
+      .route-preview { min-height: 560px; }
+      .layout { grid-template-columns: 1fr; }
+      .side-panel { position:relative; top:0; display:grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap:8px; }
+      .side-title { grid-column: 1 / -1; margin-bottom:0; }
+      .flow-step { padding: 10px; }
+      .flow-step small { display:none; }
+      .results-layout, .detail-layout, .success-wrap, .two-col, .design-system { grid-template-columns: 1fr; }
+      .map-panel, .summary-card { position:relative; top:0; }
+      .phone-shell { position:relative; top:0; }
+    }
+
+    @media (max-width: 760px) {
+      .page-shell { padding: 12px; }
+      .topbar { position: relative; top: 0; flex-direction:column; align-items:stretch; border-radius:22px; }
+      .brand { justify-content:center; }
+      .nav { justify-content:center; }
+      .top-actions { justify-content:center; flex-wrap:wrap; }
+      .hero-card { padding: 28px; }
+      h1 { font-size: 48px; }
+      .metric-row, .form-grid, .ride-meta, .trust-grid, .token-grid { grid-template-columns: 1fr; }
+      .hero-actions, .ride-actions, .section-head, .ride-top { flex-direction:column; align-items:stretch; }
+      .price { text-align:left; }
+      .route-preview { padding: 12px; min-height: 520px; }
+      .float-search, .float-ride { left:24px; right:24px; width:auto; }
+      .search-line { grid-template-columns:1fr; }
+      .arrow-circle { transform: rotate(90deg); margin:auto; }
+      .side-panel { grid-template-columns: 1fr; }
+      .phone-shell { width: 100%; min-height: 810px; border-radius: 34px; padding: 10px; }
+      .phone-screen { min-height: 790px; border-radius: 28px; }
+      .mobile-screen { min-height: 790px; }
+      .screen-map { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar" aria-label="Prototype navigation">
+      <a class="brand" href="#" data-web-screen="home" aria-label="CommuteShare home">
+        <span class="brand-mark">CS</span>
+        <span>CommuteShare<small>work rides, shared savings</small></span>
+      </a>
+      <nav class="nav" aria-label="Primary navigation">
+        <button class="active" data-web-screen="home">Overview</button>
+        <button data-web-screen="book-route">Book a seat</button>
+        <button data-web-screen="share-route">Share my ride</button>
+        <button data-web-screen="dashboard">My commutes</button>
+        <button data-web-screen="design-system">UI kit</button>
+      </nav>
+      <div class="top-actions">
+        <div class="segmented" aria-label="View switcher">
+          <button class="active" data-view="web">Web</button>
+          <button data-view="mobile">App</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section id="web-view" class="view active" aria-label="Web prototype">
+        <div id="home" class="screen active">
+          <section class="hero">
+            <div class="hero-card">
+              <span class="eyebrow"><span class="dot"></span>For daily working professionals</span>
+              <h1>Share your office commute. Save money, fuel and parking stress.</h1>
+              <p class="lead">A clean ride-share product for people travelling to offices, tech parks and business hubs. Riders book a verified seat in 4-5 steps. Drivers publish their daily route in minutes.</p>
+              <div class="hero-actions">
+                <button class="primary-btn" data-web-screen="book-route">Start booking</button>
+                <button class="secondary-btn" data-web-screen="share-route">Publish a ride</button>
+                <button class="light-btn" data-view="mobile">Open app design</button>
+              </div>
+              <div class="metric-row">
+                <div class="metric"><strong>4 steps</strong><span>fast seat booking</span></div>
+                <div class="metric"><strong>92%</strong><span>route match scoring</span></div>
+                <div class="metric"><strong>INR 4.2k</strong><span>sample monthly saving</span></div>
+              </div>
+            </div>
+
+            <div class="route-preview panel">
+              <div class="mock-map" aria-label="Route map preview">
+                <span class="road r1"></span><span class="road r2"></span><span class="road r3"></span>
+                <span class="route-line"></span>
+                <span class="map-pin start">A</span><span class="map-pin end">B</span>
+                <span class="car-pin c1">Car</span><span class="car-pin c2">2</span><span class="car-pin c3">3</span>
+                <span class="map-label l1">HSR Layout</span><span class="map-label l2">Manyata Tech Park</span>
+                <div class="floating-panel float-search">
+                  <div class="search-line">
+                    <div class="mini-input"><span class="dot"></span><strong>HSR Layout</strong></div>
+                    <div class="arrow-circle">to</div>
+                    <div class="mini-input"><span class="dot" style="background:#185cff"></span><strong>Manyata Tech Park</strong></div>
+                  </div>
+                  <div class="filter-row mt-12">
+                    <span class="tag green">Live route</span><span class="tag">8:30 AM</span><span class="tag gold">Recurring</span>
+                  </div>
+                </div>
+                <div class="floating-panel float-ride">
+                  <div class="ride-top">
+                    <div class="driver"><span class="avatar green">AS</span><div><h4>Best match found</h4><span>3 verified office rides</span></div></div>
+                    <div class="price"><strong>INR 145</strong><span>per seat</span></div>
+                  </div>
+                  <div class="tag-row"><span class="tag green">Company verified</span><span class="tag">2 seats left</span></div>
+                  <button class="primary-btn" style="width:100%" data-web-screen="book-results">View available rides</button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div id="book-route" class="screen">
+          <div class="layout">
+            <aside class="panel side-panel" aria-label="Booking steps">
+              <div class="side-title">Book a seat</div>
+              <div class="flow-step active"><span class="step-no">1</span><div>Route<small>From, to and time</small></div></div>
+              <div class="flow-step"><span class="step-no">2</span><div>Rides<small>Compare options</small></div></div>
+              <div class="flow-step"><span class="step-no">3</span><div>Details<small>Pickup and trust</small></div></div>
+              <div class="flow-step"><span class="step-no">4</span><div>Pay<small>Reserve seat</small></div></div>
+              <div class="flow-step"><span class="step-no">5</span><div>Done<small>Ticket created</small></div></div>
+            </aside>
+            <section class="content-grid">
+              <div class="panel">
+                <div class="section-head">
+                  <div>
+                    <span class="eyebrow"><span class="dot"></span>Step 1</span>
+                    <h2 class="mt-12">Where are you going to work?</h2>
+                    <p>Select your daily route. Once you search, every available ride on that route becomes visible immediately.</p>
+                  </div>
+                  <button class="light-btn" data-web-screen="home">Back</button>
+                </div>
+                <div class="form-grid">
+                  <div class="field"><label>Pickup area</label><input value="HSR Layout, Bengaluru" aria-label="Pickup area" /></div>
+                  <div class="field"><label>Office / destination</label><input value="Manyata Tech Park, Bengaluru" aria-label="Destination" /></div>
+                  <div class="field"><label>Date</label><input type="date" value="2026-05-04" /></div>
+                  <div class="field"><label>Arrival time</label><select><option>Reach office by 9:30 AM</option><option>Reach office by 10:00 AM</option><option>Leave office at 6:30 PM</option></select></div>
+                  <div class="field"><label>Seats needed</label><select><option>1 seat</option><option>2 seats</option><option>3 seats</option></select></div>
+                  <div class="field"><label>Ride type</label><select><option>Daily office commute</option><option>One-time ride</option><option>Weekly recurring</option></select></div>
+                </div>
+                <div class="mt-20">
+                  <div class="choice-row">
+                    <button class="choice-card active"><span class="icon-bubble">M</span><span><strong>Morning office</strong><br><span class="muted small">Most popular time</span></span></button>
+                    <button class="choice-card"><span class="icon-bubble green">R</span><span><strong>Return home</strong><br><span class="muted small">After office hours</span></span></button>
+                    <button class="choice-card"><span class="icon-bubble gold">S</span><span><strong>Set recurring</strong><br><span class="muted small">Mon-Fri schedule</span></span></button>
+                  </div>
+                </div>
+                <div class="hero-actions mt-28">
+                  <button class="primary-btn" data-web-screen="book-results">Find shared rides</button>
+                  <button class="light-btn" data-web-screen="dashboard">Use saved commute</button>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="section-head">
+                  <div><h3>Smart suggestions for professionals</h3><p>Reduce typing with office clusters, saved routines and verified workplace communities.</p></div>
+                </div>
+                <div class="choice-row">
+                  <button class="chip-btn active">Same company</button>
+                  <button class="chip-btn">Nearby pickup</button>
+                  <button class="chip-btn">Women preferred</button>
+                  <button class="chip-btn">EV / hybrid</button>
+                  <button class="chip-btn">Quiet ride</button>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div id="book-results" class="screen">
+          <div class="layout">
+            <aside class="panel side-panel">
+              <div class="side-title">Book a seat</div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Route<small>HSR to Manyata</small></div></div>
+              <div class="flow-step active"><span class="step-no">2</span><div>Rides<small>All route matches</small></div></div>
+              <div class="flow-step"><span class="step-no">3</span><div>Details<small>Pickup and trust</small></div></div>
+              <div class="flow-step"><span class="step-no">4</span><div>Pay<small>Reserve seat</small></div></div>
+              <div class="flow-step"><span class="step-no">5</span><div>Done<small>Ticket created</small></div></div>
+            </aside>
+            <section class="content-grid">
+              <div class="panel">
+                <div class="section-head">
+                  <div>
+                    <span class="eyebrow"><span class="dot"></span>Step 2</span>
+                    <h2 class="mt-12">Available rides on your route</h2>
+                    <p>Showing rides that overlap your pickup, office destination and arrival window.</p>
+                  </div>
+                  <button class="light-btn" data-web-screen="book-route">Edit search</button>
+                </div>
+                <div class="filter-row">
+                  <button class="chip-btn active">Best match</button>
+                  <button class="chip-btn">Lowest price</button>
+                  <button class="chip-btn">Earliest pickup</button>
+                  <button class="chip-btn">Same company</button>
+                  <button class="chip-btn">2+ seats</button>
+                  <button class="chip-btn">Verified only</button>
+                </div>
+              </div>
+              <div class="results-layout">
+                <div class="ride-list">
+                  <article class="ride-card top-match">
+                    <div class="ride-top">
+                      <div class="driver"><span class="avatar green">AS</span><div><h4>Aarav Sharma</h4><span>Product Manager at FinEdge - 4.9 rating</span></div></div>
+                      <div class="price"><strong>INR 145</strong><span>per seat</span></div>
+                    </div>
+                    <div class="tag-row"><span class="tag green">92% route match</span><span class="tag">2 seats left</span><span class="tag">8:22 AM pickup</span><span class="tag gold">Quiet ride</span></div>
+                    <div class="ride-meta">
+                      <div class="meta-box"><small>Pickup</small><strong>HSR BDA</strong></div>
+                      <div class="meta-box"><small>Drop</small><strong>Gate 2</strong></div>
+                      <div class="meta-box"><small>ETA</small><strong>9:18 AM</strong></div>
+                      <div class="meta-box"><small>Save</small><strong>INR 210</strong></div>
+                    </div>
+                    <div class="ride-actions"><div class="route-mini"><b>HSR</b> - Koramangala - Hebbal - <b>Manyata</b></div><button class="primary-btn" data-ride="aarav" data-web-screen="book-detail">View + book</button></div>
+                  </article>
+
+                  <article class="ride-card">
+                    <div class="ride-top">
+                      <div class="driver"><span class="avatar">NV</span><div><h4>Nisha Verma</h4><span>Senior Analyst at CloudNest - 4.8 rating</span></div></div>
+                      <div class="price"><strong>INR 120</strong><span>per seat</span></div>
+                    </div>
+                    <div class="tag-row"><span class="tag green">88% route match</span><span class="tag">1 seat left</span><span class="tag">8:35 AM pickup</span><span class="tag red">Manual approval</span></div>
+                    <div class="ride-meta">
+                      <div class="meta-box"><small>Pickup</small><strong>HSR 27th Main</strong></div>
+                      <div class="meta-box"><small>Drop</small><strong>Nagavara</strong></div>
+                      <div class="meta-box"><small>ETA</small><strong>9:26 AM</strong></div>
+                      <div class="meta-box"><small>Save</small><strong>INR 235</strong></div>
+                    </div>
+                    <div class="ride-actions"><div class="route-mini"><b>HSR</b> - Domlur - ORR - <b>Nagavara</b></div><button class="primary-btn" data-ride="nisha" data-web-screen="book-detail">View + book</button></div>
+                  </article>
+
+                  <article class="ride-card">
+                    <div class="ride-top">
+                      <div class="driver"><span class="avatar gold">RK</span><div><h4>Rohan Kapoor</h4><span>Engineering Lead at Maply - 4.7 rating</span></div></div>
+                      <div class="price"><strong>INR 165</strong><span>per seat</span></div>
+                    </div>
+                    <div class="tag-row"><span class="tag green">84% route match</span><span class="tag">3 seats left</span><span class="tag">8:15 AM pickup</span><span class="tag gold">EV car</span></div>
+                    <div class="ride-meta">
+                      <div class="meta-box"><small>Pickup</small><strong>Silk Board</strong></div>
+                      <div class="meta-box"><small>Drop</small><strong>Gate 5</strong></div>
+                      <div class="meta-box"><small>ETA</small><strong>9:12 AM</strong></div>
+                      <div class="meta-box"><small>Save CO2</small><strong>2.8 kg</strong></div>
+                    </div>
+                    <div class="ride-actions"><div class="route-mini"><b>Silk Board</b> - Bellandur - Hebbal - <b>Manyata</b></div><button class="primary-btn" data-ride="rohan" data-web-screen="book-detail">View + book</button></div>
+                  </article>
+                </div>
+
+                <aside class="panel map-panel">
+                  <div class="mock-map">
+                    <span class="road r1"></span><span class="road r2"></span><span class="road r3"></span>
+                    <span class="route-line"></span>
+                    <span class="map-pin start">A</span><span class="map-pin end">B</span>
+                    <span class="car-pin c1">1</span><span class="car-pin c2">2</span><span class="car-pin c3">3</span>
+                    <span class="map-label l1">Your pickup</span><span class="map-label l2">Office</span>
+                    <div class="map-card-stat">
+                      <strong>3 rides available now</strong>
+                      <p class="small mb-0">Best match selected by route overlap, office arrival time, verified profile and seat availability.</p>
+                    </div>
+                  </div>
+                </aside>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div id="book-detail" class="screen">
+          <div class="layout">
+            <aside class="panel side-panel">
+              <div class="side-title">Book a seat</div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Route<small>Selected</small></div></div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Rides<small>Best match</small></div></div>
+              <div class="flow-step active"><span class="step-no">3</span><div>Details<small>Pickup and trust</small></div></div>
+              <div class="flow-step"><span class="step-no">4</span><div>Pay<small>Reserve seat</small></div></div>
+              <div class="flow-step"><span class="step-no">5</span><div>Done<small>Ticket created</small></div></div>
+            </aside>
+            <section class="detail-layout">
+              <div class="content-grid">
+                <div class="panel">
+                  <div class="section-head">
+                    <div>
+                      <span class="eyebrow"><span class="dot"></span>Step 3</span>
+                      <h2 class="mt-12">Review ride details</h2>
+                      <p>Confirm pickup, driver details, comfort preferences and workplace trust badges before reserving your seat.</p>
+                    </div>
+                    <button class="light-btn" data-web-screen="book-results">Back to rides</button>
+                  </div>
+                  <div class="ride-top">
+                    <div class="driver"><span class="avatar green" id="detail-avatar">AS</span><div><h3 id="detail-name">Aarav Sharma</h3><span id="detail-role">Product Manager at FinEdge - 4.9 rating - 128 shared rides</span></div></div>
+                    <div class="price"><strong id="detail-price">INR 145</strong><span>per seat</span></div>
+                  </div>
+                  <div class="tag-row"><span class="tag green">ID verified</span><span class="tag green">Company email verified</span><span class="tag">Instant booking</span><span class="tag gold">Recurring available</span></div>
+                  <div class="timeline">
+                    <div class="time-node"><small>8:22 AM</small><span class="line-dot"></span><div><h4>Pickup: HSR BDA Complex</h4><p>Walk 3 minutes from your saved home location. Driver waits up to 5 minutes.</p></div></div>
+                    <div class="time-node"><small>8:46 AM</small><span class="line-dot"></span><div><h4>Optional stop: Koramangala Sony World</h4><p>One co-rider pickup already confirmed. Route remains within your arrival window.</p></div></div>
+                    <div class="time-node"><small>9:18 AM</small><span class="line-dot"></span><div><h4>Drop: Manyata Tech Park Gate 2</h4><p>Estimated arrival 12 minutes before your selected office time.</p></div></div>
+                  </div>
+                </div>
+
+                <div class="panel">
+                  <div class="section-head"><div><h3>Safety and comfort checks</h3><p>Trust cues should be visible before the user commits.</p></div></div>
+                  <div class="trust-grid">
+                    <div class="trust-card"><span class="icon-bubble green">ID</span><strong>Verified identity</strong><p class="small mb-0">Government ID and selfie match completed.</p></div>
+                    <div class="trust-card"><span class="icon-bubble">CO</span><strong>Workplace proof</strong><p class="small mb-0">Corporate email / company domain checked.</p></div>
+                    <div class="trust-card"><span class="icon-bubble gold">SOS</span><strong>Live trip support</strong><p class="small mb-0">Share trip, emergency button and route tracking.</p></div>
+                  </div>
+                </div>
+              </div>
+
+              <aside class="panel summary-card">
+                <h3>Your seat summary</h3>
+                <div class="summary-line"><span>Ride date</span><strong>Mon, May 4</strong></div>
+                <div class="summary-line"><span>Pickup</span><strong>8:22 AM</strong></div>
+                <div class="summary-line"><span>Seat</span><strong>Rear left</strong></div>
+                <div class="summary-line"><span>Payment</span><strong>UPI / card</strong></div>
+                <div class="summary-line total"><span>Total</span><strong id="detail-total">INR 145</strong></div>
+                <div class="savings"><strong>Save about INR 210</strong><span class="muted small">Compared with a solo cab on this office route.</span></div>
+                <button class="primary-btn mt-20" style="width:100%" data-web-screen="book-pay">Reserve this seat</button>
+                <button class="light-btn mt-12" style="width:100%" data-web-screen="book-results">Compare again</button>
+              </aside>
+            </section>
+          </div>
+        </div>
+
+        <div id="book-pay" class="screen">
+          <div class="layout">
+            <aside class="panel side-panel">
+              <div class="side-title">Book a seat</div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Route<small>Selected</small></div></div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Rides<small>Selected</small></div></div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Details<small>Reviewed</small></div></div>
+              <div class="flow-step active"><span class="step-no">4</span><div>Pay<small>Reserve seat</small></div></div>
+              <div class="flow-step"><span class="step-no">5</span><div>Done<small>Ticket created</small></div></div>
+            </aside>
+            <section class="detail-layout">
+              <div class="panel">
+                <div class="section-head">
+                  <div>
+                    <span class="eyebrow"><span class="dot"></span>Step 4</span>
+                    <h2 class="mt-12">Confirm and pay</h2>
+                    <p>Clear pricing, no confusion. The driver receives a booking request or instant confirmation based on their settings.</p>
+                  </div>
+                  <button class="light-btn" data-web-screen="book-detail">Back</button>
+                </div>
+                <div class="two-col">
+                  <div class="preview-card">
+                    <h3>Payment method</h3>
+                    <div class="choice-row mt-16">
+                      <button class="choice-card active"><span class="icon-bubble">UPI</span><span><strong>UPI</strong><br><span class="muted small">pay@upi</span></span></button>
+                      <button class="choice-card"><span class="icon-bubble">CC</span><span><strong>Card</strong><br><span class="muted small">Visa ending 4421</span></span></button>
+                    </div>
+                  </div>
+                  <div class="preview-card">
+                    <h3>Cancellation rule</h3>
+                    <p class="mb-0">Free cancellation until 30 minutes before pickup. After that, a small seat-hold fee may apply.</p>
+                  </div>
+                </div>
+                <div class="preview-card mt-20">
+                  <h3>What happens after booking?</h3>
+                  <div class="trust-grid">
+                    <div class="trust-card"><span class="icon-bubble">1</span><strong>Seat locked</strong><p class="small mb-0">You get ticket and pickup point.</p></div>
+                    <div class="trust-card"><span class="icon-bubble green">2</span><strong>Chat opens</strong><p class="small mb-0">Chat unlocks after confirmation.</p></div>
+                    <div class="trust-card"><span class="icon-bubble gold">3</span><strong>Trip tracked</strong><p class="small mb-0">Share ride status with family.</p></div>
+                  </div>
+                </div>
+              </div>
+              <aside class="panel summary-card">
+                <h3>Fare breakdown</h3>
+                <div class="summary-line"><span>Seat price</span><strong>INR 145</strong></div>
+                <div class="summary-line"><span>Platform fee</span><strong>INR 12</strong></div>
+                <div class="summary-line"><span>Intro credit</span><strong>- INR 12</strong></div>
+                <div class="summary-line total"><span>Total</span><strong>INR 145</strong></div>
+                <div class="savings"><strong>Fuel saved together</strong><span class="muted small">This ride combines 3 commuters into one car.</span></div>
+                <button class="primary-btn mt-20" style="width:100%" data-web-screen="book-success">Confirm booking</button>
+                <button class="light-btn mt-12" style="width:100%" data-web-screen="book-detail">Review details</button>
+              </aside>
+            </section>
+          </div>
+        </div>
+
+        <div id="book-success" class="screen">
+          <div class="layout">
+            <aside class="panel side-panel">
+              <div class="side-title">Book a seat</div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Route<small>Selected</small></div></div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Rides<small>Selected</small></div></div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Details<small>Reviewed</small></div></div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Pay<small>Complete</small></div></div>
+              <div class="flow-step active"><span class="step-no">5</span><div>Done<small>Ticket created</small></div></div>
+            </aside>
+            <section class="success-wrap">
+              <div class="success-card">
+                <div class="success-mark">OK</div>
+                <span class="eyebrow"><span class="dot"></span>Booking confirmed</span>
+                <h2 class="mt-12">Your seat is reserved for Monday morning.</h2>
+                <p class="lead">Pickup details, driver contact and trip tracking are now available. Add this commute to your recurring schedule with one click.</p>
+                <div class="hero-actions">
+                  <button class="primary-btn" data-web-screen="dashboard">Go to my commutes</button>
+                  <button class="secondary-btn" data-web-screen="book-route">Book return ride</button>
+                </div>
+              </div>
+              <aside class="ticket">
+                <div class="ride-top"><div><h3>Commute ticket</h3><p>HSR Layout to Manyata Tech Park</p></div><div class="qr" aria-label="Ticket QR visual"></div></div>
+                <div class="summary-line"><span>Driver</span><strong>Aarav S.</strong></div>
+                <div class="summary-line"><span>Pickup</span><strong>8:22 AM</strong></div>
+                <div class="summary-line"><span>Seat</span><strong>Rear left</strong></div>
+                <div class="summary-line"><span>Booking ID</span><strong>CS-28491</strong></div>
+              </aside>
+            </section>
+          </div>
+        </div>
+
+        <div id="share-route" class="screen">
+          <div class="layout">
+            <aside class="panel side-panel">
+              <div class="side-title">Share ride</div>
+              <div class="flow-step active"><span class="step-no">1</span><div>Route<small>Where you drive</small></div></div>
+              <div class="flow-step"><span class="step-no">2</span><div>Car<small>Seats and comfort</small></div></div>
+              <div class="flow-step"><span class="step-no">3</span><div>Price<small>Rules and split</small></div></div>
+              <div class="flow-step"><span class="step-no">4</span><div>Preview<small>Review listing</small></div></div>
+              <div class="flow-step"><span class="step-no">5</span><div>Publish<small>Go live</small></div></div>
+            </aside>
+            <section class="content-grid">
+              <div class="panel">
+                <div class="section-head">
+                  <div>
+                    <span class="eyebrow"><span class="dot"></span>Driver flow - step 1</span>
+                    <h2 class="mt-12">Share the route you already travel.</h2>
+                    <p>Designed for working professionals who drive to office and want to split fuel, toll and parking costs.</p>
+                  </div>
+                  <button class="light-btn" data-web-screen="home">Back</button>
+                </div>
+                <div class="form-grid">
+                  <div class="field"><label>Starting point</label><input value="HSR Layout, Bengaluru" /></div>
+                  <div class="field"><label>Office destination</label><input value="Manyata Tech Park, Gate 2" /></div>
+                  <div class="field"><label>Departure time</label><input type="time" value="08:20" /></div>
+                  <div class="field"><label>Reach by</label><input type="time" value="09:20" /></div>
+                  <div class="field"><label>Repeat</label><select><option>Monday to Friday</option><option>Only tomorrow</option><option>Custom days</option></select></div>
+                  <div class="field"><label>Booking approval</label><select><option>Auto-approve verified professionals</option><option>Ask me first</option><option>Only same company</option></select></div>
+                </div>
+                <div class="hero-actions mt-28">
+                  <button class="primary-btn" data-web-screen="share-car">Continue to car details</button>
+                  <button class="light-btn" data-view="mobile">View app publishing</button>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div id="share-car" class="screen">
+          <div class="layout">
+            <aside class="panel side-panel">
+              <div class="side-title">Share ride</div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Route<small>Added</small></div></div>
+              <div class="flow-step active"><span class="step-no">2</span><div>Car<small>Seats and comfort</small></div></div>
+              <div class="flow-step"><span class="step-no">3</span><div>Price<small>Rules and split</small></div></div>
+              <div class="flow-step"><span class="step-no">4</span><div>Preview<small>Review listing</small></div></div>
+              <div class="flow-step"><span class="step-no">5</span><div>Publish<small>Go live</small></div></div>
+            </aside>
+            <section class="detail-layout">
+              <div class="panel">
+                <div class="section-head">
+                  <div><span class="eyebrow"><span class="dot"></span>Driver flow - step 2</span><h2 class="mt-12">Add car and available seats.</h2><p>Make seat availability and ride comfort obvious.</p></div>
+                  <button class="light-btn" data-web-screen="share-route">Back</button>
+                </div>
+                <div class="vehicle-card">
+                  <span class="car-illus"></span>
+                  <div><h3>Hyundai i20 - KA 05 AB 2841</h3><p class="mb-0">AC, clean car, phone charger, verified insurance.</p></div>
+                </div>
+                <div class="form-grid mt-20">
+                  <div class="field"><label>Available seats</label><select><option>2 seats</option><option>1 seat</option><option>3 seats</option></select></div>
+                  <div class="field"><label>Preferred seat policy</label><select><option>Auto assign seats</option><option>Let riders choose</option></select></div>
+                  <div class="field"><label>Comfort style</label><select><option>Quiet professional ride</option><option>Friendly conversation okay</option><option>Music okay</option></select></div>
+                  <div class="field"><label>Luggage</label><select><option>Small laptop bags only</option><option>Small luggage allowed</option></select></div>
+                  <div class="field wide"><label>Note for passengers</label><textarea>Daily office route. Please be on time at pickup point. I wait up to 5 minutes.</textarea></div>
+                </div>
+              </div>
+              <aside class="panel summary-card">
+                <h3>Listing quality</h3>
+                <div class="summary-line"><span>Route clarity</span><strong>High</strong></div>
+                <div class="summary-line"><span>Seat clarity</span><strong>High</strong></div>
+                <div class="summary-line"><span>Trust score</span><strong>92/100</strong></div>
+                <div class="savings"><strong>Tip</strong><span class="muted small">Adding seat and comfort details increases booking confidence.</span></div>
+                <button class="primary-btn mt-20" style="width:100%" data-web-screen="share-price">Continue</button>
+              </aside>
+            </section>
+          </div>
+        </div>
+
+        <div id="share-price" class="screen">
+          <div class="layout">
+            <aside class="panel side-panel">
+              <div class="side-title">Share ride</div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Route<small>Added</small></div></div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Car<small>Added</small></div></div>
+              <div class="flow-step active"><span class="step-no">3</span><div>Price<small>Rules and split</small></div></div>
+              <div class="flow-step"><span class="step-no">4</span><div>Preview<small>Review listing</small></div></div>
+              <div class="flow-step"><span class="step-no">5</span><div>Publish<small>Go live</small></div></div>
+            </aside>
+            <section class="detail-layout">
+              <div class="panel">
+                <div class="section-head"><div><span class="eyebrow"><span class="dot"></span>Driver flow - step 3</span><h2 class="mt-12">Set fair cost sharing.</h2><p>For trust, show that price is a fuel/toll contribution, not a taxi fare.</p></div><button class="light-btn" data-web-screen="share-car">Back</button></div>
+                <div class="form-grid">
+                  <div class="field"><label>Suggested seat contribution</label><input value="INR 145" /></div>
+                  <div class="field"><label>Tolls included?</label><select><option>Yes, included</option><option>Split if toll appears</option></select></div>
+                  <div class="field"><label>Cancellation window</label><select><option>Free until 30 min before pickup</option><option>Free until 1 hour before pickup</option></select></div>
+                  <div class="field"><label>Booking type</label><select><option>Instant for verified users</option><option>Manual approval</option></select></div>
+                </div>
+                <div class="preview-card mt-20">
+                  <h3>Passenger rules</h3>
+                  <div class="choice-row mt-16">
+                    <button class="chip-btn active">Verified profile only</button>
+                    <button class="chip-btn active">No smoking</button>
+                    <button class="chip-btn active">On-time pickup</button>
+                    <button class="chip-btn">Same company first</button>
+                    <button class="chip-btn">Women preferred</button>
+                  </div>
+                </div>
+              </div>
+              <aside class="panel summary-card">
+                <h3>Driver savings estimate</h3>
+                <div class="summary-line"><span>Fuel + toll daily</span><strong>INR 410</strong></div>
+                <div class="summary-line"><span>2 seats booked</span><strong>INR 290</strong></div>
+                <div class="summary-line total"><span>Your net cost</span><strong>INR 120</strong></div>
+                <div class="savings"><strong>Monthly saving: INR 5,800</strong><span class="muted small">Sample estimate for 20 office days.</span></div>
+                <button class="primary-btn mt-20" style="width:100%" data-web-screen="share-preview">Preview listing</button>
+              </aside>
+            </section>
+          </div>
+        </div>
+
+        <div id="share-preview" class="screen">
+          <div class="layout">
+            <aside class="panel side-panel">
+              <div class="side-title">Share ride</div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Route<small>Added</small></div></div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Car<small>Added</small></div></div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Price<small>Set</small></div></div>
+              <div class="flow-step active"><span class="step-no">4</span><div>Preview<small>Review listing</small></div></div>
+              <div class="flow-step"><span class="step-no">5</span><div>Publish<small>Go live</small></div></div>
+            </aside>
+            <section class="detail-layout">
+              <div class="panel">
+                <div class="section-head"><div><span class="eyebrow"><span class="dot"></span>Driver flow - step 4</span><h2 class="mt-12">Preview how riders will see it.</h2><p>Drivers can confidently publish because the final listing is clear.</p></div><button class="light-btn" data-web-screen="share-price">Back</button></div>
+                <article class="ride-card top-match">
+                  <div class="ride-top">
+                    <div class="driver"><span class="avatar green">YOU</span><div><h4>Your morning commute</h4><span>Verified professional - Hyundai i20 - 2 seats</span></div></div>
+                    <div class="price"><strong>INR 145</strong><span>per seat</span></div>
+                  </div>
+                  <div class="tag-row"><span class="tag green">Instant booking</span><span class="tag">8:20 AM pickup</span><span class="tag gold">Quiet ride</span><span class="tag">Mon-Fri</span></div>
+                  <div class="ride-meta">
+                    <div class="meta-box"><small>Start</small><strong>HSR Layout</strong></div>
+                    <div class="meta-box"><small>Drop</small><strong>Gate 2</strong></div>
+                    <div class="meta-box"><small>Seats</small><strong>2 left</strong></div>
+                    <div class="meta-box"><small>Rules</small><strong>Verified only</strong></div>
+                  </div>
+                  <div class="ride-actions"><div class="route-mini"><b>HSR</b> - Koramangala - Hebbal - <b>Manyata</b></div><button class="primary-btn" data-web-screen="share-published">Publish ride</button></div>
+                </article>
+              </div>
+              <aside class="panel summary-card">
+                <h3>Before publishing</h3>
+                <div class="summary-line"><span>Profile</span><strong>Verified</strong></div>
+                <div class="summary-line"><span>Car document</span><strong>Verified</strong></div>
+                <div class="summary-line"><span>Payments</span><strong>Ready</strong></div>
+                <button class="primary-btn mt-20" style="width:100%" data-web-screen="share-published">Publish ride</button>
+                <button class="light-btn mt-12" style="width:100%" data-web-screen="share-price">Edit price</button>
+              </aside>
+            </section>
+          </div>
+        </div>
+
+        <div id="share-published" class="screen">
+          <div class="layout">
+            <aside class="panel side-panel">
+              <div class="side-title">Share ride</div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Route<small>Added</small></div></div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Car<small>Added</small></div></div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Price<small>Set</small></div></div>
+              <div class="flow-step done"><span class="step-no">OK</span><div>Preview<small>Reviewed</small></div></div>
+              <div class="flow-step active"><span class="step-no">5</span><div>Publish<small>Live</small></div></div>
+            </aside>
+            <section class="success-wrap">
+              <div class="success-card">
+                <div class="success-mark">OK</div>
+                <span class="eyebrow"><span class="dot"></span>Ride published</span>
+                <h2 class="mt-12">Your office route is live for verified commuters.</h2>
+                <p class="lead">The ride is now visible to riders searching HSR Layout to Manyata Tech Park. You will receive booking alerts and can review passenger profiles.</p>
+                <div class="hero-actions"><button class="primary-btn" data-web-screen="dashboard">View booking requests</button><button class="secondary-btn" data-web-screen="share-route">Publish another route</button></div>
+              </div>
+              <aside class="panel">
+                <h3>Live listing controls</h3>
+                <div class="summary-line"><span>Status</span><strong>Accepting bookings</strong></div>
+                <div class="summary-line"><span>Seats</span><strong>2 open</strong></div>
+                <div class="summary-line"><span>Approval</span><strong>Verified instant</strong></div>
+                <button class="light-btn mt-20" style="width:100%">Pause ride</button>
+              </aside>
+            </section>
+          </div>
+        </div>
+
+        <div id="dashboard" class="screen">
+          <div class="layout">
+            <aside class="panel side-panel">
+              <div class="side-title">Workspace</div>
+              <div class="flow-step active"><span class="step-no">D</span><div>Dashboard<small>Rides and savings</small></div></div>
+              <div class="flow-step"><span class="step-no">B</span><div>Bookings<small>Upcoming seats</small></div></div>
+              <div class="flow-step"><span class="step-no">S</span><div>Shared rides<small>Driver routes</small></div></div>
+              <div class="flow-step"><span class="step-no">P</span><div>Profile<small>Trust settings</small></div></div>
+            </aside>
+            <section class="content-grid">
+              <div class="panel">
+                <div class="section-head"><div><span class="eyebrow"><span class="dot"></span>My commutes</span><h2 class="mt-12">A professional commute dashboard.</h2><p>Give users one place to manage daily bookings, published routes, savings and safety settings.</p></div><div class="hero-actions"><button class="primary-btn" data-web-screen="book-route">Book ride</button><button class="secondary-btn" data-web-screen="share-route">Share ride</button></div></div>
+                <div class="metric-row">
+                  <div class="metric"><strong>INR 3,860</strong><span>saved this month</span></div>
+                  <div class="metric"><strong>21.4 kg</strong><span>CO2 avoided</span></div>
+                  <div class="metric"><strong>18</strong><span>shared commutes</span></div>
+                </div>
+              </div>
+              <div class="two-col">
+                <div class="panel">
+                  <h3>Upcoming booking</h3>
+                  <article class="ride-card mt-16">
+                    <div class="ride-top"><div class="driver"><span class="avatar green">AS</span><div><h4>Monday morning</h4><span>Aarav - HSR to Manyata</span></div></div><div class="price"><strong>8:22</strong><span>AM</span></div></div>
+                    <div class="tag-row"><span class="tag green">Confirmed</span><span class="tag">Rear left</span><span class="tag">Track live</span></div>
+                    <button class="primary-btn" style="width:100%" data-web-screen="book-success">Open ticket</button>
+                  </article>
+                </div>
+                <div class="panel">
+                  <h3>Your shared ride</h3>
+                  <article class="ride-card mt-16">
+                    <div class="ride-top"><div class="driver"><span class="avatar">YOU</span><div><h4>Evening return</h4><span>Manyata to HSR - 2 seats open</span></div></div><div class="price"><strong>6:35</strong><span>PM</span></div></div>
+                    <div class="tag-row"><span class="tag gold">2 requests</span><span class="tag green">Verified profiles</span></div>
+                    <button class="secondary-btn" style="width:100%" data-web-screen="share-published">Manage listing</button>
+                  </article>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div id="design-system" class="screen">
+          <div class="design-system">
+            <section class="panel">
+              <span class="eyebrow"><span class="dot"></span>UI design system</span>
+              <h2 class="mt-12">Modern, trustworthy and commuter-first.</h2>
+              <p>The style direction uses crisp cards, deep blue trust colors, green savings cues, large rounded controls, visible route cards and high-contrast CTAs.</p>
+              <div class="token-grid mt-20">
+                <div class="swatch" style="background:#185cff">Primary<span>#185CFF</span></div>
+                <div class="swatch" style="background:#0ed6a8;color:#063a31">Savings<span>#0ED6A8</span></div>
+                <div class="swatch" style="background:#102033">Trust ink<span>#102033</span></div>
+                <div class="swatch" style="background:#ffb037;color:#4a2a00">Alert<span>#FFB037</span></div>
+              </div>
+              <div class="hero-actions mt-28"><button class="primary-btn" data-web-screen="book-route">Test booking flow</button><button class="secondary-btn" data-web-screen="share-route">Test driver flow</button></div>
+            </section>
+            <section class="panel">
+              <h3>Product principles used in this UI</h3>
+              <div class="principles mt-16">
+                <div class="principle"><span class="icon-bubble">1</span><div><strong>Destination-first booking</strong><p class="small mb-0">The user starts with route and arrival time; the app shows all matching rides immediately.</p></div></div>
+                <div class="principle"><span class="icon-bubble green">2</span><div><strong>Trust before transaction</strong><p class="small mb-0">Driver identity, workplace verification, ratings, seat rules and cancellation terms appear before payment.</p></div></div>
+                <div class="principle"><span class="icon-bubble gold">3</span><div><strong>Professional commute habits</strong><p class="small mb-0">Recurring routes, office clusters, quiet ride preference, punctuality and company communities are built in.</p></div></div>
+                <div class="principle"><span class="icon-bubble">4</span><div><strong>Equal rider and sharer flows</strong><p class="small mb-0">The driver flow is as easy as booking: route, car, price, preview, publish.</p></div></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section id="mobile-view" class="view" aria-label="Mobile app prototype">
+        <div class="phone-stage">
+          <div class="phone-shell" aria-label="Mobile phone mockup">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+
+              <div id="m-home" class="mobile-screen active">
+                <div class="mobile-top">
+                  <div class="mobile-title"><div><span>Good morning</span><h3>Priya, ready for office?</h3></div><span class="brand-mark" style="width:38px;height:38px;border-radius:14px">CS</span></div>
+                  <p class="mb-0">Book verified seats or share your route with coworkers nearby.</p>
+                </div>
+                <div class="mobile-content">
+                  <div class="mobile-card">
+                    <h3>Find a work ride</h3>
+                    <div class="mobile-field"><span class="point green"></span><div><strong>HSR Layout</strong><span>Saved home pickup</span></div></div>
+                    <div class="mobile-field"><span class="point"></span><div><strong>Manyata Tech Park</strong><span>Reach by 9:30 AM</span></div></div>
+                    <button class="primary-btn mobile-full-btn" data-mobile-screen="m-results">Show available rides</button>
+                  </div>
+                  <div class="two-col" style="grid-template-columns:1fr 1fr; gap:10px">
+                    <button class="mobile-card" data-mobile-screen="m-share-route" style="text-align:left"><span class="icon-bubble green">DR</span><strong class="mt-8" style="display:block">Share ride</strong><span class="small muted">Earn fuel split</span></button>
+                    <button class="mobile-card" data-mobile-screen="m-commutes" style="text-align:left"><span class="icon-bubble">MY</span><strong class="mt-8" style="display:block">My commutes</strong><span class="small muted">2 upcoming</span></button>
+                  </div>
+                  <div class="mobile-card">
+                    <div class="ride-top"><div><strong>This month</strong><span class="small muted" style="display:block">Shared commute impact</span></div><div class="price"><strong>INR 3.8k</strong><span>saved</span></div></div>
+                    <div class="tag-row"><span class="tag green">18 rides</span><span class="tag">21.4 kg CO2</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="m-results" class="mobile-screen">
+                <div class="mobile-top"><div class="mobile-title"><div><span>Step 2 of 5</span><h3>3 rides found</h3></div><button class="light-btn" data-mobile-screen="m-home">Edit</button></div><p class="mb-0">HSR Layout to Manyata Tech Park</p></div>
+                <div class="mobile-content">
+                  <div class="mini-map-mobile"></div>
+                  <div class="filter-row" style="gap:7px; margin-bottom:12px"><span class="tag green">Best match</span><span class="tag">Verified</span><span class="tag">Before 9:30</span></div>
+                  <button class="mobile-card" data-mobile-screen="m-detail" style="width:100%; text-align:left">
+                    <div class="mobile-result"><div class="mobile-driver"><span class="avatar green">AS</span><div><strong>Aarav Sharma</strong><span class="small muted">8:22 AM - 92% match</span></div></div><div class="mobile-price"><strong>INR 145</strong><span class="small muted">2 seats</span></div></div>
+                    <div class="tag-row"><span class="tag green">Instant</span><span class="tag gold">Quiet</span></div>
+                  </button>
+                  <button class="mobile-card" data-mobile-screen="m-detail" style="width:100%; text-align:left">
+                    <div class="mobile-result"><div class="mobile-driver"><span class="avatar">NV</span><div><strong>Nisha Verma</strong><span class="small muted">8:35 AM - 88% match</span></div></div><div class="mobile-price"><strong>INR 120</strong><span class="small muted">1 seat</span></div></div>
+                    <div class="tag-row"><span class="tag green">Verified</span><span class="tag red">Approval</span></div>
+                  </button>
+                </div>
+              </div>
+
+              <div id="m-detail" class="mobile-screen">
+                <div class="mobile-top"><div class="mobile-title"><div><span>Step 3 of 5</span><h3>Ride details</h3></div><button class="light-btn" data-mobile-screen="m-results">Back</button></div><p class="mb-0">Check driver, route and safety before booking.</p></div>
+                <div class="mobile-content">
+                  <div class="mobile-card">
+                    <div class="ride-top"><div class="driver"><span class="avatar green">AS</span><div><h4>Aarav Sharma</h4><span>4.9 - FinEdge - verified</span></div></div><div class="price"><strong>INR 145</strong><span>seat</span></div></div>
+                    <div class="tag-row"><span class="tag green">ID verified</span><span class="tag green">Company</span><span class="tag">128 rides</span></div>
+                  </div>
+                  <div class="mobile-card">
+                    <div class="time-node" style="grid-template-columns:62px 24px 1fr"><small>8:22</small><span class="line-dot"></span><div><h4>HSR BDA Complex</h4><p>Pickup point</p></div></div>
+                    <div class="time-node" style="grid-template-columns:62px 24px 1fr"><small>9:18</small><span class="line-dot"></span><div><h4>Manyata Gate 2</h4><p>Office drop</p></div></div>
+                  </div>
+                  <div class="mobile-card"><h3>Comfort</h3><div class="tag-row"><span class="tag gold">Quiet ride</span><span class="tag">AC</span><span class="tag">Laptop bags</span></div></div>
+                  <button class="primary-btn mobile-full-btn" data-mobile-screen="m-review">Reserve this seat</button>
+                </div>
+              </div>
+
+              <div id="m-review" class="mobile-screen">
+                <div class="mobile-top"><div class="mobile-title"><div><span>Step 4 of 5</span><h3>Review and pay</h3></div><button class="light-btn" data-mobile-screen="m-detail">Back</button></div><p class="mb-0">No hidden charges. Free cancellation until 30 min before pickup.</p></div>
+                <div class="mobile-content">
+                  <div class="mobile-card">
+                    <h3>Seat summary</h3>
+                    <div class="summary-line"><span>Pickup</span><strong>8:22 AM</strong></div>
+                    <div class="summary-line"><span>Seat</span><strong>Rear left</strong></div>
+                    <div class="summary-line"><span>Payment</span><strong>UPI</strong></div>
+                    <div class="summary-line total"><span>Total</span><strong>INR 145</strong></div>
+                  </div>
+                  <div class="mobile-card"><div class="savings"><strong>Save INR 210</strong><span class="small muted">Compared with solo cab estimate.</span></div></div>
+                  <button class="primary-btn mobile-full-btn" data-mobile-screen="m-success">Confirm booking</button>
+                </div>
+              </div>
+
+              <div id="m-success" class="mobile-screen">
+                <div class="mobile-top"><div class="mobile-title"><div><span>Step 5 of 5</span><h3>Seat confirmed</h3></div><span class="success-mark" style="width:48px;height:48px;border-radius:18px;font-size:18px;margin:0">OK</span></div><p class="mb-0">Aarav will pick you up at 8:22 AM.</p></div>
+                <div class="mobile-content">
+                  <div class="ticket" style="color:white"><h3>Commute ticket</h3><p>HSR Layout to Manyata Tech Park</p><div class="summary-line"><span>Driver</span><strong>Aarav S.</strong></div><div class="summary-line"><span>Seat</span><strong>Rear left</strong></div><div class="summary-line"><span>ID</span><strong>CS-28491</strong></div></div>
+                  <button class="primary-btn mobile-full-btn" data-mobile-screen="m-commutes">Open my commutes</button>
+                  <button class="light-btn mobile-full-btn" data-mobile-screen="m-home">Back home</button>
+                </div>
+              </div>
+
+              <div id="m-share-route" class="mobile-screen">
+                <div class="mobile-top"><div class="mobile-title"><div><span>Driver step 1 of 5</span><h3>Publish route</h3></div><button class="light-btn" data-mobile-screen="m-home">Back</button></div><p class="mb-0">Share your existing office route.</p></div>
+                <div class="mobile-content">
+                  <div class="mobile-card">
+                    <div class="mobile-field"><span class="point green"></span><div><strong>HSR Layout</strong><span>Start point</span></div></div>
+                    <div class="mobile-field"><span class="point"></span><div><strong>Manyata Gate 2</strong><span>Office destination</span></div></div>
+                    <div class="mobile-field"><span class="point" style="background:#ffb037"></span><div><strong>8:20 AM, Mon-Fri</strong><span>Recurring departure</span></div></div>
+                    <button class="primary-btn mobile-full-btn" data-mobile-screen="m-share-car">Continue</button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="m-share-car" class="mobile-screen">
+                <div class="mobile-top"><div class="mobile-title"><div><span>Driver step 2-3</span><h3>Seats and price</h3></div><button class="light-btn" data-mobile-screen="m-share-route">Back</button></div><p class="mb-0">Set car comfort and fair cost split.</p></div>
+                <div class="mobile-content">
+                  <div class="mobile-card"><div class="vehicle-card"><span class="car-illus"></span><div><strong>Hyundai i20</strong><span class="small muted" style="display:block">2 seats - AC - quiet ride</span></div></div></div>
+                  <div class="mobile-card"><div class="summary-line"><span>Seat contribution</span><strong>INR 145</strong></div><div class="summary-line"><span>Approval</span><strong>Verified instant</strong></div><div class="summary-line"><span>Rules</span><strong>No smoking</strong></div></div>
+                  <button class="primary-btn mobile-full-btn" data-mobile-screen="m-share-preview">Preview listing</button>
+                </div>
+              </div>
+
+              <div id="m-share-preview" class="mobile-screen">
+                <div class="mobile-top"><div class="mobile-title"><div><span>Driver step 4 of 5</span><h3>Preview</h3></div><button class="light-btn" data-mobile-screen="m-share-car">Back</button></div><p class="mb-0">This is what commuters will see.</p></div>
+                <div class="mobile-content">
+                  <article class="mobile-card">
+                    <div class="mobile-result"><div class="mobile-driver"><span class="avatar green">YOU</span><div><strong>Your commute</strong><span class="small muted">HSR to Manyata - 8:20</span></div></div><div class="mobile-price"><strong>INR 145</strong><span class="small muted">seat</span></div></div>
+                    <div class="tag-row"><span class="tag green">Instant</span><span class="tag">2 seats</span><span class="tag gold">Quiet</span></div>
+                  </article>
+                  <button class="primary-btn mobile-full-btn" data-mobile-screen="m-share-done">Publish ride</button>
+                </div>
+              </div>
+
+              <div id="m-share-done" class="mobile-screen">
+                <div class="mobile-top"><div class="mobile-title"><div><span>Driver step 5 of 5</span><h3>Ride is live</h3></div><span class="success-mark" style="width:48px;height:48px;border-radius:18px;font-size:18px;margin:0">OK</span></div><p class="mb-0">Your route is visible to verified professionals.</p></div>
+                <div class="mobile-content">
+                  <div class="mobile-card"><h3>Live listing</h3><div class="summary-line"><span>Status</span><strong>Accepting</strong></div><div class="summary-line"><span>Seats</span><strong>2 open</strong></div><div class="summary-line"><span>Approval</span><strong>Verified instant</strong></div></div>
+                  <button class="primary-btn mobile-full-btn" data-mobile-screen="m-commutes">Manage ride</button>
+                </div>
+              </div>
+
+              <div id="m-commutes" class="mobile-screen">
+                <div class="mobile-top"><div class="mobile-title"><div><span>My workspace</span><h3>Commutes</h3></div><button class="light-btn" data-mobile-screen="m-home">Home</button></div><p class="mb-0">Bookings, published rides and savings.</p></div>
+                <div class="mobile-content">
+                  <div class="mobile-card"><div class="ride-top"><div><strong>Saved this month</strong><span class="small muted" style="display:block">Fuel + fare impact</span></div><div class="price"><strong>INR 3.8k</strong><span>saved</span></div></div></div>
+                  <div class="mobile-card"><h3>Upcoming booking</h3><p class="small muted">Aarav - Monday - 8:22 AM</p><button class="primary-btn mobile-full-btn" data-mobile-screen="m-success">Open ticket</button></div>
+                  <div class="mobile-card"><h3>Your shared ride</h3><p class="small muted">Evening return - 2 requests</p><button class="secondary-btn mobile-full-btn" data-mobile-screen="m-share-done">Manage listing</button></div>
+                </div>
+              </div>
+
+              <nav class="bottom-nav" aria-label="Mobile bottom navigation">
+                <button class="active" data-mobile-screen="m-home"><b>H</b>Home</button>
+                <button data-mobile-screen="m-results"><b>B</b>Book</button>
+                <button data-mobile-screen="m-share-route"><b>S</b>Share</button>
+                <button data-mobile-screen="m-commutes"><b>M</b>Mine</button>
+              </nav>
+            </div>
+          </div>
+
+          <aside class="mobile-insights">
+            <div class="insight-card">
+              <span class="eyebrow"><span class="dot"></span>Mobile app prototype</span>
+              <h2 class="mt-12">A thumb-friendly app flow.</h2>
+              <p>Click inside the phone. The app supports rider booking and driver publishing with large touch targets, bottom navigation and the same 4-5 step logic.</p>
+              <div class="hero-actions"><button class="primary-btn" data-mobile-screen="m-home">App home</button><button class="secondary-btn" data-mobile-screen="m-share-route">Driver publish</button><button class="light-btn" data-view="web">Back to web</button></div>
+            </div>
+            <div class="insight-card">
+              <h3>App screen map</h3>
+              <div class="screen-map">
+                <button class="screen-link" data-mobile-screen="m-home"><strong>Home</strong><span>Search or share route</span></button>
+                <button class="screen-link" data-mobile-screen="m-results"><strong>Ride results</strong><span>All rides visible</span></button>
+                <button class="screen-link" data-mobile-screen="m-detail"><strong>Ride detail</strong><span>Trust and route</span></button>
+                <button class="screen-link" data-mobile-screen="m-review"><strong>Review/pay</strong><span>Final confirmation</span></button>
+                <button class="screen-link" data-mobile-screen="m-share-route"><strong>Publish route</strong><span>Driver flow</span></button>
+                <button class="screen-link" data-mobile-screen="m-commutes"><strong>Commutes</strong><span>Manage everything</span></button>
+              </div>
+            </div>
+            <div class="insight-card">
+              <h3>Why this works</h3>
+              <p class="mb-0">The mobile flow avoids deep menus. For riders: route, rides, details, pay, done. For sharers: route, seats/price, preview, publish.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const rideData = {
+      aarav: { avatar: 'AS', name: 'Aarav Sharma', role: 'Product Manager at FinEdge - 4.9 rating - 128 shared rides', price: 'INR 145', total: 'INR 145', avatarClass: 'avatar green' },
+      nisha: { avatar: 'NV', name: 'Nisha Verma', role: 'Senior Analyst at CloudNest - 4.8 rating - 94 shared rides', price: 'INR 120', total: 'INR 120', avatarClass: 'avatar' },
+      rohan: { avatar: 'RK', name: 'Rohan Kapoor', role: 'Engineering Lead at Maply - 4.7 rating - EV driver', price: 'INR 165', total: 'INR 165', avatarClass: 'avatar gold' }
+    };
+
+    function setView(view) {
+      document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+      document.getElementById(view + '-view').classList.add('active');
+      document.querySelectorAll('[data-view]').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showWebScreen(id) {
+      setView('web');
+      document.querySelectorAll('#web-view .screen').forEach(el => el.classList.remove('active'));
+      const screen = document.getElementById(id);
+      if (screen) screen.classList.add('active');
+      document.querySelectorAll('.nav button').forEach(btn => btn.classList.toggle('active', btn.dataset.webScreen === id || (id.startsWith('book') && btn.dataset.webScreen === 'book-route') || (id.startsWith('share') && btn.dataset.webScreen === 'share-route')));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showMobileScreen(id) {
+      setView('mobile');
+      document.querySelectorAll('.mobile-screen').forEach(el => el.classList.remove('active'));
+      const screen = document.getElementById(id);
+      if (screen) screen.classList.add('active');
+      document.querySelectorAll('.bottom-nav button').forEach(btn => btn.classList.toggle('active', btn.dataset.mobileScreen === id || (id.startsWith('m-share') && btn.dataset.mobileScreen === 'm-share-route') || ((id.startsWith('m-result') || id.startsWith('m-detail') || id.startsWith('m-review') || id.startsWith('m-success')) && btn.dataset.mobileScreen === 'm-results') || (id === 'm-commutes' && btn.dataset.mobileScreen === 'm-commutes')));
+    }
+
+    function selectRide(key) {
+      const ride = rideData[key] || rideData.aarav;
+      const avatar = document.getElementById('detail-avatar');
+      const name = document.getElementById('detail-name');
+      const role = document.getElementById('detail-role');
+      const price = document.getElementById('detail-price');
+      const total = document.getElementById('detail-total');
+      if (avatar) { avatar.textContent = ride.avatar; avatar.className = ride.avatarClass; }
+      if (name) name.textContent = ride.name;
+      if (role) role.textContent = ride.role;
+      if (price) price.textContent = ride.price;
+      if (total) total.textContent = ride.total;
+    }
+
+    document.addEventListener('click', function (event) {
+      const viewBtn = event.target.closest('[data-view]');
+      if (viewBtn) { setView(viewBtn.dataset.view); return; }
+
+      const webBtn = event.target.closest('[data-web-screen]');
+      if (webBtn) {
+        if (webBtn.dataset.ride) selectRide(webBtn.dataset.ride);
+        showWebScreen(webBtn.dataset.webScreen);
+        return;
+      }
+
+      const mobileBtn = event.target.closest('[data-mobile-screen]');
+      if (mobileBtn) { showMobileScreen(mobileBtn.dataset.mobileScreen); }
+    });
+  </script>
+</body>
+</html>
