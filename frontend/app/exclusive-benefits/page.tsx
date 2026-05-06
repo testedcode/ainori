@@ -11,7 +11,7 @@ import {
   Wifi, SlidersHorizontal, UserPlus, HeartPulse, Loader2
 } from 'lucide-react'
 import { api } from '@/lib/api'
-import JoolNav from '../components/JoolNav'
+import PulseNav from '../components/PulseNav'
 import Link from 'next/link'
 
 export default function ExclusiveBenefitsPage() {
@@ -48,7 +48,7 @@ export default function ExclusiveBenefitsPage() {
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-amber-500/5 blur-[150px] -z-10 pointer-events-none" />
       <div className="fixed -top-40 -left-40 w-[600px] h-[600px] bg-blue-600/10 blur-[180px] -z-10 rounded-full animate-pulse" />
       
-      <JoolNav />
+      <PulseNav />
 
       <main className="max-w-7xl mx-auto px-6 pt-32">
         

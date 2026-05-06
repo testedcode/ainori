@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
-import JoolNav from '../components/JoolNav'
+import PulseNav from '../components/PulseNav'
 import { getVibe, VIBE_THEMES } from '@/lib/vibe-utils'
 import VibeCanvas from '../components/VibeCanvas'
 
@@ -24,7 +24,7 @@ const CORRIDORS_DEFAULT: Corridor[] = [
   { id: 4, name: 'Any Country', location_from: 'Any City', location_to: 'Any Place' },
 ]
 
-const DRAFT_KEY = 'ainori_ride_draft'
+const DRAFT_KEY = 'Pulse_ride_draft'
 
 export default function OfferRidePage() {
   const router = useRouter()
@@ -172,7 +172,7 @@ export default function OfferRidePage() {
     <div className={`min-h-screen font-sans pb-20 transition-all duration-1000 ${theme.bg}`}>
       <VibeCanvas vibe={vibe} />
       <div className="relative z-50">
-        <JoolNav />
+        <PulseNav />
       </div>
 
       <main className="max-w-4xl mx-auto px-6 mt-8">

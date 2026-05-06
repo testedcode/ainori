@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
-import JoolNav from '../../components/JoolNav'
+import PulseNav from '../../components/PulseNav'
 import { getVibe, VIBE_THEMES } from '@/lib/vibe-utils'
 import VibeCanvas from '../../components/VibeCanvas'
 
@@ -389,7 +389,7 @@ export default function RideDetailPage() {
   return (
     <div className={`min-h-screen font-sans pb-32 transition-all duration-1000 ${theme.bg}`}>
       <VibeCanvas vibe={vibe} />
-      <JoolNav />
+      <PulseNav />
 
       {loading ? (
         <div className="max-w-4xl mx-auto px-6 mt-12 flex flex-col items-center justify-center py-32 opacity-20">

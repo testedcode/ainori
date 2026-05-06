@@ -17,7 +17,7 @@ const NAV_LINKS = [
   { href: '/profile', label: 'Profile', icon: User },
 ]
 
-export default function JoolNav({ adminMode = false }: { adminMode?: boolean }) {
+export default function PulseNav({ adminMode = false }: { adminMode?: boolean }) {
   const pathname = usePathname()
   const [user, setUser] = useState<any>(null)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -56,7 +56,7 @@ export default function JoolNav({ adminMode = false }: { adminMode?: boolean }) 
             <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
               <Car className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">AINORI</span>
+            <span className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">Pulse</span>
           </Link>
 
           {/* Desktop Nav Items */}
@@ -108,7 +108,7 @@ export default function JoolNav({ adminMode = false }: { adminMode?: boolean }) 
            <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
              <Car className="w-4 h-4 text-white" />
            </div>
-           <span className="text-sm font-black tracking-tighter text-white">AINORI</span>
+           <span className="text-sm font-black tracking-tighter text-white">Pulse</span>
         </Link>
         <div className="flex items-center gap-3">
           {user?.role === 'admin' && (

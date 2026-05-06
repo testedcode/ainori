@@ -53,7 +53,7 @@ export default function InstallBanner() {
           </div>
           
           <div className="flex-1 pr-4">
-            <h3 className="text-sm font-black text-white uppercase tracking-wider mb-1">Install Ainori App</h3>
+            <h3 className="text-sm font-black text-white uppercase tracking-wider mb-1">Install Pulse App</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
               Add to your home screen for the full "Private Syndicate" experience and faster access.
             </p>

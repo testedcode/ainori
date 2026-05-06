@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
-import JoolNav from '../components/JoolNav'
+import PulseNav from '../components/PulseNav'
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 function fmtDate(raw: string) {
@@ -113,7 +113,7 @@ export default function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-[#05070a] text-white font-sans pb-32">
-      <JoolNav />
+      <PulseNav />
 
       <main className="max-w-6xl mx-auto px-6 mt-12">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">

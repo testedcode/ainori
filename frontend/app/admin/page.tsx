@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
-import JoolNav from '../components/JoolNav'
+import PulseNav from '../components/PulseNav'
 import { createClient } from '@/utils/supabase/client'
 
 interface User {
@@ -332,7 +332,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-[#0f172a] text-white font-sans pb-20 overflow-x-hidden">
       <div className="absolute top-0 left-0 w-full h-[600px] bg-purple-600/5 blur-[150px] -z-10 pointer-events-none" />
 
-      <JoolNav adminMode />
+      <PulseNav adminMode />
 
       <main className="max-w-7xl mx-auto px-6 md:px-12 mt-12">
 

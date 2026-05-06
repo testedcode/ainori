@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
-import JoolFooter from './components/JoolFooter'
+import PulseFooter from './components/PulseFooter'
 import InstallBanner from './components/InstallBanner'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -17,13 +17,13 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'JOOL — Premium Office Carpooling',
-  description: 'Corridor-based premium carpooling for office commutes.',
+  title: 'Pulse — Community Office Commute',
+  description: 'Simple and shared office carpooling for professionals.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Ainori',
+    title: 'Pulse',
   },
 }
 
@@ -37,7 +37,7 @@ export default function RootLayout({
       <body className={inter.className}>
         {children}
         <InstallBanner />
-        <JoolFooter />
+        <PulseFooter />
         <Toaster 
           position="top-right"
           toastOptions={{

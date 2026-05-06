@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
-import JoolNav from '../components/JoolNav'
+import PulseNav from '../components/PulseNav'
 import NotificationManager from '../components/NotificationManager'
 
 const fmtTime = (raw: string) => raw ? raw.slice(0, 5) : '--:--'
@@ -255,7 +255,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-[#0f172a] text-white pb-20 font-sans overflow-x-hidden relative">
       <div className="absolute top-0 left-0 w-full h-[800px] bg-blue-600/10 blur-[150px] rounded-full -z-10 pointer-events-none" />
       
-      <JoolNav />
+      <PulseNav />
 
       <main className="max-w-7xl mx-auto px-6 md:px-12 mt-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
         

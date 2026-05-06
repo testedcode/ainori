@@ -7,7 +7,7 @@ import {
   Globe, Server, CheckCircle2, AlertTriangle, MessageSquare,
   ArrowRight, UserCheck, CreditCard, ShieldCheck, Cookie
 } from 'lucide-react'
-import JoolNav from '../components/JoolNav'
+import PulseNav from '../components/PulseNav'
 
 function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -73,7 +73,7 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-[#0f172a] text-white font-sans pb-32">
       <div className="fixed top-0 right-1/4 w-[500px] h-[500px] bg-purple-600/4 blur-[200px] -z-10 pointer-events-none rounded-full" />
-      <JoolNav />
+      <PulseNav />
 
       {/* Hero */}
       <div className="max-w-5xl mx-auto px-6 md:px-12 pt-20 pb-12">
@@ -94,13 +94,13 @@ export default function PrivacyPage() {
               <div className="flex items-center gap-4 text-[10px] font-black text-white/30 uppercase tracking-widest">
                 <span>Effective: April 2025</span>
                 <span className="text-white/10">·</span>
-                <span className="text-purple-400">AINORI Community</span>
+                <span className="text-purple-400">Pulse Community</span>
               </div>
             </div>
           </div>
           <div className="p-5 bg-purple-500/5 border border-purple-500/20 rounded-2xl">
             <p className="text-sm text-slate-400 leading-relaxed">
-              <span className="font-black text-white">Your privacy matters to us.</span> This policy explains exactly what data we collect, why, how we protect it, and your rights over it. We do not sell your data. We do not use it for advertising. We collect only what is necessary to run the AINORI Community platform.
+              <span className="font-black text-white">Your privacy matters to us.</span> This policy explains exactly what data we collect, why, how we protect it, and your rights over it. We do not sell your data. We do not use it for advertising. We collect only what is necessary to run the Pulse Community platform.
             </p>
           </div>
         </Reveal>

@@ -15,7 +15,7 @@ import {
 import { api } from '@/lib/api'
 import { getVibe, VIBE_THEMES, VibeState } from '@/lib/vibe-utils'
 import toast from 'react-hot-toast'
-import JoolNav from '../components/JoolNav'
+import PulseNav from '../components/PulseNav'
 import VibeCanvas from '../components/VibeCanvas'
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
@@ -543,7 +543,7 @@ function RidesContent() {
   return (
     <div className={`min-h-screen text-white font-sans pb-32 transition-all duration-1000 ${theme.bg}`}>
       <VibeCanvas vibe={vibe} />
-      <JoolNav />
+      <PulseNav />
 
       {/* ROUTE HUB - CIRCULAR ORBS */}
       <div className="w-full py-8 overflow-x-auto scrollbar-hide">
@@ -811,7 +811,7 @@ function RidesContent() {
 
 export default function RidesPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#020617] flex items-center justify-center text-[10px] font-black uppercase tracking-[0.5em] text-white/20 animate-pulse">Loading Ainori...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#020617] flex items-center justify-center text-[10px] font-black uppercase tracking-[0.5em] text-white/20 animate-pulse">Loading Pulse...</div>}>
       <RidesContent />
     </Suspense>
   )

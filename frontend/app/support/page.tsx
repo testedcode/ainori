@@ -8,7 +8,7 @@ import {
   Sparkles, HelpCircle, Send, Star, AlertCircle,
   LifeBuoy, BookOpen, Activity, CreditCard, RefreshCw, CheckCircle
 } from 'lucide-react'
-import JoolNav from '../components/JoolNav'
+import PulseNav from '../components/PulseNav'
 import toast from 'react-hot-toast'
 import { api } from '@/lib/api'
 import { useSearchParams } from 'next/navigation'
@@ -203,7 +203,7 @@ function SupportContent() {
     setCheckLoading(true)
     setTicketStatus(null)
     try {
-      const ref = checkRef.trim().toUpperCase().startsWith('AINORI-') ? checkRef.trim() : `AINORI-${checkRef.trim()}`
+      const ref = checkRef.trim().toUpperCase().startsWith('Pulse-') ? checkRef.trim() : `Pulse-${checkRef.trim()}`
       const data = await api.get(`/support/${ref}`) as any
       setTicketStatus(data)
     } catch {
@@ -226,7 +226,7 @@ function SupportContent() {
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-blue-600/5 blur-[150px] -z-10 pointer-events-none" />
       <div className="fixed top-1/3 right-0 w-[400px] h-[400px] bg-indigo-600/5 blur-[120px] -z-10 pointer-events-none" />
 
-      <JoolNav />
+      <PulseNav />
 
       {/* HERO */}
       <section className="max-w-6xl mx-auto px-6 md:px-12 pt-16 pb-8">
@@ -240,7 +240,7 @@ function SupportContent() {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Your Back.</span>
             </h1>
             <p className="text-slate-400 mt-4 text-base max-w-lg leading-relaxed">
-              Everything you need to understand AINORI, resolve issues, and make your commute experience smooth.
+              Everything you need to understand Pulse, resolve issues, and make your commute experience smooth.
             </p>
           </div>
 
@@ -258,7 +258,7 @@ function SupportContent() {
                 </div>
               </div>
               <p className="text-white font-bold text-sm leading-relaxed">
-                Every shared seat on AINORI means one fewer solo car on the road — directly reducing CO2 emissions for your corridor.
+                Every shared seat on Pulse means one fewer solo car on the road — directly reducing CO2 emissions for your corridor.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {['Fewer Solo Cars', 'Verified Routes', 'Tracked Impact'].map(tag => (
@@ -305,7 +305,7 @@ function SupportContent() {
           <div className="space-y-16">
             <div className="text-center mb-4">
               <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">User Journey</p>
-              <h2 className="text-3xl font-black tracking-tighter">Two ways to use AINORI</h2>
+              <h2 className="text-3xl font-black tracking-tighter">Two ways to use Pulse</h2>
               <p className="text-slate-500 mt-2 text-sm">Whether you are offering a ride or looking for one, here is exactly how it works.</p>
             </div>
 
@@ -374,7 +374,7 @@ function SupportContent() {
             <div className="text-center mb-10">
               <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">Quick Answers</p>
               <h2 className="text-3xl font-black tracking-tighter">Common Questions</h2>
-              <p className="text-slate-500 mt-2 text-sm">Everything you might wonder about AINORI — answered simply.</p>
+              <p className="text-slate-500 mt-2 text-sm">Everything you might wonder about Pulse — answered simply.</p>
             </div>
             <div className="max-w-3xl mx-auto space-y-3">
               {FAQ_ITEMS.map((item, i) => (
@@ -400,7 +400,7 @@ function SupportContent() {
             <div className="text-center mb-4">
               <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">Transparent Pricing</p>
               <h2 className="text-3xl font-black tracking-tighter">Payment Info</h2>
-              <p className="text-slate-500 mt-2 text-sm max-w-xl mx-auto">AINORI has zero platform commission. Contributions go directly from co-commuter to host via UPI.</p>
+              <p className="text-slate-500 mt-2 text-sm max-w-xl mx-auto">Pulse has zero platform commission. Contributions go directly from co-commuter to host via UPI.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
@@ -473,7 +473,7 @@ function SupportContent() {
               <div className="bg-white/[0.03] border border-white/10 rounded-[2rem] p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <ShieldCheck className="w-5 h-5 text-green-400" />
-                  <h4 className="font-black text-white">What AINORI guarantees</h4>
+                  <h4 className="font-black text-white">What Pulse guarantees</h4>
                 </div>
                 <ul className="space-y-2">
                   {[
@@ -514,7 +514,7 @@ function SupportContent() {
             <div className="text-center mb-10">
               <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">Your Voice Matters</p>
               <h2 className="text-3xl font-black tracking-tighter">Share Feedback</h2>
-              <p className="text-slate-500 mt-2 text-sm">Help us make AINORI better for everyone. All feedback is reviewed by our product team.</p>
+              <p className="text-slate-500 mt-2 text-sm">Help us make Pulse better for everyone. All feedback is reviewed by our product team.</p>
             </div>
 
             <form onSubmit={handleFeedbackSubmit} className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 space-y-6">
@@ -763,10 +763,10 @@ function SupportContent() {
 
               <div className="flex gap-3">
                 <div className="relative flex-1">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 font-black text-sm">AINORI-</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 font-black text-sm">Pulse-</span>
                   <input
                     type="text"
-                    value={checkRef.replace(/^JOOL-/i, '')}
+                    value={checkRef.replace(/^Pulse-/i, '')}
                     onChange={e => setCheckRef(e.target.value)}
                     placeholder="e.g. 222091"
                     className="w-full bg-black/40 border border-white/10 rounded-2xl pl-16 pr-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500 transition-colors font-mono"
@@ -804,7 +804,7 @@ function SupportContent() {
                     <div className="bg-blue-600/10 border border-blue-500/20 rounded-2xl p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <CheckCircle className="w-4 h-4 text-blue-400" />
-                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">JOOL Team Reply</p>
+                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Pulse Team Reply</p>
                         <span className="text-[10px] text-white/20 ml-auto">{ticketStatus.replied_at ? new Date(ticketStatus.replied_at).toLocaleDateString('en-IN') : ''}</span>
                       </div>
                       <p className="text-sm text-white leading-relaxed">{ticketStatus.admin_reply}</p>

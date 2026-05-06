@@ -114,7 +114,7 @@ export default function LoginPage() {
           <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
             <Car className="w-7 h-7 text-white" />
           </div>
-          <span className="text-4xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">JOOL</span>
+          <span className="text-4xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">Pulse</span>
         </div>
 
         {/* Card */}
@@ -175,7 +175,7 @@ export default function LoginPage() {
           </form>
 
           <p className="text-center text-sm text-slate-500 mt-6">
-            New to JOOL?{' '}
+            New to Pulse?{' '}
             <Link href="/register" className="text-blue-400 hover:text-blue-300 font-bold transition-colors">
               Create account
             </Link>

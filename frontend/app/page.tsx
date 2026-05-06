@@ -20,7 +20,7 @@ import {
 import { api } from '@/lib/api';
 import { getVibe, VIBE_THEMES } from '@/lib/vibe-utils';
 import VibeCanvas from './components/VibeCanvas';
-import JoolNav from './components/JoolNav';
+import PulseNav from './components/PulseNav';
 
 export default function HomePage() {
   const [stats, setStats] = useState({
@@ -70,7 +70,7 @@ export default function HomePage() {
 
       {/* Premium Navigation */}
       {user ? (
-        <JoolNav />
+        <PulseNav />
       ) : (
         <nav className={`fixed top-0 w-full z-50 transition-all duration-500 px-6 md:px-12 py-4 flex justify-between items-center ${
           scrolled ? 'bg-[#0f172a]/80 backdrop-blur-2xl border-b border-white/5 py-3' : 'bg-transparent'
@@ -81,7 +81,7 @@ export default function HomePage() {
               <Car className="w-6 h-6 text-white relative z-10" />
             </div>
             <div className="flex flex-col text-left">
-              <span className="text-xl font-black tracking-tighter leading-none">AINORI</span>
+              <span className="text-xl font-black tracking-tighter leading-none">Pulse</span>
               <span className="text-[8px] font-black tracking-[0.3em] text-blue-500 uppercase">Simple & Shared</span>
             </div>
           </Link>
@@ -112,6 +112,9 @@ export default function HomePage() {
                 BOOK YOUR<br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-white to-blue-400">DAILY RIDE.</span>
               </h1>
+              <p className="text-xl md:text-2xl text-white/50 font-black uppercase italic tracking-tighter mb-12">
+                Check your Pulse today for your daily office commute.
+              </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-10 mt-16">
                 <Link href="/register" className="group relative px-16 py-7 bg-white text-black rounded-[3rem] font-black text-lg uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-2xl active:scale-95 overflow-hidden">
                   <span className="relative z-10 flex items-center gap-3">Get Started <ArrowRight className="w-6 h-6" /></span>
@@ -370,9 +373,9 @@ export default function HomePage() {
                  />
 
                  <OptimizationCard 
-                    tag="[INFRASTRUCTURE]" 
-                    title="Nexus Logic" 
-                    subtitle="ORGANIZING THE CHAOS"
+                    tag="[STAY IN FLOW]" 
+                    title="Pulse Sync" 
+                    subtitle="STAY IN THE FLOW"
                     desc="No more scrolling through unorganized chat groups. We provide the structured setup that chat groups simply can't offer."
                     icon={LayoutGrid}
                     metric="ZERO SPAM"
@@ -422,7 +425,7 @@ export default function HomePage() {
                    { title: 'Treat with Greet', d: 'A smile is the best commute start. Be the energy you want to ride with.', icon: Smile, vibe: 'ENERGY', benefit: 'DOPAMINE BOOST', color: 'blue' },
                    { title: 'Silent Commute', d: 'Respect "No Yelling" and low volume. Deep work or total zen.', icon: VolumeX, vibe: 'FOCUS', benefit: 'DEEP WORK', color: 'purple' },
                    { title: 'In-Ride Settle', d: 'Settle via UPI during the ride. Zero friction, zero debt.', icon: Banknote, vibe: 'FLOW', benefit: 'ZERO FRICTION', color: 'green' },
-                   { title: 'Privacy First', d: 'Privacy first. Keep all coordination inside the AINORI network.', icon: ShieldCheck, vibe: 'STEALTH', benefit: 'DATA PRIVACY', color: 'red' },
+                   { title: 'Privacy First', d: 'Privacy first. Keep all coordination inside the Pulse network.', icon: ShieldCheck, vibe: 'STEALTH', benefit: 'DATA PRIVACY', color: 'red' },
                    { title: 'Time Discipline', d: 'Punctuality is the ultimate respect. Be the one that others rely on.', icon: Clock, vibe: 'TRUST', benefit: 'TIME SAVED', color: 'amber' },
                    { title: 'Zero Spam Signal', d: 'Keep the signals clean. Relevant commute updates only.', icon: Radio, vibe: 'SIGNAL', benefit: 'NO NOISE', color: 'cyan' }
                  ].map((hack, i) => (
@@ -530,50 +533,6 @@ export default function HomePage() {
         </section>
       </main>
 
-      <footer className="container mx-auto px-6 py-20 border-t border-white/5">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
-           <div className="md:col-span-2 text-left">
-              <div className="flex items-center gap-3 mb-8">
-                 <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                    <Car className="w-7 h-7 text-white" />
-                 </div>
-                 <div className="flex flex-col">
-                   <span className="text-2xl font-black tracking-widest uppercase leading-none">AINORI COMMUNITY</span>
-                   <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.4em]">Simple & Shared Daily Commute</span>
-                 </div>
-              </div>
-              <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest max-w-sm leading-relaxed">
-                 A better way to travel together. Join our secure professional commute network.
-              </p>
-           </div>
-           
-           <div className="text-left">
-              <h4 className="text-xs font-black uppercase tracking-[0.4em] mb-10 text-white">Infrastructure</h4>
-              <div className="flex flex-col gap-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                 <Link href="/privacy" className="hover:text-white transition-colors">Privacy Promise</Link>
-                 <Link href="/terms" className="hover:text-white transition-colors">Community Terms</Link>
-                 <Link href="/support" className="hover:text-white transition-colors">Help Center</Link>
-              </div>
-           </div>
-
-           <div className="text-left">
-              <h4 className="text-xs font-black uppercase tracking-[0.4em] mb-10 text-white">Community</h4>
-              <div className="flex flex-col gap-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                 <Link href="/hacks" className="hover:text-white transition-colors">Ride Tips</Link>
-                 <Link href="/exclusive-benefits" className="hover:text-white transition-colors">Member Benefits</Link>
-                 <Link href="/safety" className="hover:text-white transition-colors">Safety</Link>
-              </div>
-           </div>
-        </div>
-
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-t border-white/5 pt-12">
-           <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">© 2026 AINORI COMMUNITY</p>
-           <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">System Online</span>
-           </div>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import {
   MapPin, Radio, Activity, ArrowLeft, Sparkles
 } from 'lucide-react'
 import Link from 'next/link'
-import JoolNav from '../components/JoolNav'
+import PulseNav from '../components/PulseNav'
 
 export default function NodesPage() {
   const nodes = [
@@ -33,7 +33,7 @@ export default function NodesPage() {
 
   return (
     <div className="min-h-screen bg-[#020617] text-white selection:bg-blue-600/30">
-      <JoolNav />
+      <PulseNav />
       
       <main className="max-w-4xl mx-auto px-6 py-20">
         <Link href="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-12 group">

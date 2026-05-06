@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
-import JoolNav from '../../components/JoolNav'
+import PulseNav from '../../components/PulseNav'
 
 interface UserProfile {
   id: number
@@ -62,7 +62,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-[#060b18] text-white font-sans pb-20">
       <div className="absolute top-0 left-0 w-full h-[500px] bg-blue-600/5 blur-[120px] -z-10" />
       
-      <JoolNav />
+      <PulseNav />
 
       <main className="max-w-4xl mx-auto px-6 mt-12">
         <button onClick={() => router.back()} className="flex items-center gap-2 text-white/40 hover:text-white transition-colors mb-10 group">

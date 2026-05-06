@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import toast from 'react-hot-toast'
-import JoolNav from '../components/JoolNav'
+import PulseNav from '../components/PulseNav'
 
 interface Vehicle {
   id: number
@@ -154,7 +154,7 @@ export default function VehiclesPage() {
     <div className="min-h-screen bg-[#0f172a] text-white font-sans pb-20">
       <div className="absolute top-0 left-0 w-full h-[500px] bg-blue-600/5 blur-[150px] -z-10 pointer-events-none" />
 
-      <JoolNav />
+      <PulseNav />
 
       <main className="max-w-6xl mx-auto px-6 md:px-12 mt-12">
 
