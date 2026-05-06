@@ -10,23 +10,23 @@ import JoolNav from '../components/JoolNav'
 export default function NodesPage() {
   const nodes = [
     {
-      title: 'Corridor Optimization',
-      desc: 'Each city is divided into high-density professional corridors. Our AI optimizes "Departure Nodes"—fixed, safe pickup points that minimize detour time for ride providers.',
+      title: 'Route Planning',
+      desc: 'Our cities are organized into popular professional routes. We optimize "Meeting Hubs"—fixed, safe pickup points that make it easy for everyone to coordinate without delays.',
       icon: MapPin
     },
     {
-      title: 'Distributed Trust',
-      desc: 'Verification is not centralized. We use a multi-node verification system that cross-references corporate affiliations and social reputation across the syndicate.',
+      title: 'Trusted Members',
+      desc: 'Our community is built on trust. We verify everyone through their workplace and social reputation to ensure a safe and respectful environment.',
       icon: Network
     },
     {
-      title: 'Real-time Sync',
-      desc: 'The Syndicate network processes thousands of telemetry points per second to ensure real-time synchronization between riders and providers.',
+      title: 'Live Updates',
+      desc: 'Our community network keeps everyone in sync with real-time updates between riders and providers.',
       icon: Zap
     },
     {
-      title: 'India-Global Backbone',
-      desc: 'Engineered in Mumbai for the global professional elite. Our architecture is designed to scale across mega-cities worldwide, maintaining the same precision.',
+      title: 'Built with Care',
+      desc: 'Designed for the modern professional. Our platform is built to make daily commuting simple, reliable, and comfortable for everyone.',
       icon: Globe
     }
   ]
@@ -38,17 +38,17 @@ export default function NodesPage() {
       <main className="max-w-4xl mx-auto px-6 py-20">
         <Link href="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-12 group">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          <span className="text-xs font-black uppercase tracking-widest">Back to Nexus</span>
+          <span className="text-xs font-black uppercase tracking-widest">Back Home</span>
         </Link>
 
         <div className="mb-20">
-          <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">NETWORK ARCHITECTURE</p>
+          <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">OUR COMMUNITY NETWORK</p>
           <h1 className="text-5xl md:text-7xl font-black tracking-tighter italic uppercase italic leading-none mb-8">
-            SYNDICATE<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600">NODES.</span>
+            COMMUNITY<br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600">HUBS.</span>
           </h1>
           <p className="text-slate-400 text-lg leading-relaxed font-medium max-w-2xl">
-            The backbone of JOOL is a distributed network of professional corridors. We've mapped the commute mesh into a series of predictable, safe, and efficient nodes.
+            Our platform is built around a network of popular commute routes. We've mapped out the best meeting points to make traveling together simple, safe, and efficient.
           </p>
         </div>
 
@@ -73,13 +73,13 @@ export default function NodesPage() {
            <div className="w-px h-20 bg-gradient-to-b from-blue-600 to-transparent mb-12" />
            <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-[0.3em]">
               <Activity className="w-4 h-4 text-green-500" />
-              99.9% Node Uptime
+              Always Reliable
            </div>
         </div>
       </main>
 
       <footer className="py-20 border-t border-white/5 text-center">
-        <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">© 2026 JOOL • ARCHITECTURE V1.0 • CRAFTED IN INDIA</p>
+        <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">© 2026 • BUILT FOR OUR COMMUNITY • CRAFTED IN INDIA</p>
       </footer>
     </div>
   )

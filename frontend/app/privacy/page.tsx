@@ -94,13 +94,13 @@ export default function PrivacyPage() {
               <div className="flex items-center gap-4 text-[10px] font-black text-white/30 uppercase tracking-widest">
                 <span>Effective: April 2025</span>
                 <span className="text-white/10">·</span>
-                <span className="text-purple-400">Ainori / JOOL Platform</span>
+                <span className="text-purple-400">AINORI Community</span>
               </div>
             </div>
           </div>
           <div className="p-5 bg-purple-500/5 border border-purple-500/20 rounded-2xl">
             <p className="text-sm text-slate-400 leading-relaxed">
-              <span className="font-black text-white">Your privacy matters to us.</span> This policy explains exactly what data we collect, why, how we protect it, and your rights over it. We do not sell your data. We do not use it for advertising. We collect only what is necessary to run the platform.
+              <span className="font-black text-white">Your privacy matters to us.</span> This policy explains exactly what data we collect, why, how we protect it, and your rights over it. We do not sell your data. We do not use it for advertising. We collect only what is necessary to run the AINORI Community platform.
             </p>
           </div>
         </Reveal>
@@ -292,7 +292,7 @@ export default function PrivacyPage() {
                     <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center"><Cookie className="w-5 h-5 text-slate-400" /></div>
                     <div><p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Section 06</p><h2 className="text-xl font-black">Cookies &amp; Local Storage</h2></div>
                   </div>
-                  <p className="text-slate-400 text-sm leading-relaxed mb-4">JOOL uses minimal browser storage:</p>
+                  <p className="text-slate-400 text-sm leading-relaxed mb-4">We use minimal browser storage:</p>
                   <div className="space-y-3 text-sm text-slate-400">
                     {[
                       { name: 'Authentication token (localStorage)', purpose: 'Keeps you logged in across sessions', type: 'Essential', expires: 'On logout or expiry' },

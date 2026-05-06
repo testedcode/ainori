@@ -8,7 +8,7 @@ import {
   Shield, Lock, ZapOff, Heart, Brain, Headset,
   Fingerprint, Search, Bell, ShieldEllipsis,
   CircleUser, Briefcase, Car, Coffee, Music,
-  Wifi, SlidersHorizontal, UserPlus, HeartPulse
+  Wifi, SlidersHorizontal, UserPlus, HeartPulse, Loader2
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import JoolNav from '../components/JoolNav'
@@ -55,25 +55,25 @@ export default function ExclusiveBenefitsPage() {
         {/* HERO SECTION - THE KING FEEL */}
         <section className="text-center mb-40 relative">
            <div className="inline-flex items-center gap-3 px-8 py-3 bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/20 text-amber-500 rounded-full text-[10px] font-black uppercase tracking-[0.5em] mb-12 animate-in fade-in slide-in-from-top-8 duration-1000">
-              <Crown className="w-5 h-5 animate-pulse" /> THE SYNDICATE EXCLUSIVE
+              <Crown className="w-5 h-5 animate-pulse" /> COMMUNITY BENEFITS
            </div>
            
            <h1 className="text-6xl md:text-9xl font-black tracking-tighter mb-10 leading-tight uppercase italic animate-in fade-in slide-in-from-bottom-8 duration-1000">
               YOUR COMMUTE,<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-500 to-amber-200 animate-gradient-x">REMASTERED.</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-500 to-amber-200 animate-gradient-x">SIMPLIFIED.</span>
            </h1>
            
            <p className="max-w-3xl mx-auto text-white/50 text-lg md:text-2xl font-medium leading-relaxed mb-16 px-4">
-              Step into the future of professional mobility. AI-driven orchestration, elite networking, and unmatched security protocols tailored for Mumbai's executive class.
+              Step into a better way to travel. Smart matching, neighborly networking, and simple safety guidelines tailored for your daily office trip.
            </p>
 
            <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
               <Link href="/find-ride" className="group relative px-14 py-6 bg-amber-500 text-black rounded-[2.5rem] font-black text-sm uppercase tracking-widest hover:bg-amber-400 transition-all shadow-[0_20px_60px_rgba(245,158,11,0.4)] active:scale-95">
-                 <span className="relative z-10">ACCESS ELITE CORRIDORS</span>
+                 <span className="relative z-10">FIND A RIDE</span>
                  <div className="absolute inset-0 bg-white/20 rounded-[2.5rem] scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
               </Link>
               <button className="px-14 py-6 bg-white/5 border border-white/10 rounded-[2.5rem] font-black text-sm uppercase tracking-widest hover:bg-white/10 transition-all hover:border-white/20">
-                 VIEW PRIVACY PROTOCOL
+                 OUR PRIVACY PROMISE
               </button>
            </div>
         </section>
@@ -89,8 +89,8 @@ export default function ExclusiveBenefitsPage() {
                           <Brain className="w-10 h-10 text-white" />
                        </div>
                        <div>
-                          <h3 className="text-3xl font-black italic uppercase">JOOL AI ORCHESTRA</h3>
-                          <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest">Active Intelligence Engine</p>
+                          <h3 className="text-3xl font-black italic uppercase">SMART MATCHING</h3>
+                          <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest">Active Matching Engine</p>
                        </div>
                     </div>
                     
@@ -100,8 +100,8 @@ export default function ExclusiveBenefitsPage() {
                              <Zap className="w-5 h-5 text-amber-500" />
                           </div>
                           <div>
-                             <h4 className="font-black text-white/80 uppercase mb-2">Predictive Alignment</h4>
-                             <p className="text-sm text-white/40 leading-relaxed">Our AI learns your schedule, preferences, and cabin vibe to suggest the perfect match before you even open the app.</p>
+                             <h4 className="font-black text-white/80 uppercase mb-2">Smart Suggestions</h4>
+                             <p className="text-sm text-white/40 leading-relaxed">Our system learns your schedule and preferences to suggest the perfect match before you even open the app.</p>
                           </div>
                        </div>
                        <div className="flex gap-6 items-start">
@@ -109,8 +109,8 @@ export default function ExclusiveBenefitsPage() {
                              <SlidersHorizontal className="w-5 h-5 text-blue-400" />
                           </div>
                           <div>
-                             <h4 className="font-black text-white/80 uppercase mb-2">Dynamic Route Optimization</h4>
-                             <p className="text-sm text-white/40 leading-relaxed">Real-time adjustments to corridors based on syndicate traffic data, ensuring you're never caught in stagnant flow.</p>
+                             <h4 className="font-black text-white/80 uppercase mb-2">Route Optimization</h4>
+                             <p className="text-sm text-white/40 leading-relaxed">Adjustments to routes based on traffic data, ensuring you're never caught in stagnant flow.</p>
                           </div>
                        </div>
                        <div className="flex gap-6 items-start">
@@ -118,26 +118,26 @@ export default function ExclusiveBenefitsPage() {
                              <Headset className="w-5 h-5 text-green-400" />
                           </div>
                           <div>
-                             <h4 className="font-black text-white/80 uppercase mb-2">Proactive Elite Support</h4>
-                             <p className="text-sm text-white/40 leading-relaxed">AI monitors every premium ride. If anything feels off, our elite human response team is alerted instantly.</p>
+                             <h4 className="font-black text-white/80 uppercase mb-2">Helpful Community Support</h4>
+                             <p className="text-sm text-white/40 leading-relaxed">We monitor every premium ride. If anything feels off, our helpful support team is alerted instantly.</p>
                           </div>
                        </div>
                     </div>
                  </div>
               </div>
               <div className="lg:pl-10">
-                 <h2 className="text-5xl md:text-7xl font-black mb-8 italic uppercase leading-tight">AI THAT THINKS<br /><span className="text-blue-500">AHEAD OF YOU.</span></h2>
+                 <h2 className="text-5xl md:text-7xl font-black mb-8 italic uppercase leading-tight">MATCHING THAT<br /><span className="text-blue-500">WORKS FOR YOU.</span></h2>
                  <p className="text-xl text-white/50 leading-relaxed mb-12">
-                    Premium membership unlocks the full power of our neural orchestration engine. It's not just carpooling; it's a living, breathing commute architecture that evolves with you.
+                    Premium membership unlocks the full power of our matching system. It's not just carpooling; it's a living community that evolves with you.
                  </p>
                  <div className="grid grid-cols-2 gap-8">
                     <div className="p-8 bg-white/5 border border-white/5 rounded-3xl group hover:bg-white/10 transition-all">
                        <h4 className="text-3xl font-black mb-1">98%</h4>
-                       <p className="text-[10px] font-black text-white/20 uppercase tracking-widest group-hover:text-amber-500 transition-colors">Match Satisfaction</p>
+                       <p className="text-[10px] font-black text-white/20 uppercase tracking-widest group-hover:text-amber-500 transition-colors">Member Satisfaction</p>
                     </div>
                     <div className="p-8 bg-white/5 border border-white/5 rounded-3xl group hover:bg-white/10 transition-all">
                        <h4 className="text-3xl font-black mb-1">0.4s</h4>
-                       <p className="text-[10px] font-black text-white/20 uppercase tracking-widest group-hover:text-blue-500 transition-colors">Orchestration Speed</p>
+                       <p className="text-[10px] font-black text-white/20 uppercase tracking-widest group-hover:text-blue-500 transition-colors">Matching Speed</p>
                     </div>
                  </div>
               </div>
@@ -148,27 +148,27 @@ export default function ExclusiveBenefitsPage() {
         <section className="mb-48 relative">
            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[600px] bg-purple-600/5 blur-[150px] -z-10" />
            <div className="text-center mb-24">
-              <h2 className="text-5xl md:text-7xl font-black italic uppercase mb-6">ELITE DISTINCTIONS</h2>
-              <p className="text-white/40 max-w-2xl mx-auto font-medium">Coming soon to your premium dashboard: Granular filters to define your journey architecture.</p>
+              <h2 className="text-5xl md:text-7xl font-black italic uppercase mb-6">UPCOMING FEATURES</h2>
+              <p className="text-white/40 max-w-2xl mx-auto font-medium">Coming soon to your dashboard: Helpful ways to choose your trip details.</p>
            </div>
            
            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
-                { icon: Music, title: "Sonic Vibe", desc: "Filter by Cabin Playlist - Jazz, Lo-fi, or Total Silence for deep focus." },
-                { icon: Coffee, title: "Executive Rituals", desc: "Matches with partners who stop for artisan coffee or morning news." },
-                { icon: Wifi, title: "Digital Office", desc: "Ensure your ride has high-speed connectivity and ergonomic space." }
+                { icon: Music, title: "Trip Vibe", desc: "Choose your ride atmosphere - Jazz, Lo-fi, or a Quiet Trip for deep focus." },
+                { icon: Coffee, title: "Daily Rituals", desc: "Matches with partners who stop for morning coffee or news." },
+                { icon: Wifi, title: "Work Ready", desc: "Ensure your ride has connectivity and a comfortable space to work." }
               ].map((item, i) => (
                 <div key={i} className="p-10 bg-white/5 border border-white/10 rounded-[3rem] hover:bg-white/[0.08] transition-all group">
                    <item.icon className="w-12 h-12 text-purple-400 mb-8 group-hover:scale-110 transition-transform" />
                    <h3 className="text-2xl font-black uppercase italic mb-4">{item.title}</h3>
                    <p className="text-white/40 text-sm leading-relaxed">{item.desc}</p>
-                   <div className="mt-8 text-[8px] font-black text-purple-500 uppercase tracking-[0.3em]">PROTOTYPE PHASE</div>
+                   <div className="mt-8 text-[8px] font-black text-purple-500 uppercase tracking-[0.3em]">IN DEVELOPMENT</div>
                 </div>
               ))}
            </div>
         </section>
 
-        {/* FEMALE EXCELLENCE - SYNDICATE SHE */}
+        {/* FEMALE EXCELLENCE - SAFETY & TRUST */}
         <section className="mb-48">
            <div className="bg-gradient-to-br from-pink-500/10 via-white/[0.02] to-transparent border border-pink-500/20 rounded-[5rem] p-12 md:p-24 relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-24 opacity-5 group-hover:scale-105 transition-transform duration-1000">
@@ -176,30 +176,30 @@ export default function ExclusiveBenefitsPage() {
               </div>
               <div className="max-w-3xl relative z-10">
                  <div className="inline-flex items-center gap-2 px-6 py-2 bg-pink-500/20 text-pink-400 rounded-full text-[10px] font-black uppercase tracking-widest mb-8">
-                    <HeartPulse className="w-4 h-4" /> SYNDICATE SHE
+                    <HeartPulse className="w-4 h-4" /> SAFETY & TRUST
                  </div>
-                 <h2 className="text-6xl font-black mb-10 italic uppercase leading-tight">UNCOMPROMISING<br />SAFETY.</h2>
+                 <h2 className="text-6xl font-black mb-10 italic uppercase leading-tight">SAFE &<br />TRUSTED.</h2>
                  <p className="text-xl text-white/50 leading-relaxed mb-12">
-                    We are engineering the most secure environment for our female executives. Premium membership includes access to 'Verified Female Cabins' and our proprietary 'Guardian Protocol'.
+                    We are creating a secure environment for all our members. Premium membership includes access to verified rides and our safety guidelines.
                  </p>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
                     <div className="flex gap-5 items-start">
                        <UserPlus className="w-8 h-8 text-pink-400 flex-shrink-0" />
                        <div>
-                          <h4 className="font-black text-white italic uppercase mb-1">Female-Only Cabins</h4>
+                          <h4 className="font-black text-white italic uppercase mb-1">Female-Only Trips</h4>
                           <p className="text-sm text-white/30">Explicit filter to match only with vetted female ride partners.</p>
                        </div>
                     </div>
                     <div className="flex gap-5 items-start">
                        <ShieldEllipsis className="w-8 h-8 text-pink-400 flex-shrink-0" />
                        <div>
-                          <h4 className="font-black text-white italic uppercase mb-1">Guardian Live-Sync</h4>
-                          <p className="text-sm text-white/30">Share live cabin telemetry with up to 3 emergency nodes automatically.</p>
+                          <h4 className="font-black text-white italic uppercase mb-1">Live Safety Share</h4>
+                          <p className="text-sm text-white/30">Share your live trip details with up to 3 emergency contacts automatically.</p>
                        </div>
                     </div>
                  </div>
                  <button className="px-12 py-5 bg-pink-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-pink-500 transition-all shadow-[0_0_40px_rgba(219,39,119,0.3)]">
-                    LEARN ABOUT SHE-PROTOCOL
+                    LEARN ABOUT SAFETY
                  </button>
               </div>
            </div>
@@ -210,10 +210,10 @@ export default function ExclusiveBenefitsPage() {
            <div className="w-32 h-32 bg-amber-500 rounded-[3rem] flex items-center justify-center mx-auto mb-12 shadow-[0_0_80px_rgba(245,158,11,0.5)] rotate-12 group hover:rotate-0 transition-transform duration-500">
               <Gem className="w-16 h-16 text-black group-hover:scale-110 transition-transform" />
            </div>
-           <h2 className="text-5xl font-black mb-8 uppercase italic leading-tight">READY TO RULE<br />THE ROAD?</h2>
-           <p className="text-white/40 max-w-xl mx-auto mb-16 text-lg">Your seat in the Syndicate is waiting. Elevate your commute architecture today.</p>
+           <h2 className="text-5xl font-black mb-8 uppercase italic leading-tight">READY TO<br />START?</h2>
+           <p className="text-white/40 max-w-xl mx-auto mb-16 text-lg">Join our community today for a better daily commute.</p>
            <Link href="/find-ride" className="inline-block px-20 py-8 bg-white text-black rounded-[3rem] font-black text-xl uppercase tracking-widest hover:bg-slate-200 transition-all shadow-2xl active:scale-95">
-              SECURE YOUR ELITE STATUS
+              JOIN OUR COMMUNITY
            </Link>
         </section>
 
@@ -222,18 +222,10 @@ export default function ExclusiveBenefitsPage() {
       {/* Footer Branding */}
       <footer className="border-t border-white/5 py-20 text-center">
          <div className="opacity-10 text-[10vw] font-black tracking-tighter uppercase italic pointer-events-none select-none">
-            AINORI SYNDICATE
+            AINORI COMMUNITY
          </div>
       </footer>
     </div>
   )
 }
 
-function Loader2({ className }: { className?: string }) {
-  return (
-    <div className={`relative ${className}`}>
-      <div className="absolute inset-0 border-4 border-white/10 rounded-full" />
-      <div className="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
-}

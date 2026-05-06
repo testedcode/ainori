@@ -124,7 +124,7 @@ export default function VehiclesPage() {
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Remove this vehicle from your premium garage?')) return
+    if (!confirm('Remove this vehicle from your list?')) return
     try {
       await api.delete(`/vehicles/${id}`)
       setVehicles(prev => prev.filter(v => v.id !== id))
@@ -161,9 +161,9 @@ export default function VehiclesPage() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-full mb-4">
-               PREMIUM FLEET
+               YOUR VEHICLES
             </div>
-            <h1 className="text-5xl font-black tracking-tight text-white">My Garage</h1>
+            <h1 className="text-5xl font-black tracking-tight text-white">My Vehicles</h1>
             <p className="text-white/40 text-lg mt-2">Manage your vehicles for sharing rides.</p>
           </div>
           <button
@@ -287,16 +287,16 @@ export default function VehiclesPage() {
 
               {/* Image Preview / URL */}
               <div className="bg-white/5 border border-white/5 rounded-3xl p-8">
-                 <label className="block text-[10px] font-black text-white/40 uppercase tracking-widest mb-6">Gallery Presentation</label>
+                  <label className="block text-[10px] font-black text-white/40 uppercase tracking-widest mb-6">Vehicle Image</label>
                  <div className="flex flex-col md:flex-row gap-8 items-center">
                     <div className="w-full md:w-48 h-32 rounded-2xl overflow-hidden bg-slate-900 border border-white/10 relative group">
                        <img src={form.image_url} alt="Preview" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-3">
-                          <span className="text-[8px] font-black text-white/50 uppercase">Live Preview</span>
+                          <span className="text-[8px] font-black text-white/50 uppercase">Preview</span>
                        </div>
                     </div>
                     <div className="flex-1 space-y-4">
-                       <p className="text-sm font-bold text-white/60">We've auto-selected a premium image based on category. You can also provide a custom URL.</p>
+                       <p className="text-sm font-bold text-white/60">We've auto-selected an image based on category. You can also provide a custom URL.</p>
                        <input 
                          value={form.image_url} 
                          onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))} 
@@ -310,7 +310,7 @@ export default function VehiclesPage() {
               <div className="flex flex-col md:flex-row gap-4 pt-6">
                 <button type="submit" disabled={submitting}
                   className="flex-1 bg-white hover:bg-blue-600 hover:text-white text-black py-5 rounded-[2rem] font-black text-xl disabled:opacity-50 transition-all active:scale-95 shadow-2xl group">
-                  {submitting ? 'PROCESSING...' : <><Plus className="inline w-6 h-6 mr-2 group-hover:rotate-90 transition-transform" /> ADD TO GARAGE</>}
+                  {submitting ? 'ADDING...' : <><Plus className="inline w-6 h-6 mr-2 group-hover:rotate-90 transition-transform" /> ADD TO LIST</>}
                 </button>
                 <button type="button" onClick={() => setShowForm(false)}
                   className="px-12 py-5 bg-white/5 border border-white/10 rounded-[2rem] font-black text-lg hover:bg-white/10 transition-all text-white/40">
@@ -328,7 +328,7 @@ export default function VehiclesPage() {
               <Car className="w-12 h-12 text-blue-400" />
             </div>
             <h3 className="text-4xl font-black mb-4 tracking-tight">Your Garage is Empty</h3>
-            <p className="text-white/40 text-lg mb-12 max-w-md mx-auto font-medium">Add your vehicle to our ecosystem to start sharing the journey and earning credits.</p>
+            <p className="text-white/40 text-lg mb-12 max-w-md mx-auto font-medium">Add your vehicle to our community to start sharing the journey.</p>
             <button onClick={() => setShowForm(true)} className="bg-blue-600 hover:bg-blue-700 px-12 py-5 rounded-[2rem] font-black text-xl transition-all active:scale-95 shadow-[0_20px_40px_rgba(37,99,235,0.25)]">
               REGISTER FIRST VEHICLE
             </button>
@@ -377,7 +377,7 @@ export default function VehiclesPage() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between pb-3 border-b border-white/5">
-                    <span className="text-[10px] font-black text-white/20 uppercase tracking-widest flex items-center gap-2"><Settings className="w-3 h-3" /> Vehicle Payload</span>
+                    <span className="text-[10px] font-black text-white/20 uppercase tracking-widest flex items-center gap-2"><Settings className="w-3 h-3" /> Vehicle Seats</span>
                     <span className="text-sm font-bold text-white uppercase tracking-tighter">{v.total_seats} SEATER {v.vehicle_type}</span>
                   </div>
                   <div className="flex items-center justify-between pb-3 border-b border-white/5">

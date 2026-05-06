@@ -135,12 +135,12 @@ export default function ProfilePage() {
                  <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center">
                     <Shield className="w-6 h-6 text-blue-400" />
                  </div>
-                 <h3 className="text-xl font-black">Identity Nodes</h3>
+                 <h3 className="text-xl font-black">Identity Verification</h3>
               </div>
               <div className="space-y-4">
                  {[
                    { label: 'Corporate ID', status: 'Linked', icon: Briefcase },
-                   { label: 'KYC Node', status: 'Verified', icon: User },
+                   { label: 'KYC Verified', status: 'Verified', icon: User },
                    { label: 'Social Graph', status: 'Connected', icon: Activity }
                  ].map((item, i) => (
                    <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/10 transition-all cursor-default">
@@ -160,10 +160,10 @@ export default function ProfilePage() {
                     <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center">
                        <Zap className="w-6 h-6 text-indigo-400" />
                     </div>
-                    <h3 className="text-xl font-black">Syndicate Level</h3>
+                    <h3 className="text-xl font-black">Member Level</h3>
                  </div>
                  <p className="text-slate-400 text-sm leading-relaxed font-medium">
-                    As an Elite member, {profile.name} contributes to the Ainori Tech Syndicate by maintaining high punctuality and zero cancellation rates.
+                    As an Elite member, {profile.name} contributes to the Ainori community by maintaining high punctuality and zero cancellation rates.
                  </p>
               </div>
               <div className="mt-8 pt-8 border-t border-white/5 flex items-center justify-between">
@@ -174,7 +174,7 @@ export default function ProfilePage() {
                       </div>
                     ))}
                  </div>
-                 <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">4 Reputation Nodes</p>
+                 <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">4 Reputation Badges</p>
               </div>
            </div>
         </div>

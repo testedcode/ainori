@@ -276,36 +276,36 @@ export default function DashboardPage() {
                    <div className="lg:col-span-7">
                       <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-500/20 border border-blue-500/30 text-blue-400 rounded-full text-[10px] font-black uppercase tracking-widest mb-8">
                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping" />
-                         SYSTEM AUTHORIZED
+                         ACCOUNT ACTIVE
                       </div>
                       <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-8 italic uppercase leading-[0.85]">
-                         COMMAND<br />THE FLOW.
+                         WELCOME<br />BACK.
                       </h1>
                       <div className="flex items-center gap-6 mb-12">
                          <div className="px-6 py-2 bg-white/5 border border-white/10 rounded-xl">
-                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mb-1">Clearance Level</p>
-                            <p className="text-xs font-black text-blue-400 uppercase tracking-widest">LEVEL 3 EXECUTIVE</p>
+                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mb-1">Account Status</p>
+                            <p className="text-xs font-black text-blue-400 uppercase tracking-widest">MEMBER</p>
                          </div>
                          <div className="px-6 py-2 bg-white/5 border border-white/10 rounded-xl">
-                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mb-1">Network Integrity</p>
-                            <p className="text-xs font-black text-green-400 uppercase tracking-widest">ENCRYPTED NODE</p>
+                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] mb-1">Security Status</p>
+                            <p className="text-xs font-black text-green-400 uppercase tracking-widest">SECURE ACCOUNT</p>
                          </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-6 mb-12">
                          <Link href="/offer-ride" className="px-12 py-6 bg-white text-black rounded-[2rem] font-black text-[12px] uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all active:scale-95 shadow-2xl">
-                            INITIALIZE FLEET
+                            OFFER A RIDE
                          </Link>
                          <Link href="/rides" className="px-12 py-6 bg-white/5 border border-white/20 rounded-[2rem] font-black text-[12px] uppercase tracking-[0.2em] hover:bg-white/10 transition-all">
-                            SYNC CORRIDORS
+                            FIND A RIDE
                          </Link>
                       </div>
 
                       {/* Privilege Showcase */}
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-10 border-t border-white/5">
                          {[
-                           { label: 'Priority Match', status: 'Active', icon: Zap, color: 'text-amber-400' },
-                           { label: 'Executive Fleet', status: 'Ready', icon: Car, color: 'text-blue-400' },
-                           { label: 'Private Sync', status: 'Enabled', icon: ShieldCheck, color: 'text-green-400' }
+                           { label: 'Smart Match', status: 'Active', icon: Zap, color: 'text-amber-400' },
+                           { label: 'Available Rides', status: 'Ready', icon: Car, color: 'text-blue-400' },
+                           { label: 'Safety First', status: 'Enabled', icon: ShieldCheck, color: 'text-green-400' }
                          ].map((p, i) => (
                            <div key={i} className="flex items-center gap-3">
                               <p.icon className={`w-3.5 h-3.5 ${p.color}`} />
@@ -318,7 +318,7 @@ export default function DashboardPage() {
                       </div>
                    </div>
 
-                   {/* Right: Holographic Biometric Node */}
+                   {/* Right: Member Identity Card */}
                    <div className="lg:col-span-5 relative">
                       <div className="relative">
                          <div className="absolute -inset-10 bg-blue-500/10 blur-[60px] rounded-full animate-pulse" />
@@ -342,7 +342,7 @@ export default function DashboardPage() {
                                </div>
                                
                                <h4 className="text-3xl font-black text-white italic uppercase tracking-tighter mb-2">{user?.name}</h4>
-                               <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-10">Elite Node Identified</p>
+                               <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-10">Verified Member</p>
                                
                                <div className="w-full grid grid-cols-2 gap-4 border-t border-white/5 pt-8">
                                   <div className="text-left">
@@ -372,7 +372,7 @@ export default function DashboardPage() {
                       Welcome, {user?.name?.split(' ')[0] || 'Member'}.
                    </h1>
                    <p className="text-lg text-white/40 mb-10 leading-relaxed uppercase tracking-widest">
-                      Your high-fidelity corridor access is being processed. Complete your profile to unlock elite fleet privileges.
+                      Your access to community routes is being processed. Complete your profile to unlock all member features.
                    </p>
                    <div className="flex items-center gap-4">
                       <Link href="/profile" className="px-8 py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all">
@@ -393,10 +393,10 @@ export default function DashboardPage() {
         {/* ─── GLOBAL IMPACT & NETWORK STATS ────────────────────────────────── */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
           {[
-            { icon: Leaf, label: 'Carbon Neutrality', val: `${user?.carbon_credits || 450}g`, color: 'bg-green-500', glow: 'shadow-green-500/20' },
-            { icon: Zap, label: 'Commute Velocity', val: '12 Days', color: 'bg-amber-500', glow: 'shadow-amber-500/20' },
-            { icon: Banknote, label: 'Network Savings', val: '₹3,420', color: 'bg-purple-500', glow: 'shadow-purple-500/20' },
-            { icon: Users, label: 'Syndicate Nodes', val: `${stats.live_users} Active`, color: 'bg-blue-600', glow: 'shadow-blue-600/20' }
+            { icon: Leaf, label: 'Carbon Saved', val: `${user?.carbon_credits || 450}g`, color: 'bg-green-500', glow: 'shadow-green-500/20' },
+            { icon: Zap, label: 'Total Rides', val: '12 Trips', color: 'bg-amber-500', glow: 'shadow-amber-500/20' },
+            { icon: Banknote, label: 'Money Saved', val: '₹3,420', color: 'bg-purple-500', glow: 'shadow-purple-500/20' },
+            { icon: Users, label: 'Active Users', val: `${stats.live_users} Active`, color: 'bg-blue-600', glow: 'shadow-blue-600/20' }
           ].map((card, i) => (
             <div key={i} className={`bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 hover:bg-white/5 transition-all group relative overflow-hidden`}>
               <div className={`w-12 h-12 ${card.color}/20 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform`}>
@@ -414,36 +414,36 @@ export default function DashboardPage() {
         {/* AI Insights Node */}
         <div className="mb-20 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 border border-white/10 rounded-[3.5rem] p-10 md:p-14 relative overflow-hidden group">
            <div className="max-w-3xl relative z-10">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-lg mb-8">
-                 <Sparkles className="w-4 h-4" /> AI PREDICTIVE NODE
-              </div>
-              <h2 className="text-3xl md:text-4xl font-black text-white mb-6 uppercase italic">
-                 {isMorning ? 'Optimize your morning departure.' : 'Plan your evening corridor return.'}
-              </h2>
+               <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-lg mb-8">
+                  <Sparkles className="w-4 h-4" /> SMART COMMUTE TIPS
+               </div>
+               <h2 className="text-3xl md:text-4xl font-black text-white mb-6 uppercase italic">
+                  {isMorning ? 'Optimize your morning departure.' : 'Plan your evening return.'}
+               </h2>
               <p className="text-xl text-white/50 font-medium leading-relaxed mb-10 italic">
                  {isMorning 
-                   ? <>Exiting at <span className="text-white font-black underline decoration-blue-500 underline-offset-8">08:15 AM</span> today yields a <span className="text-green-400 font-black">12-minute</span> synchronization gain.</>
-                   : <>The 06:15 PM slot is currently peaking. Confirming now secures a <span className="text-green-400 font-black">20%</span> node contribution bonus.</>
+                   ? <>Exiting at <span className="text-white font-black underline decoration-blue-500 underline-offset-8">08:15 AM</span> today gets you there on time.</>
+                   : <>The 06:15 PM slot is currently peaking. Confirming now helps the community.</>
                  }
               </p>
-              <button className="px-10 py-5 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-xl">
-                 Initialize Smart Sync
-              </button>
+               <button className="px-10 py-5 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all shadow-xl">
+                  View Daily Tips
+               </button>
            </div>
            <div className="absolute top-0 right-0 p-16 opacity-[0.02] group-hover:opacity-[0.05] transition-all duration-1000 group-hover:scale-110">
               <Zap className="w-96 h-96 text-white" />
            </div>
         </div>
 
-        {/* ─── EXECUTIVE ACCESS REQUESTS (PENDING) ────────────────────────── */}
+        {/* ─── MY REQUESTS ────────────────────────────────────────── */}
         {relevantRequests.length > 0 && (
           <section className="mb-20">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
               <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Access Requests.</h2>
+                <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">My Requests.</h2>
                 {myRequests.filter(r => r.status === 'pending').length > 0 && (
                   <div className="px-3 py-1 bg-amber-500 text-black text-[10px] font-black rounded-lg uppercase tracking-widest animate-pulse">
-                    {myRequests.filter(r => r.status === 'pending').length} Syncing
+                    {myRequests.filter(r => r.status === 'pending').length} Pending
                   </div>
                 )}
               </div>
@@ -452,10 +452,10 @@ export default function DashboardPage() {
                   onClick={handleClearAllRequests}
                   className="text-[10px] font-black text-red-500/50 hover:text-red-500 transition-colors uppercase tracking-[0.3em]"
                 >
-                  Retract All Nodes
+                  Cancel All Requests
                 </button>
                 <Link href="/rides" className="px-6 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
-                   Locate More
+                   Find More
                 </Link>
               </div>
             </div>
@@ -479,10 +479,10 @@ export default function DashboardPage() {
                     }`}>
                       {req.ride_status === 'cancelled' || req.status === 'cancelled' ? 'Cancelled' : req.status === 'accepted' ? 'Authorized' : req.status === 'rejected' ? 'Denied' : 'In Progress'}
                     </span>
-                    <span className="font-mono text-white/20 text-[10px] font-black uppercase tracking-widest">Node #{req.ride_id}</span>
+                    <span className="font-mono text-white/20 text-[10px] font-black uppercase tracking-widest">Ride #{req.ride_id}</span>
                   </div>
 
-                  <h4 className="font-black text-white text-xl mb-2 italic uppercase">{req.corridor_name || 'Corridor Node'}</h4>
+                  <h4 className="font-black text-white text-xl mb-2 italic uppercase">{req.corridor_name || 'Route'}</h4>
                   
                   <div className="flex flex-wrap items-center gap-2 mt-3">
                     <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl">
@@ -506,7 +506,7 @@ export default function DashboardPage() {
 
                   {req.status === 'accepted' && (
                     <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
-                       <span className="text-[9px] font-black text-green-400 uppercase tracking-widest">Clearance Active</span>
+                       <span className="text-[9px] font-black text-green-400 uppercase tracking-widest">Access Granted</span>
                        <ChevronRight className="w-4 h-4 text-white/20 group-hover:translate-x-1 transition-transform" />
                     </div>
                   )}
@@ -516,12 +516,12 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {/* ─── ACTIVE CORRIDOR ENGAGEMENTS ────────────────────────────────── */}
+        {/* ─── MY ACTIVE RIDES ────────────────────────────────── */}
         <section className="mb-24">
           <div className="flex items-center justify-between mb-12">
             <div>
-              <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Active Engagements.</h2>
-              <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em] mt-2">Upcoming synchronization cycles</p>
+              <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">My Active Rides.</h2>
+              <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em] mt-2">Upcoming rides</p>
             </div>
           </div>
 
@@ -530,13 +530,13 @@ export default function DashboardPage() {
             <div className="space-y-6">
               <div className="flex items-center gap-3 mb-2">
                  <Bookmark className="w-4 h-4 text-blue-500" />
-                 <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Inbound Missions</h3>
+                 <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Booked Rides</h3>
               </div>
               
               {bookedRides.length === 0 ? (
                 <div className="bg-white/[0.02] border border-white/5 border-dashed rounded-[3rem] p-16 text-center group hover:bg-white/[0.04] transition-all">
-                  <p className="text-white/20 font-black text-[10px] uppercase tracking-widest mb-6">No inbound nodes found</p>
-                  <Link href="/rides" className="px-10 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-blue-400 uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all">Explore Corridors</Link>
+                  <p className="text-white/20 font-black text-[10px] uppercase tracking-widest mb-6">No booked rides found</p>
+                  <Link href="/rides" className="px-10 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-blue-400 uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all">Find Routes</Link>
                 </div>
               ) : (
                  bookedRides.map(ride => (
@@ -566,7 +566,7 @@ export default function DashboardPage() {
                                     )}
                                  </div>
                                  <div>
-                                    <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] leading-none mb-1">Host Node</p>
+                                    <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] leading-none mb-1">Host</p>
                                     <p className="text-sm font-black text-white uppercase tracking-tight">{ride.driver_name}</p>
                                  </div>
                               </div>
@@ -580,11 +580,11 @@ export default function DashboardPage() {
                                        ) : '🚗'}
                                     </div>
                                     <div>
-                                       <p className="text-[8px] font-black text-green-400/60 uppercase tracking-[0.3em] leading-none mb-1">Vehicle Signal</p>
+                                       <p className="text-[8px] font-black text-green-400/60 uppercase tracking-[0.3em] leading-none mb-1">Vehicle Info</p>
                                        <p className="text-xs font-black text-white uppercase tracking-widest">
                                           {ride.vehicle_make} {ride.vehicle_model}
                                           <span className="text-green-400/40 mx-2">|</span>
-                                          <span className="text-[10px] font-mono text-green-400">{ride.vehicle_number || 'PRO-NODE'}</span>
+                                          <span className="text-[10px] font-mono text-green-400">{ride.vehicle_number || 'VERIFIED'}</span>
                                        </p>
                                     </div>
                                  </div>
@@ -645,13 +645,13 @@ export default function DashboardPage() {
             <div className="space-y-6">
               <div className="flex items-center gap-3 mb-2">
                  <Car className="w-4 h-4 text-green-500" />
-                 <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Outbound Fleet</h3>
+                 <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Offered Rides</h3>
               </div>
 
               {offeredRides.length === 0 ? (
                 <div className="bg-white/[0.02] border border-white/5 border-dashed rounded-[3rem] p-16 text-center group hover:bg-white/[0.04] transition-all">
-                  <p className="text-white/20 font-black text-[10px] uppercase tracking-widest mb-6">No outbound nodes active</p>
-                  <Link href="/offer-ride" className="px-10 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-green-400 uppercase tracking-widest hover:bg-green-600 hover:text-white transition-all">Initialize Fleet</Link>
+                  <p className="text-white/20 font-black text-[10px] uppercase tracking-widest mb-6">No offered rides active</p>
+                  <Link href="/offer-ride" className="px-10 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-green-400 uppercase tracking-widest hover:bg-green-600 hover:text-white transition-all">Offer a Ride</Link>
                 </div>
               ) : (
                 offeredRides.map(ride => {
@@ -710,7 +710,7 @@ export default function DashboardPage() {
                       {/* ROW 4: Seat fill */}
                        <div className="flex items-center gap-4 mb-5">
                          <div className="flex items-center gap-2">
-                           {/* Host / Pilot Seat */}
+                           {/* Host Seat */}
                            <div className="relative group/host">
                               <div className="w-10 h-10 rounded-xl border-2 border-amber-400 bg-slate-900 overflow-hidden shadow-[0_0_15px_rgba(251,191,36,0.3)]">
                                 {ride.user_avatar_url 
@@ -774,11 +774,11 @@ export default function DashboardPage() {
 
                       {pendingCount > 0 ? (
                         <Link href={`/rides/${ride.id}`} className="block w-full py-4 bg-amber-500 text-black rounded-[1.5rem] text-center text-[10px] font-black uppercase tracking-[0.3em] hover:bg-amber-400 transition-all shadow-xl">
-                          Process {pendingCount} Clearance{pendingCount > 1 ? 's' : ''}
+                          Manage {pendingCount} Request{pendingCount > 1 ? 's' : ''}
                         </Link>
                       ) : (
                         <Link href={`/rides/${ride.id}`} className="block w-full py-4 bg-white/5 border border-white/10 text-white/40 rounded-[1.5rem] text-center text-[10px] font-black uppercase tracking-[0.3em] hover:bg-white/10 transition-all">
-                          Command Center ↗
+                          Ride Details ↗
                         </Link>
                       )}
                     </div>
@@ -794,8 +794,8 @@ export default function DashboardPage() {
           <section className="mb-20">
             <div className="flex items-center justify-between mb-12">
               <div>
-                <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter">Live Corridors.</h3>
-                <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em] mt-2">High-velocity professional routes</p>
+                <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter">Live Routes.</h3>
+                <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em] mt-2">Active office routes near you</p>
               </div>
               <Link href="/rides" className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] hover:text-white transition-all">
                 Full Network View →
@@ -834,7 +834,7 @@ export default function DashboardPage() {
                       onClick={() => router.push(`/rides?corridor=${c.id}`)}
                       className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all"
                     >
-                      Sync Node
+                      Find Ride
                     </button>
                   </div>
                 );

@@ -10,32 +10,32 @@ import JoolNav from '../components/JoolNav'
 export default function ProtocolsPage() {
   const protocols = [
     {
-      title: 'Identity Isolation',
-      desc: 'Personal details (phone, email, exact home location) are never shared publicly. Only confirmed ride partners gain access to necessary coordination data.',
+      title: 'Privacy First',
+      desc: 'Your personal details like phone and exact location are never shared publicly. Only your confirmed ride partners see what they need to coordinate.',
       icon: EyeOff,
       color: 'bg-blue-500/10 text-blue-400'
     },
     {
-      title: 'Node Verification',
-      desc: 'Every participant must undergo multi-factor identity verification. We cross-reference corporate nodes and government IDs to ensure absolute trust.',
+      title: 'Member Verification',
+      desc: 'Every person in our community is verified. We check IDs and office affiliations to ensure everyone can travel with peace of mind.',
       icon: Shield,
       color: 'bg-green-500/10 text-green-400'
     },
     {
-      title: 'End-to-End Encryption',
-      desc: 'In-app communications and payment coordination are fully encrypted. Your chat history is ephemeral and secured against unauthorized access.',
+      title: 'Secure Messages',
+      desc: 'All your coordination and chat is private and secure. We keep your conversations safe and temporary.',
       icon: Lock,
       color: 'bg-purple-500/10 text-purple-400'
     },
     {
-      title: 'Secure Settlement',
-      desc: 'We use secure UPI deep-linking. We never store your bank details or transaction history on our servers. You handle the money; we handle the trust.',
+      title: 'Simple Payments',
+      desc: 'We use direct UPI links for easy settling. We never store your bank details; you stay in control of your money.',
       icon: Key,
       color: 'bg-amber-500/10 text-amber-400'
     },
     {
-      title: 'Real-time Monitoring',
-      desc: 'Active rides are monitored by our AI dispatcher. Any deviation from the corridor route triggers an automatic security check.',
+      title: 'Trip Support',
+      desc: 'We keep a friendly eye on active trips. If anything seems unusual, we reach out to ensure everything is okay.',
       icon: Server,
       color: 'bg-red-500/10 text-red-400'
     }
@@ -48,17 +48,17 @@ export default function ProtocolsPage() {
       <main className="max-w-4xl mx-auto px-6 py-20">
         <Link href="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors mb-12 group">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          <span className="text-xs font-black uppercase tracking-widest">Back to Nexus</span>
+          <span className="text-xs font-black uppercase tracking-widest">Back Home</span>
         </Link>
 
         <div className="mb-20">
-          <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">SECURITY INFRASTRUCTURE</p>
+          <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">OUR COMMUNITY SAFETY</p>
           <h1 className="text-5xl md:text-7xl font-black tracking-tighter italic uppercase italic leading-none mb-8">
-            SECURITY<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600">PROTOCOLS.</span>
+            TRUST &<br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600">SAFETY.</span>
           </h1>
           <p className="text-slate-400 text-lg leading-relaxed font-medium max-w-2xl">
-            JOOL is built on a foundation of industrial-grade security. We've eliminated the "Open Mesh" risks inherent in chat groups to provide a sanctuary for professional commuters.
+            Our community is built on a foundation of mutual respect and safety. We've created a simple, trusted space for professional commuters to travel together comfortably.
           </p>
         </div>
 
@@ -78,15 +78,15 @@ export default function ProtocolsPage() {
           <div className="flex flex-col md:flex-row gap-8 items-center">
             <AlertTriangle className="w-16 h-16 text-red-500 flex-shrink-0" />
             <div>
-              <h2 className="text-2xl font-black mb-2 uppercase">Zero Tolerance Policy</h2>
-              <p className="text-slate-500 text-sm font-medium">Any attempt to circumvent these protocols or harvest user data will result in immediate and permanent exclusion from the JOOL Syndicate and reporting to relevant corporate partners.</p>
+              <h2 className="text-2xl font-black mb-2 uppercase">Our Community Code</h2>
+              <p className="text-slate-500 text-sm font-medium">Any attempt to misuse the platform or harvest member data will result in immediate and permanent removal from the community to protect our fellow commuters.</p>
             </div>
           </div>
         </div>
       </main>
 
       <footer className="py-20 border-t border-white/5 text-center">
-        <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">© 2026 JOOL • SECURE COMMUTE V4.5</p>
+        <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">© 2026 • SIMPLE OFFICE COMMUTE</p>
       </footer>
     </div>
   )

@@ -102,7 +102,7 @@ export default function ProfilePage() {
         router.push('/login')
         return
       }
-      toast.error('Failed to load profile intelligence')
+      toast.error('Failed to load profile details')
     } finally {
       setLoading(false)
     }
@@ -120,11 +120,11 @@ export default function ProfilePage() {
     setSaving(true)
     try {
       await api.put('/auth/profile', formData)
-      toast.success('System profile synchronized!')
+      toast.success('Profile updated!')
       setIsEditing(false)
       fetchProfile()
     } catch (e: any) {
-      toast.error(e?.response?.data?.error || 'Synchronization failed')
+      toast.error(e?.response?.data?.error || 'Update failed')
     } finally {
       setSaving(false)
     }
@@ -146,7 +146,7 @@ export default function ProfilePage() {
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath)
       
       await api.put('/auth/profile', { ...formData, avatar_url: publicUrl })
-      toast.success('System Avatar updated!')
+      toast.success('Profile picture updated!')
       fetchProfile()
     } catch (e: any) {
       toast.error(e.message || 'Error uploading avatar')
@@ -169,7 +169,7 @@ export default function ProfilePage() {
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath)
       
       await api.put('/auth/profile', { ...formData, qr_code_url: publicUrl })
-      toast.success('Payment QR Matrix Updated!')
+      toast.success('Payment QR updated!')
       fetchProfile()
     } catch (e: any) {
       toast.error(e.message || 'Error uploading QR code')
@@ -183,7 +183,7 @@ export default function ProfilePage() {
     if (!passwordData.old || !passwordData.new) return toast.error('Fill required fields')
     try {
       await api.put('/auth/password', { old_password: passwordData.old, new_password: passwordData.new })
-      toast.success('Security Protocol: Password Reset Successful')
+      toast.success('Password changed successfully')
       setShowPasswordModal(false)
       setPasswordData({ old: '', new: '' })
     } catch (e: any) {
@@ -196,7 +196,7 @@ export default function ProfilePage() {
       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-white/40 font-black tracking-widest text-[10px] uppercase">Accessing Identity Vault...</p>
+          <p className="text-white/40 font-black tracking-widest text-[10px] uppercase">Loading Profile...</p>
         </div>
       </div>
     )
@@ -212,7 +212,7 @@ export default function ProfilePage() {
 
       <main className="max-w-7xl mx-auto px-6 md:px-12 mt-12">
         
-        {/* Holographic Executive Identity Vault */}
+        {/* My Profile Section */}
         <div className="relative mb-24 animate-in fade-in zoom-in-95 duration-1000">
            {/* Outer Glows */}
            <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-blue-600/10 blur-[150px] -z-10 rounded-full" />
@@ -223,7 +223,7 @@ export default function ProfilePage() {
               <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none opacity-20" />
               
               <div className="flex flex-col lg:flex-row items-center gap-20 relative z-10">
-                 {/* Left Column: Biometric Node */}
+                 {/* Left Column: Profile Picture */}
                  <div className="relative">
                     <div className="w-56 h-56 rounded-[4rem] bg-gradient-to-tr from-blue-600 via-indigo-500 to-amber-500 p-1 shadow-[0_40px_80px_rgba(37,99,235,0.3)] group-hover:scale-105 transition-transform duration-700">
                        <div className="w-full h-full rounded-[3.8rem] bg-slate-900 overflow-hidden relative">
@@ -241,7 +241,7 @@ export default function ProfilePage() {
                     </div>
                     {/* Level Overlay */}
                     <div className="absolute -top-4 -right-4 px-4 py-2 bg-amber-500 text-black rounded-xl font-black text-[10px] uppercase tracking-widest shadow-2xl border-4 border-[#0f172a] transform rotate-12">
-                       L3 CLEARANCE
+                       MEMBER
                     </div>
                     <label className="absolute -bottom-2 -right-2 w-16 h-16 bg-white text-black rounded-2xl shadow-2xl hover:scale-110 transition-all active:scale-95 cursor-pointer z-10 flex items-center justify-center border-4 border-[#0f172a] group/cam">
                        <Camera className="w-7 h-7 group-hover/cam:rotate-12 transition-transform" />
@@ -253,11 +253,11 @@ export default function ProfilePage() {
                  <div className="flex-1 text-center lg:text-left">
                     <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mb-10">
                        <div className="px-6 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full text-[10px] font-black uppercase tracking-[0.4em] flex items-center gap-2">
-                          <Crown className="w-4 h-4" /> {profile?.approved ? 'SYNDICATE EXECUTIVE' : 'PENDING NODE'}
+                          <Crown className="w-4 h-4" /> {profile?.approved ? 'VERIFIED MEMBER' : 'PENDING VERIFICATION'}
                        </div>
                        {profile?.role === 'admin' && (
                          <div className="px-6 py-2 bg-blue-500 text-white rounded-full text-[10px] font-black uppercase tracking-[0.4em] shadow-lg shadow-blue-500/30">
-                            SYSTEM ARCHITECT
+                            SYSTEM ADMIN
                          </div>
                        )}
                     </div>
@@ -268,37 +268,37 @@ export default function ProfilePage() {
 
                     <div className="flex flex-wrap items-center justify-center lg:justify-start gap-12 mt-12">
                        <div>
-                          <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-3">Syndicate ID</p>
-                          <p className="text-xl font-mono text-white/60 tracking-tighter">JN-{(profile?.id || 0).toString().padStart(6, '0')}</p>
+                          <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-3">Member ID</p>
+                          <p className="text-xl font-mono text-white/60 tracking-tighter">AN-{(profile?.id || 0).toString().padStart(6, '0')}</p>
                        </div>
                        <div className="w-px h-12 bg-white/5 hidden md:block" />
                        <div>
-                          <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-3">Carbon Neutrality</p>
+                          <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-3">Carbon Saved</p>
                           <div className="flex items-center gap-3">
                              <Leaf className="w-6 h-6 text-green-500" />
-                             <span className="text-3xl font-black">{profile?.carbon_credits}<span className="text-xs text-white/20 ml-1 font-normal italic">KG SAVED</span></span>
+                             <span className="text-3xl font-black">{profile?.carbon_credits}<span className="text-xs text-white/20 ml-1 font-normal italic">KG</span></span>
                           </div>
                        </div>
                        <div className="w-px h-12 bg-white/5 hidden md:block" />
                        <div>
-                          <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-3">Trust Protocol</p>
+                          <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-3">Trust Score</p>
                           <div className="flex items-center gap-3">
                              <Star className="w-6 h-6 text-amber-500 fill-amber-500" />
-                             <span className="text-3xl font-black">4.9<span className="text-xs text-white/20 ml-1 font-normal italic">SECURE</span></span>
+                             <span className="text-3xl font-black">4.9<span className="text-xs text-white/20 ml-1 font-normal italic">RELIABLE</span></span>
                           </div>
                        </div>
                     </div>
                  </div>
 
-                 {/* Right Column: Privilege Hub */}
+                 {/* Right Column: Benefits Hub */}
                  <div className="lg:w-1/4 w-full">
                     <div className="bg-white/[0.03] border border-white/10 rounded-[3.5rem] p-8 space-y-6">
-                       <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] text-center mb-2">Access Privileges</p>
+                       <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] text-center mb-2">Member Benefits</p>
                        <div className="space-y-3">
                           {[
-                            { label: 'Priority Corridor', active: profile?.approved },
-                            { label: 'AI Match Engine', active: profile?.approved },
-                            { label: 'Syndicate Lounge', active: profile?.approved }
+                            { label: 'Priority Routes', active: profile?.approved },
+                            { label: 'Smart Matching', active: profile?.approved },
+                            { label: 'Member Perks', active: profile?.approved }
                           ].map((priv, i) => (
                             <div key={i} className="flex items-center justify-between px-5 py-3 bg-white/5 rounded-2xl border border-white/5">
                                <span className="text-[10px] font-black uppercase tracking-widest text-white/60">{priv.label}</span>
@@ -310,18 +310,18 @@ export default function ProfilePage() {
                        <div className="pt-4 space-y-4">
                           {profile?.approved ? (
                             <Link href="/exclusive-benefits" className="w-full py-5 bg-amber-500 text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-amber-400 transition-all shadow-[0_20px_40px_rgba(245,158,11,0.2)]">
-                               <Gem className="w-4 h-4" /> ENTER THE VAULT
+                               <Gem className="w-4 h-4" /> VIEW BENEFITS
                             </Link>
                           ) : (
                             <div className="w-full py-5 bg-white/5 border border-white/10 text-white/20 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-2 cursor-not-allowed">
-                               <ShieldAlert className="w-4 h-4" /> AUTHORIZATION PENDING
+                               <ShieldAlert className="w-4 h-4" /> VERIFICATION PENDING
                             </div>
                           )}
                           <button 
                             onClick={() => setIsEditing(!isEditing)}
                             className="w-full py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
                           >
-                             {isEditing ? <><ZapOff className="w-4 h-4" /> ABORT SYNC</> : <><Edit3 className="w-4 h-4" /> SYNC IDENTITY</>}
+                             {isEditing ? <><ZapOff className="w-4 h-4" /> CANCEL EDIT</> : <><Edit3 className="w-4 h-4" /> EDIT PROFILE</>}
                           </button>
                        </div>
                     </div>
@@ -337,7 +337,7 @@ export default function ProfilePage() {
            <div className="lg:col-span-8 space-y-12">
               <section>
                  <h3 className="text-2xl font-black mb-8 flex items-center gap-3">
-                    <User className="w-6 h-6 text-blue-500" /> IDENTITY ATTRIBUTES
+                    <User className="w-6 h-6 text-blue-500" /> ACCOUNT DETAILS
                  </h3>
                  
                  <form onSubmit={handleSave} className="space-y-6">
@@ -352,12 +352,12 @@ export default function ProfilePage() {
                                onChange={e => setFormData({...formData, name: e.target.value})}
                                disabled={!isEditing}
                                className="w-full bg-white/5 border border-white/5 focus:border-blue-500 rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-white transition-all outline-none disabled:opacity-50"
-                               placeholder="Synchronize name..."
+                               placeholder="Enter your name..."
                              />
                           </div>
                        </div>
                        <div className="space-y-2">
-                          <label className="text-[10px] font-black text-white/40 uppercase tracking-widest px-1">Phone Protocol</label>
+                          <label className="text-[10px] font-black text-white/40 uppercase tracking-widest px-1">Phone Number</label>
                           <div className="relative group">
                              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-500 transition-colors" />
                              <input 
@@ -374,7 +374,7 @@ export default function ProfilePage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                        <div className="space-y-2">
-                          <label className="text-[10px] font-black text-white/40 uppercase tracking-widest px-1">Geographical Node (City)</label>
+                          <label className="text-[10px] font-black text-white/40 uppercase tracking-widest px-1">Current City</label>
                           <div className="relative group">
                              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-500 transition-colors" />
                              <input 
@@ -388,7 +388,7 @@ export default function ProfilePage() {
                           </div>
                        </div>
                        <div className="space-y-2">
-                          <label className="text-[10px] font-black text-white/40 uppercase tracking-widest px-1">Identity Bio</label>
+                          <label className="text-[10px] font-black text-white/40 uppercase tracking-widest px-1">About Me</label>
                           <div className="relative group">
                              <input 
                                type="text" 
@@ -396,7 +396,7 @@ export default function ProfilePage() {
                                onChange={e => setFormData({...formData, bio: e.target.value})}
                                disabled={!isEditing}
                                className="w-full bg-white/5 border border-white/5 focus:border-blue-500 rounded-2xl py-4 px-6 text-sm font-bold text-white transition-all outline-none disabled:opacity-50"
-                               placeholder="Brief identity transmission..."
+                               placeholder="Short bio..."
                              />
                           </div>
                        </div>
@@ -408,7 +408,7 @@ export default function ProfilePage() {
                          disabled={saving}
                          className="px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-black text-lg shadow-xl shadow-blue-600/20 transition-all flex items-center gap-3 disabled:opacity-50 active:scale-95"
                        >
-                          {saving ? <><Loader2 className="w-5 h-5 animate-spin" /> SYNCING...</> : <><Save className="w-5 h-5" /> SYNC IDENTITY</>}
+                          {saving ? <><Loader2 className="w-5 h-5 animate-spin" /> SAVING...</> : <><Save className="w-5 h-5" /> SAVE PROFILE</>}
                        </button>
                     )}
                  </form>
@@ -416,13 +416,13 @@ export default function ProfilePage() {
 
               <section>
                  <h3 className="text-2xl font-black mb-8 flex items-center gap-3">
-                    <Award className="w-6 h-6 text-green-500" /> REPUTATION & STATS
+                    <Award className="w-6 h-6 text-green-500" /> ACTIVITY STATS
                  </h3>
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {[
                       { label: 'Commute Streak', value: '12 Days', sub: 'High Consistency', icon: Award, color: 'text-yellow-400' },
-                      { label: 'Network Trust', value: 'Elite', sub: 'Top 5% of JOOL', icon: ShieldCheck, color: 'text-blue-400' },
-                      { label: 'Co-Pilot Score', value: '98/100', sub: 'Premium Rating', icon: Star, color: 'text-purple-400' }
+                      { label: 'Network Trust', value: 'Elite', sub: 'Top 5% of Members', icon: ShieldCheck, color: 'text-blue-400' },
+                      { label: 'Rider Score', value: '98/100', sub: 'Verified Rating', icon: Star, color: 'text-purple-400' }
                     ].map((stat, i) => (
                       <div key={i} className="bg-white/5 border border-white/5 rounded-[2rem] p-6 hover:bg-white/10 transition-colors group">
                          <stat.icon className={`w-8 h-8 ${stat.color} mb-4 group-hover:scale-110 transition-transform`} />
@@ -443,12 +443,12 @@ export default function ProfilePage() {
                  </div>
                  <div className="relative z-10">
                     <h3 className="text-xl font-black mb-6 flex items-center gap-2">
-                       <CreditCard className="w-5 h-5 text-blue-400" /> PAYMENT VAULT
+                       <CreditCard className="w-5 h-5 text-blue-400" /> PAYMENT DETAILS
                     </h3>
                     
                     <div className="space-y-6">
                        <div className="space-y-2">
-                          <label className="text-[10px] font-black text-white/40 uppercase tracking-widest px-1">UPI Address (Identity)</label>
+                          <label className="text-[10px] font-black text-white/40 uppercase tracking-widest px-1">UPI Address</label>
                           <div className="relative group">
                              <input 
                                type="text" 
@@ -462,7 +462,7 @@ export default function ProfilePage() {
                        </div>
 
                        <div className="space-y-3">
-                          <label className="text-[10px] font-black text-white/40 uppercase tracking-widest px-1">Payment QR Protocol</label>
+                          <label className="text-[10px] font-black text-white/40 uppercase tracking-widest px-1">Payment QR Code</label>
                           <div className="aspect-square bg-white rounded-[2rem] p-6 flex flex-col items-center justify-center relative overflow-hidden group/qr">
                              {formData.qr_code_url ? (
                                <img src={formData.qr_code_url} alt="QR Code" className="w-full h-full object-cover rounded-xl" />
@@ -475,7 +475,7 @@ export default function ProfilePage() {
                                 </span>
                                 <input type="file" accept="image/*" onChange={handleQrUpload} disabled={uploadingQr} className="hidden" />
                              </label>
-                             {!formData.qr_code_url && <p className="absolute bottom-4 text-slate-300 text-[8px] font-black uppercase tracking-[0.2em]">System Placeholder</p>}
+                             {!formData.qr_code_url && <p className="absolute bottom-4 text-slate-300 text-[8px] font-black uppercase tracking-[0.2em]">No QR Uploaded</p>}
                           </div>
                        </div>
                     </div>
@@ -484,15 +484,15 @@ export default function ProfilePage() {
 
               <section className="bg-white/5 border border-white/5 rounded-[3rem] p-8">
                  <h3 className="text-xl font-black mb-6 flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-green-400" /> SECURITY HUB
+                    <ShieldCheck className="w-5 h-5 text-green-400" /> SECURITY SETTINGS
                  </h3>
                  <div className="space-y-3">
                     <button onClick={() => setShowPasswordModal(true)} className="w-full text-left p-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all">
-                       <p className="text-xs font-black text-white mb-0.5">RESET PROTOCOL CODE</p>
-                       <p className="text-[10px] text-white/20 font-bold uppercase">Change system password</p>
+                       <p className="text-xs font-black text-white mb-0.5">CHANGE PASSWORD</p>
+                       <p className="text-[10px] text-white/20 font-bold uppercase">Update your password</p>
                     </button>
                     <button className="w-full text-left p-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all">
-                       <p className="text-xs font-black text-white mb-0.5">2-FACTOR SHIELD</p>
+                       <p className="text-xs font-black text-white mb-0.5">2-FACTOR AUTH</p>
                        <p className="text-[10px] text-green-500 font-black uppercase tracking-widest">ENABLED</p>
                     </button>
                  </div>
@@ -508,12 +508,12 @@ export default function ProfilePage() {
                       <MapPin className="w-8 h-8 text-white" />
                    </div>
                    <div>
-                      <h3 className="text-3xl font-black text-white tracking-tighter uppercase italic leading-none">Trip Ledger</h3>
-                      <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] mt-1">Holographic History Record</p>
+                      <h3 className="text-3xl font-black text-white tracking-tighter uppercase italic leading-none">Ride History</h3>
+                      <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] mt-1">Your past and upcoming rides</p>
                    </div>
                 </div>
                 <div className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-white/40 uppercase tracking-widest flex items-center gap-3">
-                   <ShieldCheck className="w-4 h-4 text-blue-400" /> All transmissions verified
+                   <ShieldCheck className="w-4 h-4 text-blue-400" /> All rides verified
                 </div>
              </div>
 
@@ -525,7 +525,7 @@ export default function ProfilePage() {
                      <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
                         <ZapOff className="w-10 h-10 text-white/10" />
                      </div>
-                     <p className="text-white/40 font-black uppercase tracking-widest text-[10px]">No active missions found in the ledger.</p>
+                     <p className="text-white/40 font-black uppercase tracking-widest text-[10px]">No rides found in your history.</p>
                      <Link href="/rides" className="mt-8 inline-flex px-10 py-4 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/10">Find First Ride</Link>
                   </div>
                 ) : (() => {
@@ -574,7 +574,7 @@ export default function ProfilePage() {
                                               </div>
                                               <div>
                                                  <p className={`text-[9px] font-black uppercase tracking-[0.2em] mb-1 ${isHost ? 'text-green-500/60' : 'text-blue-400/60'}`}>
-                                                   {isHost ? 'FLEET COMMAND' : 'PASSENGER MODULE'}
+                                                   {isHost ? 'AS HOST' : 'AS RIDER'}
                                                  </p>
                                                  <h5 className="text-xl font-black text-white italic tracking-tighter uppercase">{ride.corridor_name}</h5>
                                               </div>
@@ -617,7 +617,7 @@ export default function ProfilePage() {
                                                 href={`/rides/${ride.id}`}
                                                 className={`px-6 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${isHost ? 'bg-green-500 text-black hover:bg-green-400' : 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-600/20'}`}
                                               >
-                                                 OPEN MISSION
+                                                 VIEW RIDE
                                               </Link>
                                               <Link 
                                                 href={`/support?tab=ticket&trip_id=${ride.id}`}
@@ -644,7 +644,7 @@ export default function ProfilePage() {
       {showPasswordModal && (
         <div className="fixed inset-0 bg-[#0f172a]/90 backdrop-blur-xl z-50 flex items-center justify-center p-6 animate-in fade-in">
            <div className="bg-slate-900 border border-white/10 p-8 rounded-[3rem] w-full max-w-md shadow-2xl">
-             <h3 className="text-2xl font-black text-white mb-6">Security Override</h3>
+             <h3 className="text-2xl font-black text-white mb-6">Change Password</h3>
              <form onSubmit={handlePasswordChange} className="space-y-4">
                <input 
                  type="password" placeholder="Current Password" 
@@ -657,7 +657,7 @@ export default function ProfilePage() {
                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none focus:border-blue-500"
                />
                <div className="flex gap-4 pt-4">
-                 <button type="submit" className="flex-1 bg-blue-600 text-white font-black py-4 rounded-2xl">ENCRYPT NEW</button>
+                 <button type="submit" className="flex-1 bg-blue-600 text-white font-black py-4 rounded-2xl">SAVE PASSWORD</button>
                  <button type="button" onClick={() => setShowPasswordModal(false)} className="flex-1 bg-white/5 text-white font-black py-4 rounded-2xl">CANCEL</button>
                </div>
              </form>

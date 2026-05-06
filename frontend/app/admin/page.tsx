@@ -210,7 +210,7 @@ export default function AdminPage() {
     const newStatus = status === 'active' ? 'locked' : 'active'
     setCities(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c))
     try { await api.put(`/cities/${id}/status`, { status: newStatus }) } catch {}
-    toast.success(`${newStatus === 'active' ? 'Opened' : 'Locked'} city ecosystem.`)
+    toast.success(`${newStatus === 'active' ? 'Opened' : 'Locked'} city network.`)
   }
   const deleteCorridor = async (isPermanent = false) => {
     if (!corridorToDelete) return
@@ -229,7 +229,7 @@ export default function AdminPage() {
   }
   const addCorridor = async () => {
     if (!newCorridor.name || !newCorridor.location_from || !newCorridor.location_to || !newCorridor.city_id) {
-      toast.error('Missing route geometry or city'); return
+      toast.error('Missing route details or city'); return
     }
     const fake: Corridor = { id: Date.now(), ...newCorridor, is_active: true }
     setCorridors(prev => [...prev, fake])
@@ -248,7 +248,7 @@ export default function AdminPage() {
     if (!editCorridorMode) return
     const id = editCorridorMode
     if (!newCorridor.name || !newCorridor.location_from || !newCorridor.location_to) {
-      toast.error('Missing route geometry'); return
+      toast.error('Missing route details'); return
     }
     setCorridors(prev => prev.map(c => c.id === id ? { ...c, ...newCorridor } : c))
     try { 
@@ -320,11 +320,11 @@ export default function AdminPage() {
   const archivedRides = adminRides.filter(r => ['completed', 'cancelled'].includes(r.status))
 
   const TABS: { id: Tab; label: string; icon: any; badge?: number }[] = [
-    { id: 'overview', label: 'Ecosystem', icon: BarChart3 },
-    { id: 'users', label: 'Members', icon: Users, badge: pendingUsers.length || undefined },
-    { id: 'corridors', label: 'Corridors', icon: MapPin },
+    { id: 'overview', label: 'Overview', icon: BarChart3 },
+    { id: 'users', label: 'Users', icon: Users, badge: pendingUsers.length || undefined },
+    { id: 'corridors', label: 'Routes', icon: MapPin },
     { id: 'locations', label: 'Cities', icon: Globe },
-    { id: 'requests', label: 'Ride Flow', icon: Car, badge: liveRides.length || undefined },
+    { id: 'requests', label: 'Activity', icon: Car, badge: liveRides.length || undefined },
     { id: 'inbox', label: 'Inbox', icon: Inbox, badge: (openTicketCount + unreadFeedbackCount) || undefined },
   ]
 
@@ -339,10 +339,10 @@ export default function AdminPage() {
          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-4">
-               SECURE ADMIN PROTOCOL
+               ADMIN ACCESS
             </div>
-            <h1 className="text-6xl font-black tracking-tighter text-white">Ecosystem Command</h1>
-            <p className="text-white/40 text-xl mt-2 font-medium">Platform architecture and user integrity management.</p>
+            <h1 className="text-6xl font-black tracking-tighter text-white">Platform Management</h1>
+            <p className="text-white/40 text-xl mt-2 font-medium">Manage users, routes, and platform activity.</p>
           </div>
         </div>
 
@@ -375,10 +375,10 @@ export default function AdminPage() {
         {activeTab === 'overview' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-16">
-              <StatCard label="Total Members" value={analytics.total_users} icon={Users} color="bg-blue-600" />
+              <StatCard label="Total Users" value={analytics.total_users} icon={Users} color="bg-blue-600" />
               <StatCard label="Total Rides" value={analytics.total_rides.toLocaleString()} icon={TrendingUp} color="bg-indigo-600" />
               <StatCard label="Valid Trips" value={analytics.completed_rides.toLocaleString()} icon={CheckCircle} color="bg-green-600" />
-              <StatCard label="Active Corridors" value={analytics.active_corridors} icon={Database} color="bg-purple-600" />
+              <StatCard label="Active Routes" value={analytics.active_corridors} icon={Database} color="bg-purple-600" />
               <StatCard label="Platform Revenue" value={`₹${(analytics.total_revenue / 100000).toFixed(1)}L`} sub="annual projected" icon={Activity} color="bg-orange-600" />
               <StatCard label="CO2 Mitigation" value={`${analytics.total_credits}kg`} icon={Leaf} color="bg-emerald-600" />
             </div>
@@ -399,8 +399,8 @@ export default function AdminPage() {
                </div>
                 <div>
                   <h3 className="text-3xl font-black mb-2">Admin Profile</h3>
-                  <p className="text-white/40 font-bold mb-4 italic uppercase tracking-widest text-xs">Clearance Level: SYSTEM OVERRIDE</p>
-                  <p className="text-white/60 font-medium">Configure your ecosystem presence and security credentials.</p>
+                  <p className="text-white/40 font-bold mb-4 italic uppercase tracking-widest text-xs">Access Level: ADMIN</p>
+                  <p className="text-white/60 font-medium">Manage your profile and security settings.</p>
                 </div>
             </div>
 
@@ -409,11 +409,11 @@ export default function AdminPage() {
                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-[2.5rem] p-10 flex flex-col justify-between items-start group relative overflow-hidden">
                     <AlertTriangle className="absolute -bottom-10 -right-10 w-48 h-48 opacity-10 text-yellow-500 -rotate-12 group-hover:rotate-0 transition-transform duration-700" />
                     <div>
-                       <h3 className="text-3xl font-black text-yellow-500 mb-2">Member Authentication</h3>
-                       <p className="text-yellow-500/60 font-bold">{pendingUsers.length} users are requesting ecosystem entry.</p>
+                       <h3 className="text-3xl font-black text-yellow-500 mb-2">User Approval</h3>
+                       <p className="text-yellow-500/60 font-bold">{pendingUsers.length} users are requesting community entry.</p>
                     </div>
                     <button onClick={() => setActiveTab('users')} className="mt-8 bg-yellow-500 hover:bg-yellow-600 text-black px-10 py-4 rounded-2xl font-black transition-all active:scale-95 shadow-xl">
-                       START CLEARANCE
+                       REVIEW REQUESTS
                     </button>
                  </div>
                )}
@@ -421,11 +421,11 @@ export default function AdminPage() {
                  <div className="bg-blue-600/10 border border-blue-600/20 rounded-[2.5rem] p-10 flex flex-col justify-between items-start group relative overflow-hidden">
                     <Car className="absolute -bottom-10 -right-10 w-48 h-48 opacity-10 text-blue-500 -rotate-12 group-hover:rotate-0 transition-transform duration-700" />
                     <div>
-                       <h3 className="text-3xl font-black text-blue-400 mb-2">Global Ride Flow</h3>
-                       <p className="text-blue-400/60 font-bold">{liveRides.length} active rides traversing the network.</p>
+                       <h3 className="text-3xl font-black text-blue-400 mb-2">Trip Activity</h3>
+                       <p className="text-blue-400/60 font-bold">{liveRides.length} active rides in the network.</p>
                     </div>
                     <button onClick={() => setActiveTab('requests')} className="mt-8 bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-2xl font-black transition-all active:scale-95 shadow-xl">
-                       AUDIT TRAFFIC
+                       VIEW ACTIVITY
                     </button>
                  </div>
                )}
@@ -438,16 +438,16 @@ export default function AdminPage() {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                <div>
-                 <h2 className="text-3xl font-black">Member Registry</h2>
-                 <p className="text-white/40 font-bold">{users.length} authenticated users in ecosystem.</p>
+                 <h2 className="text-3xl font-black">User Registry</h2>
+                 <p className="text-white/40 font-bold">{users.length} registered users in the app.</p>
                </div>
                <div className="flex items-center gap-4">
                   <button 
                     onClick={async () => {
-                      const toastId = toast.loading('Synchronizing architecture...')
+                      const toastId = toast.loading('Syncing database...')
                       try {
                         await api.post('/admin/schema-fix')
-                        toast.success('Database Synchronized! System ready.', { id: toastId })
+                        toast.success('Database Synced!', { id: toastId })
                         fetchAll()
                       } catch { toast.error('Sync failed. Please check server logs.', { id: toastId }) }
                     }}
@@ -508,26 +508,26 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* CORRIDORS */}
+        {/* ROUTES */}
         {activeTab === 'corridors' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                <div>
-                 <h2 className="text-3xl font-black">Route Architecture</h2>
-                 <p className="text-white/40 font-bold">Configuring commute geometry and active zones.</p>
+                 <h2 className="text-3xl font-black">Route Management</h2>
+                 <p className="text-white/40 font-bold">Configure active routes and pickup hubs.</p>
                </div>
                <button onClick={() => {
                  setNewCorridor({ city_id: 1, name: '', location_from: '', location_to: '', description: '', image_url: '' });
                  setEditCorridorMode(null);
                  setShowAddCorridor(!showAddCorridor);
                }} className="bg-white text-black hover:bg-blue-600 hover:text-white px-10 py-5 rounded-[2rem] font-black text-lg transition-all active:scale-95 shadow-2xl">
-                 NEW CORRIDOR
+                 NEW ROUTE
                </button>
             </div>
 
             {(showAddCorridor || editCorridorMode !== null) && (
               <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 mb-12">
-                <h3 className="text-2xl font-black mb-8">{editCorridorMode ? 'Edit Corridor Architecture' : 'Define New Corridor'}</h3>
+                <h3 className="text-2xl font-black mb-8">{editCorridorMode ? 'Edit Route Details' : 'Create New Route'}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                   <div className="space-y-3">
                     <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Display Name</label>
@@ -535,12 +535,12 @@ export default function AdminPage() {
                       placeholder="e.g. Palava Elite" className="w-full px-6 py-4 bg-[#0f172a] border border-white/5 rounded-2xl text-white font-bold placeholder-white/20 focus:outline-none focus:border-blue-600 transition-all" />
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Origin Hub</label>
+                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Starting Point</label>
                     <input value={newCorridor.location_from} onChange={e => setNewCorridor(p => ({ ...p, location_from: e.target.value }))}
                       placeholder="Starting Sector" className="w-full px-6 py-4 bg-[#0f172a] border border-white/5 rounded-2xl text-white font-bold placeholder-white/20 focus:outline-none focus:border-blue-600 transition-all" />
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Destination Axis</label>
+                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Ending Point</label>
                     <input value={newCorridor.location_to} onChange={e => setNewCorridor(p => ({ ...p, location_to: e.target.value }))}
                       placeholder="Ending Sector" className="w-full px-6 py-4 bg-[#0f172a] border border-white/5 rounded-2xl text-white font-bold placeholder-white/20 focus:outline-none focus:border-blue-600 transition-all" />
                   </div>
@@ -570,7 +570,7 @@ export default function AdminPage() {
                 </div>
                 <div className="flex gap-4">
                   <button onClick={editCorridorMode ? saveEditCorridor : addCorridor} className="bg-blue-600 hover:bg-blue-700 px-12 py-5 rounded-2xl font-black shadow-xl">
-                    {editCorridorMode ? 'SAVE CHANGES' : 'PUBLISH TO NETWORK'}
+                    {editCorridorMode ? 'SAVE CHANGES' : 'PUBLISH ROUTE'}
                   </button>
                   <button onClick={() => {
                      setShowAddCorridor(false);
@@ -607,12 +607,12 @@ export default function AdminPage() {
                    {c.description && <p className="mb-6 text-sm text-white/60 bg-[#0f172a] p-4 rounded-xl border border-white/5">{c.description}</p>}
                    <div className="flex items-center gap-6 text-lg font-bold text-white/60">
                       <div className="flex flex-col">
-                         <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">ORIGIN</span>
+                         <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">START</span>
                          {c.location_from}
                       </div>
                       <ChevronRight className="w-6 h-6 text-white/10" />
                       <div className="flex flex-col">
-                         <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">AXIS</span>
+                         <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">END</span>
                          {c.location_to}
                       </div>
                    </div>
@@ -627,21 +627,21 @@ export default function AdminPage() {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                <div>
-                 <h2 className="text-3xl font-black">City Deployment</h2>
-                 <p className="text-white/40 font-bold">Managing regional availability and local node locks.</p>
+                 <h2 className="text-3xl font-black">Location Settings</h2>
+                 <p className="text-white/40 font-bold">Managing regional availability and local hubs.</p>
                </div>
                <button onClick={() => setShowAddCity(!showAddCity)} className="bg-white text-black hover:bg-blue-600 hover:text-white px-10 py-5 rounded-[2rem] font-black text-lg transition-all shadow-2xl">
-                 DEPLOY NEW CITY
+                 ADD NEW LOCATION
                </button>
             </div>
 
             {showAddCity && (
               <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 mb-12">
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2 block mb-4">Official City Name</label>
+                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2 block mb-4">Location Name</label>
                 <div className="flex gap-4">
                   <input value={newCity} onChange={e => setNewCity(e.target.value)} onKeyDown={e => e.key === 'Enter' && addCity()}
                     placeholder="e.g. Pune Metropolitan Area" className="flex-1 px-8 py-5 bg-[#0f172a] border border-white/5 rounded-2xl text-xl font-black placeholder-white/20 focus:outline-none focus:border-blue-600 transition-all shadow-inner" />
-                  <button onClick={addCity} className="bg-blue-600 hover:bg-blue-700 px-12 py-5 rounded-2xl font-black shadow-xl">AUTHENTICATE & DEPLOY</button>
+                  <button onClick={addCity} className="bg-blue-600 hover:bg-blue-700 px-12 py-5 rounded-2xl font-black shadow-xl">SAVE & ADD</button>
                 </div>
               </div>
             )}
@@ -655,14 +655,14 @@ export default function AdminPage() {
                       </div>
                       <div>
                         <h3 className="text-3xl font-black text-white tracking-tighter">{city.name}</h3>
-                        <p className={`text-[10px] font-black uppercase tracking-[0.2em] mt-1 ${city.status === 'active' ? 'text-green-500' : 'text-red-500'}`}>NODE {city.status.toUpperCase()}</p>
+                        <p className={`text-[10px] font-black uppercase tracking-[0.2em] mt-1 ${city.status === 'active' ? 'text-green-500' : 'text-red-500'}`}>LOCATION {city.status.toUpperCase()}</p>
                       </div>
                    </div>
                    <button onClick={() => toggleCity(city.id, city.status)}
                     className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-xs font-black transition-all active:scale-95 ${
                       city.status === 'active' ? 'bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white' : 'bg-green-600/10 text-green-500 hover:bg-green-600 hover:text-white'
                     }`}>
-                    {city.status === 'active' ? <><Lock className="w-4 h-4" /> LOCK NODE</> : <><Unlock className="w-4 h-4" /> ACTIVATE NODE</>}
+                    {city.status === 'active' ? <><Lock className="w-4 h-4" /> LOCK LOCATION</> : <><Unlock className="w-4 h-4" /> ACTIVATE LOCATION</>}
                   </button>
                 </div>
               ))}
@@ -698,7 +698,7 @@ export default function AdminPage() {
                                   <span className="text-xs font-bold text-white/60">{r.pickup_point}</span>
                                </div>
                                <div className="flex flex-col">
-                                  <span className="text-[9px] font-black text-white/20 tracking-widest uppercase mb-1">Geometry</span>
+                                  <span className="text-[9px] font-black text-white/20 tracking-widest uppercase mb-1">Route</span>
                                   <span className="text-xs font-bold text-white/60">{r.corridor_name}</span>
                                </div>
                                <div className="flex flex-col">
@@ -718,7 +718,7 @@ export default function AdminPage() {
                               </div>
                             )}
                             <Link href={`/rides/${r.id}`} className="min-w-max bg-blue-600 hover:bg-blue-700 text-white px-8 py-5 rounded-2xl font-black shadow-xl active:scale-95 transition-all text-sm uppercase tracking-widest inline-flex items-center gap-2">
-                               VIEW TRX <ArrowRight className="w-4 h-4" />
+                               VIEW DETAILS <ArrowRight className="w-4 h-4" />
                             </Link>
                          </div>
                       </div>
@@ -727,7 +727,7 @@ export default function AdminPage() {
               </div>
             )}
 
-            <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-6">ARCHIVED FLOWS</p>
+            <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-6">ARCHIVED RIDES</p>
             <div className="grid grid-cols-1 gap-4">
                {archivedRides.length === 0 && <p className="text-xs font-bold text-white/20 py-4">No archived rides</p>}
                {archivedRides.map(r => (
@@ -917,7 +917,7 @@ export default function AdminPage() {
         <div className="fixed inset-0 bg-[#0f172a]/90 backdrop-blur-xl z-50 flex items-center justify-center p-6 animate-in fade-in">
            <div className="bg-slate-900 border border-red-500/20 p-8 rounded-[3rem] w-full max-w-md shadow-2xl relative overflow-hidden">
              <AlertTriangle className="absolute -top-10 -right-10 w-48 h-48 opacity-[0.03] text-red-500 pointer-events-none" />
-             <h3 className="text-2xl font-black text-white mb-2 relative">Force Protocol Reset</h3>
+             <h3 className="text-2xl font-black text-white mb-2 relative">Reset User Password</h3>
              <p className="text-sm font-bold text-red-400 mb-6 relative">Warning: Replacing user authentication.</p>
              <form onSubmit={handleAdminResetPassword} className="space-y-4 relative">
                <input 

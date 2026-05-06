@@ -24,7 +24,7 @@ const CORRIDORS_DEFAULT: Corridor[] = [
   { id: 4, name: 'Any Country', location_from: 'Any City', location_to: 'Any Place' },
 ]
 
-const DRAFT_KEY = 'jool_ride_draft'
+const DRAFT_KEY = 'ainori_ride_draft'
 
 export default function OfferRidePage() {
   const router = useRouter()
@@ -179,10 +179,10 @@ export default function OfferRidePage() {
         <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8 mb-8">
            <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-4">
-                <Sparkles className="w-3 h-3" /> RIDE CONTROL
+                <Sparkles className="w-3 h-3" /> OFFER A RIDE
               </div>
               <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-none">Share Ride</h1>
-              <p className="text-white/30 text-[10px] mt-1 font-black uppercase tracking-widest leading-none">Publish your commute corridor</p>
+              <p className="text-white/30 text-[10px] mt-1 font-black uppercase tracking-widest leading-none">Share your route with neighbors</p>
            </div>
            
            <div className="flex items-center gap-4 bg-white/5 border border-white/5 rounded-3xl px-6 py-4 backdrop-blur-md">
@@ -211,9 +211,9 @@ export default function OfferRidePage() {
               </button>
            </div>
 
-           {/* CORRIDOR SELECTION */}
+           {/* ROUTE SELECTION */}
            <div className="bg-white/5 border border-white/5 rounded-[2rem] p-6">
-              <h3 className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em] mb-4">Select Active Corridor</h3>
+              <h3 className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em] mb-4">Select Your Route</h3>
               <div className="grid grid-cols-4 gap-2">
                  {corridors.map(c => (
                    <button 
@@ -260,19 +260,19 @@ export default function OfferRidePage() {
                         let label = 'Custom Slot'
                         let color = 'text-white/20'
                         if (direction === 'to_office') {
-                          if (h >= 6 && h < 7) { label = 'Early Birds'; color = 'text-amber-400' }
-                          else if (h >= 7 && h < 8) { label = 'GM Route'; color = 'text-amber-400' }
-                          else if (h >= 8 && h < 9) { label = 'Rush Hour'; color = 'text-amber-400' }
-                          else if (h >= 9 && h < 10) { label = 'Pick Perfect'; color = 'text-amber-400' }
-                          else if (h >= 10 && h < 11) { label = 'Still Looking'; color = 'text-amber-400' }
-                          else if (h >= 11 || h < 2) { label = 'Late Join'; color = 'text-amber-400' }
+                          if (h >= 6 && h < 7) { label = 'Early Morning'; color = 'text-amber-400' }
+                          else if (h >= 7 && h < 8) { label = 'Morning Commute'; color = 'text-amber-400' }
+                          else if (h >= 8 && h < 9) { label = 'Peak Office Hour'; color = 'text-amber-400' }
+                          else if (h >= 9 && h < 10) { label = 'Mid-Morning'; color = 'text-amber-400' }
+                          else if (h >= 10 && h < 11) { label = 'Late Morning'; color = 'text-amber-400' }
+                          else if (h >= 11 || h < 2) { label = 'Mid-Day'; color = 'text-amber-400' }
                         } else {
-                          if (h >= 16 && h < 18) { label = 'On Time'; color = 'text-blue-400' }
-                          else if (h >= 18 && h < 20) { label = 'Traffic Fighters'; color = 'text-blue-400' }
-                          else if (h >= 20 && h < 22) { label = 'Late Comers'; color = 'text-blue-400' }
-                          else if (h >= 22 || h < 4) { label = 'Homebound'; color = 'text-blue-400' }
+                          if (h >= 16 && h < 18) { label = 'Early Evening'; color = 'text-blue-400' }
+                          else if (h >= 18 && h < 20) { label = 'Evening Return'; color = 'text-blue-400' }
+                          else if (h >= 20 && h < 22) { label = 'Late Evening'; color = 'text-blue-400' }
+                          else if (h >= 22 || h < 4) { label = 'Night Shift'; color = 'text-blue-400' }
                         }
-                        return <p className={`mt-2 text-[10px] font-black uppercase tracking-widest ${color}`}>{label} Signaling</p>
+                        return <p className={`mt-2 text-[10px] font-black uppercase tracking-widest ${color}`}>{label}</p>
                      })()}
                   </div>
                </div>
@@ -318,7 +318,7 @@ export default function OfferRidePage() {
                 disabled={loading}
                 className="flex-1 w-full bg-white text-black hover:bg-blue-600 hover:text-white py-5 rounded-[1.5rem] font-black text-lg transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-3"
               >
-                 {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>PUBLISH RIDE <ChevronRight className="w-6 h-6" /></>}
+                 {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>OFFER THIS RIDE <ChevronRight className="w-6 h-6" /></>}
               </button>
            </div>
         </div>

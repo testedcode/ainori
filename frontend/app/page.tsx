@@ -15,7 +15,7 @@ import {
   LineChart, Coffee, BrainCircuit, Network, Umbrella, CloudRain,
   Flame, ShieldHalf, LayoutGrid, Coins, Zap as EVIcon, HeartPulse,
   MonitorCheck, Verified, Glasses, Sparkle, Gauge, LifeBuoy, Split, Scan,
-  Box, Terminal, Binary
+  Box, Terminal, Binary, Search
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { getVibe, VIBE_THEMES } from '@/lib/vibe-utils';
@@ -81,16 +81,16 @@ export default function HomePage() {
               <Car className="w-6 h-6 text-white relative z-10" />
             </div>
             <div className="flex flex-col text-left">
-              <span className="text-xl font-black tracking-tighter leading-none">JOOL</span>
-              <span className="text-[8px] font-black tracking-[0.3em] text-blue-500 uppercase">AI-Orchestrated</span>
+              <span className="text-xl font-black tracking-tighter leading-none">AINORI</span>
+              <span className="text-[8px] font-black tracking-[0.3em] text-blue-500 uppercase">Simple & Shared</span>
             </div>
           </Link>
           
           <div className="hidden lg:flex items-center gap-10 text-[10px] font-black uppercase tracking-widest text-slate-400">
-            <Link href="#shift" className="hover:text-white transition-colors">The Nexus</Link>
-            <Link href="#optimization" className="hover:text-white transition-colors">Optimization</Link>
-            <Link href="#hacks" className="hover:text-white transition-colors">Hacks & Vibe</Link>
-            <Link href="#premium" className="hover:text-white transition-colors">Tiers</Link>
+            <Link href="#shift" className="hover:text-white transition-colors">Our Approach</Link>
+            <Link href="#optimization" className="hover:text-white transition-colors">Routes</Link>
+            <Link href="#hacks" className="hover:text-white transition-colors">Tips</Link>
+            <Link href="#premium" className="hover:text-white transition-colors">Benefits</Link>
           </div>
 
           <div className="flex items-center gap-4">
@@ -106,15 +106,15 @@ export default function HomePage() {
           <div className="container max-w-7xl mx-auto px-6 relative z-10">
             <div className="max-w-6xl mx-auto text-center relative">
               <div className="inline-flex items-center gap-3 px-8 py-3 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-[0.5em] mb-12 text-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
-                <Cpu className="w-4 h-4" /> The Intelligence Node for Every Commute
+                <Car className="w-4 h-4" /> SAFE & SIMPLE OFFICE COMMUTE
               </div>
-              <h1 className="text-7xl md:text-[11rem] font-black tracking-tighter mb-10 leading-[0.75] uppercase italic">
-                MOVE WITH<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-white to-blue-400 animate-gradient-x">PURE INTENT.</span>
+              <h1 className="text-7xl md:text-[11rem] font-black tracking-tighter mb-10 leading-[0.75] uppercase italic text-white">
+                BOOK YOUR<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-white to-blue-400">DAILY RIDE.</span>
               </h1>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-10 mt-16">
                 <Link href="/register" className="group relative px-16 py-7 bg-white text-black rounded-[3rem] font-black text-lg uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-2xl active:scale-95 overflow-hidden">
-                  <span className="relative z-10 flex items-center gap-3">Join the Syndicate <ArrowRight className="w-6 h-6" /></span>
+                  <span className="relative z-10 flex items-center gap-3">Get Started <ArrowRight className="w-6 h-6" /></span>
                 </Link>
               </div>
             </div>
@@ -131,11 +131,11 @@ export default function HomePage() {
                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
                     <div className="text-left relative z-10">
                        <div className="inline-flex items-center gap-3 px-8 py-3 bg-purple-500/20 border border-purple-500/30 rounded-full text-[10px] font-black uppercase tracking-[0.6em] mb-12 text-purple-400">
-                          <ShieldCheck className="w-5 h-5" /> THE FEMALE SAFETY PROTOCOL
+                          <ShieldCheck className="w-5 h-5" /> SAFETY GUIDELINES
                        </div>
                        <h2 className="text-5xl md:text-8xl font-black tracking-tighter uppercase italic leading-[0.85] mb-12">
                           PEACE OF MIND.<br />
-                          <span className="text-purple-400">ENGINEERED.</span>
+                          <span className="text-purple-400">TRUSTED RIDES.</span>
                        </h2>
                        <div className="space-y-6">
                           {[
@@ -166,11 +166,11 @@ export default function HomePage() {
 
            <div className="container max-w-7xl mx-auto px-6 relative z-10">
               <div className="text-center mb-40">
-                 <div className="inline-flex items-center gap-3 px-6 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-[0.4em] mb-8 text-white/40">
-                    <Scan className="w-4 h-4" /> SYSTEMIC OVERWRITE INITIATED
+                 <div className="inline-flex items-center gap-3 px-6 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest mb-8 text-white/40">
+                    <Users className="w-4 h-4" /> COMMUNITY-DRIVEN SYSTEM
                  </div>
                  <h2 className="text-6xl md:text-9xl font-black tracking-tighter italic uppercase leading-[0.8]">
-                    THE SHIFT FROM<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-white to-blue-500 animate-gradient-x">CHAOS TO INFRASTRUCTURE.</span>
+                    THE SHIFT FROM<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-white to-blue-500">CHAOS TO COMMUNITY.</span>
                  </h2>
               </div>
 
@@ -238,17 +238,17 @@ export default function HomePage() {
                                 <Binary className="w-8 h-8 text-blue-500 animate-[spin_8s_linear_infinite]" />
                              </div>
                              <div className="text-left">
-                                <h3 className="text-4xl font-black uppercase italic leading-none text-white">The Syndicate</h3>
-                                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">AI-ORCHESTRATED INFRASTRUCTURE</p>
+                                <h3 className="text-4xl font-black uppercase italic leading-none text-white">The Community App</h3>
+                                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">SUPPORTIVE NEIGHBORLY SYSTEM</p>
                              </div>
                           </div>
 
                           <div className="space-y-4">
                              {[
-                               { t: 'Society Verified Nodes', d: 'Match with trusted neighbors only.', icon: ShieldCheck, color: 'text-blue-400' },
-                               { t: 'Masked Identity', d: 'E2E encryption. Ghost protocols active.', icon: Fingerprint, color: 'text-cyan-400' },
-                               { t: 'Fixed Ledger Rates', d: 'Predictable pricing. Zero surge.', icon: Coins, color: 'text-green-400' },
-                               { t: 'Emergency SOS Grid', d: 'Real-time tracking. Instant assistance.', icon: Activity, color: 'text-blue-500' }
+                               { t: 'Verified Members', d: 'Match with trusted neighbors from your society.', icon: ShieldCheck, color: 'text-blue-400' },
+                               { t: 'Privacy Protected', d: 'Secure communication without leaking numbers.', icon: Fingerprint, color: 'text-cyan-400' },
+                               { t: 'Fixed Fair Rates', d: 'Predictable pricing. Zero surge pricing.', icon: Coins, color: 'text-green-400' },
+                               { t: 'Live Trip Tracking', d: 'Real-time location sharing with family.', icon: Activity, color: 'text-blue-500' }
                              ].map((item, i) => (
                                <div key={i} className="flex items-center gap-6 p-6 bg-blue-600/5 border border-blue-500/10 rounded-3xl hover:bg-blue-600/20 hover:border-blue-500/40 transition-all group/item shadow-2xl">
                                   <div className="relative">
@@ -267,7 +267,7 @@ export default function HomePage() {
                        <div className="pt-12 text-left">
                           <div className="flex items-center gap-3">
                              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(34,197,94,1)]" />
-                             <p className="text-[8px] font-black text-blue-400 uppercase tracking-[0.5em]">SYSTEM_STATUS: NOMINAL • SECURITY: ELITE</p>
+                             <p className="text-[8px] font-black text-blue-400 uppercase tracking-[0.5em]">SYSTEM_STATUS: ACTIVE • SECURITY: TRUSTED</p>
                           </div>
                        </div>
                     </div>
@@ -282,66 +282,66 @@ export default function HomePage() {
            <div className="container max-w-7xl mx-auto px-6">
               <div className="flex flex-col lg:flex-row items-end justify-between mb-40 gap-10">
                  <div className="text-left">
-                    <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">MACRO URBAN EFFICIENCY</p>
+                    <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">MOST POPULAR JOURNEYS</p>
                     <h2 className="text-6xl md:text-9xl font-black tracking-tighter italic uppercase leading-[0.8] mb-12">
-                       URBAN<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600">OPTIMIZATION.</span>
+                       POPULAR<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600">ROUTES.</span>
                     </h2>
                     <p className="text-xl md:text-3xl text-slate-500 font-bold max-w-4xl uppercase italic leading-tight">
-                       High-performance infrastructure for the <span className="text-white">Modern Professional.</span> Every node is a multiplier.
+                       Quick access to the most common <span className="text-white">Professional Flows.</span> Start your journey here.
                     </p>
                  </div>
               </div>
 
-              {/* THE MASTER GRID (Curated 10 Cards) */}
+              {/* THE COMMUNITY ROUTES (Curated 10 Cards) */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                  
                  <OptimizationCard 
-                    tag="[SEASONAL SHIELD]" 
-                    title="Monsoon Node" 
-                    subtitle="STORM-READY COMMUTE"
-                    desc="Skip the mud, the splashes, and the auto-rickshaw hunt. Travel in a climate-controlled car corridor while the city stalls."
-                    icon={Umbrella}
-                    metric="ZERO CANCELLATIONS"
+                    tag="[TOP ROUTE]" 
+                    title="Casa Rio → RCP" 
+                    subtitle="CASA RIO TO RCP"
+                    desc="Direct ride from Casa Rio society to Reliance Corporate Park. Safe, timely, and shared with neighbors."
+                    icon={Navigation}
+                    metric="30+ RIDES DAILY"
                     color="blue"
+                    badge="POPULAR"
+                 />
+
+                 <OptimizationCard 
+                    tag="[TOP ROUTE]" 
+                    title="Casa Bella → RCP" 
+                    subtitle="CASA BELLA TO RCP"
+                    desc="Smooth daily ride from Casa Bella to RCP. Avoid the traffic stress and share the journey with your neighbors."
+                    icon={Navigation}
+                    metric="25+ RIDES DAILY"
+                    color="amber"
                     badge="ACTIVE"
                  />
 
                  <OptimizationCard 
-                    tag="[ELITE NETWORK]" 
-                    title="Peer Synergy" 
-                    subtitle="PROFESSIONAL PROXIMITY"
-                    desc="Match with senior architects, VPs, and founders from your own society. Turn dead commute time into high-value networking."
-                    icon={Network}
-                    metric="98% PEER MATCH"
-                    color="amber"
-                    badge="PREMIUM"
-                 />
-
-                 <OptimizationCard 
-                    tag="[SAFETY PROTOCOL]" 
-                    title="Guardian Node" 
-                    subtitle="COMMUNITY VERIFIED"
-                    desc="Match exclusively within your verified corporate network and society. Real-time family tracking included for total peace of mind."
-                    icon={ShieldCheck}
-                    metric="100% VETTED"
+                    tag="[TOP ROUTE]" 
+                    title="Kharghar → RCP" 
+                    subtitle="KHARGHAR TO RCP"
+                    desc="Connecting Kharghar members to RCP. A reliable way to reach office fresh and ready for the day."
+                    icon={Navigation}
+                    metric="15+ RIDES DAILY"
                     color="purple"
-                    badge="SECURE"
+                    badge="GROWING"
                  />
 
                  <OptimizationCard 
-                    tag="[EASY ACCESS]" 
-                    title="Silver Corridor" 
-                    subtitle="ELDER MOBILITY NODE"
-                    desc="Helping seniors reclaim independence without the stress of driving. Door-to-door car corridors with vetted, respectful hosts."
-                    icon={HeartPulse}
-                    metric="STRESS FREE"
+                    tag="[FLEXIBLE]" 
+                    title="Any Place → Any Place" 
+                    subtitle="CUSTOM OFFICE ROUTES"
+                    desc="Can't find your route? Create a custom path or search for any location. We connect you to neighbors everywhere."
+                    icon={Search}
+                    metric="UNLIMITED"
                     color="red"
-                    badge="NEW"
+                    badge="FLEXIBLE"
                  />
 
                  <OptimizationCard 
                     tag="[HEALTH SHIELD]" 
-                    title="Biotic Node" 
+                    title="Health Shield" 
                     subtitle="CLIMATE CONTROL"
                     desc="Protection from heat strokes, city dust, and pollution. Arrive at your destination 100% fresh and cognitive-ready."
                     icon={ThermometerSun}
@@ -391,10 +391,10 @@ export default function HomePage() {
                  />
 
                  <OptimizationCard 
-                    tag="[FINANCE NODE]" 
-                    title="Wealth Ledger" 
+                    tag="[SMART SAVINGS]" 
+                    title="Smart Savings" 
                     subtitle="SURGE PROTECTION"
-                    desc="Avoid unpredictable Ola/Uber surge pricing. Keep your commute expenses fixed, simple, and secured within the Syndicate Ledger."
+                    desc="Avoid unpredictable taxi surge pricing. Keep your commute expenses fixed and simple within the Community Ledger."
                     icon={Coins}
                     metric="NO SURGE"
                     color="emerald"
@@ -408,22 +408,22 @@ export default function HomePage() {
         <section id="hacks" className="py-60 bg-gradient-to-b from-transparent via-purple-600/5 to-transparent relative overflow-hidden">
            <div className="container max-w-7xl mx-auto px-6 relative z-10">
               <div className="text-left mb-32">
-                 <div className="inline-flex items-center gap-3 px-8 py-3 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-[0.6em] mb-12 text-purple-400">
-                    <ZapIcon className="w-5 h-5 animate-bounce" /> MAXIMIZE YOUR MOTION
+                 <div className="inline-flex items-center gap-3 px-8 py-3 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest mb-12 text-purple-400">
+                    <ZapIcon className="w-5 h-5 animate-bounce" /> HELPFUL RIDE TIPS
                  </div>
                  <h2 className="text-7xl md:text-[11rem] font-black tracking-tighter uppercase italic leading-[0.8] mb-12">
                     HAPPY RIDE<br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-white to-purple-400 animate-gradient-x">HACKS.</span>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-white to-purple-400">TIPS.</span>
                  </h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                  {[
                    { title: 'Treat with Greet', d: 'A smile is the best commute start. Be the energy you want to ride with.', icon: Smile, vibe: 'ENERGY', benefit: 'DOPAMINE BOOST', color: 'blue' },
-                   { title: 'The Silent Node', d: 'Respect "No Yelling" and low volume. Deep work or total zen.', icon: VolumeX, vibe: 'FOCUS', benefit: 'DEEP WORK', color: 'purple' },
+                   { title: 'Silent Commute', d: 'Respect "No Yelling" and low volume. Deep work or total zen.', icon: VolumeX, vibe: 'FOCUS', benefit: 'DEEP WORK', color: 'purple' },
                    { title: 'In-Ride Settle', d: 'Settle via UPI during the ride. Zero friction, zero debt.', icon: Banknote, vibe: 'FLOW', benefit: 'ZERO FRICTION', color: 'green' },
-                   { title: 'Nexus Integrity', d: 'Privacy first. Keep all coordination inside the JOOL network.', icon: ShieldCheck, vibe: 'STEALTH', benefit: 'DATA PRIVACY', color: 'red' },
-                   { title: 'Time Discipline', d: 'Punctuality is the ultimate respect. Be the node that others rely on.', icon: Clock, vibe: 'TRUST', benefit: 'TIME SAVED', color: 'amber' },
+                   { title: 'Privacy First', d: 'Privacy first. Keep all coordination inside the AINORI network.', icon: ShieldCheck, vibe: 'STEALTH', benefit: 'DATA PRIVACY', color: 'red' },
+                   { title: 'Time Discipline', d: 'Punctuality is the ultimate respect. Be the one that others rely on.', icon: Clock, vibe: 'TRUST', benefit: 'TIME SAVED', color: 'amber' },
                    { title: 'Zero Spam Signal', d: 'Keep the signals clean. Relevant commute updates only.', icon: Radio, vibe: 'SIGNAL', benefit: 'NO NOISE', color: 'cyan' }
                  ].map((hack, i) => (
                    <div key={i} className="group relative bg-white/[0.02] border border-white/10 rounded-[5rem] p-12 hover:bg-white/[0.08] transition-all duration-700 overflow-hidden text-left flex flex-col">
@@ -453,9 +453,9 @@ export default function HomePage() {
            <div className="container max-w-7xl mx-auto px-6">
               <div className="flex flex-col lg:flex-row items-end justify-between gap-10 mb-32">
                  <div className="max-w-2xl text-left">
-                    <p className="text-amber-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">MEMBERSHIP ARCHITECTURE</p>
+                    <p className="text-amber-500 font-black text-[10px] uppercase tracking-[0.4em] mb-6">COMMUNITY MEMBERSHIP</p>
                     <h2 className="text-5xl md:text-7xl font-black tracking-tighter italic uppercase leading-none">
-                       DEFINE YOUR<br /><span className="text-amber-500">STATUS.</span>
+                       CHOOSE YOUR<br /><span className="text-amber-500">PLAN.</span>
                     </h2>
                  </div>
               </div>
@@ -495,10 +495,10 @@ export default function HomePage() {
                     </Link>
                  </div>
 
-                 {/* ELITE */}
+                 {/* PREMIUM (GOLD) */}
                  <div className="bg-gradient-to-br from-amber-500/20 to-transparent border border-amber-500/40 p-12 rounded-[4rem] flex flex-col relative overflow-hidden group hover:scale-[1.05] transition-all shadow-[0_30px_60px_-15px_rgba(245,158,11,0.2)] text-left h-full">
                     <div className="mb-12">
-                       <h3 className="text-2xl font-black uppercase italic mb-2">Elite</h3>
+                       <h3 className="text-2xl font-black uppercase italic mb-2">Gold</h3>
                     </div>
                     <ul className="space-y-6 flex-1">
                        {['Elite Gold profile mark', 'Top-of-queue corridor access', 'Executive networking access'].map((feat, i) => (
@@ -508,7 +508,7 @@ export default function HomePage() {
                        ))}
                     </ul>
                     <Link href="/profile" className="mt-12 w-full py-5 bg-amber-500 text-black rounded-2xl text-[10px] font-black uppercase tracking-widest text-center hover:bg-amber-400 transition-all shadow-2xl relative z-10">
-                       Claim Elite Status
+                       Get Gold Status
                     </Link>
                  </div>
               </div>
@@ -519,11 +519,11 @@ export default function HomePage() {
         <section className="container max-w-7xl mx-auto px-6 pb-40 pt-40">
            <div className="bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 rounded-[5rem] p-24 md:p-40 text-center relative overflow-hidden group shadow-[0_50px_100px_-20px_rgba(59,130,246,0.4)]">
               <div className="relative z-10">
-                 <h2 className="text-6xl md:text-[10rem] font-black mb-12 tracking-tighter uppercase italic leading-[0.8]">
+                 <h2 className="text-6xl md:text-[10rem] font-black mb-12 tracking-tighter uppercase italic leading-[0.8] text-white">
                     THE FUTURE<br />IS SHARED.
                  </h2>
                  <Link href="/register" className="bg-white text-black px-20 py-8 rounded-[3rem] text-xl font-black uppercase tracking-[0.2em] hover:bg-slate-200 transition-all shadow-2xl active:scale-95">
-                    Claim Your Node
+                    Join Now
                  </Link>
               </div>
            </div>
@@ -538,36 +538,36 @@ export default function HomePage() {
                     <Car className="w-7 h-7 text-white" />
                  </div>
                  <div className="flex flex-col">
-                   <span className="text-2xl font-black tracking-widest uppercase leading-none">JOOL SYNDICATE</span>
-                   <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.4em]">Autonomous Intelligence Commute</span>
+                   <span className="text-2xl font-black tracking-widest uppercase leading-none">AINORI COMMUNITY</span>
+                   <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.4em]">Simple & Shared Daily Commute</span>
                  </div>
               </div>
               <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest max-w-sm leading-relaxed">
-                 Engineering the future of urban motion. Join the most secure professional commute network globally.
+                 A better way to travel together. Join our secure professional commute network.
               </p>
            </div>
            
            <div className="text-left">
               <h4 className="text-xs font-black uppercase tracking-[0.4em] mb-10 text-white">Infrastructure</h4>
               <div className="flex flex-col gap-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                 <Link href="/privacy" className="hover:text-white transition-colors">Privacy Protocol</Link>
-                 <Link href="/terms" className="hover:text-white transition-colors">Terms of Syndicate</Link>
-                 <Link href="/support" className="hover:text-white transition-colors">Support Node</Link>
+                 <Link href="/privacy" className="hover:text-white transition-colors">Privacy Promise</Link>
+                 <Link href="/terms" className="hover:text-white transition-colors">Community Terms</Link>
+                 <Link href="/support" className="hover:text-white transition-colors">Help Center</Link>
               </div>
            </div>
 
            <div className="text-left">
               <h4 className="text-xs font-black uppercase tracking-[0.4em] mb-10 text-white">Community</h4>
               <div className="flex flex-col gap-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                 <Link href="/hacks" className="hover:text-white transition-colors">Efficiency Hacks</Link>
-                 <Link href="/exclusive-benefits" className="hover:text-white transition-colors">Elite Tiers</Link>
-                 <Link href="/safety" className="hover:text-white transition-colors">Safety Nets</Link>
+                 <Link href="/hacks" className="hover:text-white transition-colors">Ride Tips</Link>
+                 <Link href="/exclusive-benefits" className="hover:text-white transition-colors">Member Benefits</Link>
+                 <Link href="/safety" className="hover:text-white transition-colors">Safety</Link>
               </div>
            </div>
         </div>
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-t border-white/5 pt-12">
-           <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">© 2026 JOOL TECHNOLOGY SYNDICATE • V10.4</p>
+           <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">© 2026 AINORI COMMUNITY</p>
            <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">System Online</span>

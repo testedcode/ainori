@@ -83,12 +83,12 @@ function Accordion({ q, a, icon: Icon, color }: { q: string; a: string; icon: an
 const PILLARS = [
   {
     icon: UserCheck, title: 'Verified-Only Network', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20',
-    desc: 'Every JOOL user is manually reviewed before getting access. We verify profiles to ensure only genuine colleagues from the same residential or office community can participate.',
+    desc: 'Every AINORI member is manually reviewed before getting access. We verify profiles to ensure only genuine colleagues from the same residential or office community can participate.',
     points: ['Profile review before activation', 'Community-based access control', 'No anonymous users on the platform']
   },
   {
     icon: CreditCard, title: 'Zero Payment Data Stored', color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20',
-    desc: 'JOOL never handles, stores, or processes any payment data. All financial transactions happen directly between users via UPI — peer to peer, zero platform involvement.',
+    desc: 'AINORI never handles, stores, or processes any payment data. All financial transactions happen directly between users via UPI — peer to peer, zero platform involvement.',
     points: ['No card or bank details collected', 'UPI payments are user-to-user only', 'We never see or store transaction data']
   },
   {
@@ -108,7 +108,7 @@ const PILLARS = [
   },
   {
     icon: Server, title: 'Secure Infrastructure', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20',
-    desc: 'JOOL runs on enterprise-grade cloud infrastructure with encrypted data in transit (TLS 1.3) and at rest. Database access is IP-restricted with role-based access control.',
+    desc: 'AINORI runs on enterprise-grade cloud infrastructure with encrypted data in transit (TLS 1.3) and at rest. Database access is IP-restricted with role-based access control.',
     points: ['TLS 1.3 for all data in transit', 'Encrypted database at rest', 'Role-based DB access control']
   },
 ]
@@ -116,17 +116,17 @@ const PILLARS = [
 const PAYMENT_FLOW = [
   { step: '01', icon: CheckCircle2, title: 'Ride Confirmed', desc: 'Host accepts your request. Seat is reserved.', color: 'text-blue-400', bg: 'bg-blue-500/10' },
   { step: '02', icon: Car, title: 'Travel Together', desc: 'Complete the commute with your co-riders.', color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
-  { step: '03', icon: Phone, title: 'Pay via UPI', desc: 'Directly transfer to host\'s UPI. JOOL is not involved.', color: 'text-green-400', bg: 'bg-green-500/10' },
+  { step: '03', icon: Phone, title: 'Pay via UPI', desc: 'Directly transfer to host\'s UPI. AINORI is not involved.', color: 'text-green-400', bg: 'bg-green-500/10' },
   { step: '04', icon: CheckCircle2, title: 'Mark as Done', desc: 'Both rider and host confirm payment in the app.', color: 'text-amber-400', bg: 'bg-amber-500/10' },
 ]
 
 const SECURITY_QA = [
   { q: 'Is my phone number visible to everyone?', a: 'No. Your phone number is only shown to confirmed co-riders on a specific accepted ride. It is never shown to users who are pending, rejected, or on other rides.', icon: Phone, color: 'text-blue-400' },
-  { q: 'Does JOOL store my UPI ID?', a: 'Your UPI ID is stored in your profile and is only shown to confirmed co-riders on a specific ride. JOOL never initiates or processes any UPI transactions — all payments are purely peer-to-peer between users.', icon: CreditCard, color: 'text-green-400' },
+  { q: 'Does AINORI store my UPI ID?', a: 'Your UPI ID is stored in your profile and is only shown to confirmed co-riders on a specific ride. AINORI never initiates or processes any UPI transactions — all payments are purely peer-to-peer between users.', icon: CreditCard, color: 'text-green-400' },
   { q: 'How are passwords protected?', a: 'Passwords are hashed using bcrypt with a cost factor of 12. We never store plain-text passwords. In the event of any breach (which we work hard to prevent), your actual password is never exposed.', icon: Lock, color: 'text-amber-400' },
-  { q: 'What happens if I report a safety issue?', a: 'Your report goes directly to the JOOL safety team. The accused account is flagged for review. We respond within 24 hours. Serious violations result in immediate suspension pending investigation.', icon: ShieldAlert, color: 'text-red-400' },
+  { q: 'What happens if I report a safety issue?', a: 'Your report goes directly to the community safety team. The accused account is flagged for review. We respond within 24 hours. Serious violations result in immediate suspension pending investigation.', icon: ShieldAlert, color: 'text-red-400' },
   { q: 'Is 2FA available?', a: 'We are actively building 2-Factor Authentication (SMS + Email OTP). This will be rolled out as part of our global login upgrade. Until then, strong JWT-based session management is in place.', icon: Fingerprint, color: 'text-purple-400' },
-  { q: 'What data does JOOL collect?', a: 'We collect only what is necessary: name, email, phone, vehicle details (for hosts), and ride activity. We do not collect payment data, location continuously, or sell data to third parties.', icon: Eye, color: 'text-cyan-400' },
+  { q: 'What data does AINORI collect?', a: 'We collect only what is necessary: name, email, phone, vehicle details (for hosts), and ride activity. We do not collect payment data, location continuously, or sell data to third parties.', icon: Eye, color: 'text-cyan-400' },
 ]
 
 export default function SafetyPage() {
@@ -164,7 +164,7 @@ export default function SafetyPage() {
             </span>
           </h1>
           <p className="text-slate-400 text-lg max-w-2xl leading-relaxed">
-            JOOL is a community-first platform. Every feature we build starts with one question — <em className="text-white">is this safe for our users?</em> Here is exactly how we protect you.
+            AINORI is a community-first platform. Every feature we build starts with one question — <em className="text-white">is this safe for our users?</em> Here is exactly how we protect you.
           </p>
         </Reveal>
 
@@ -241,10 +241,10 @@ export default function SafetyPage() {
                 <span className="text-[10px] font-black text-green-400 uppercase tracking-widest">Payment Safety</span>
               </div>
               <h2 className="text-3xl md:text-4xl font-black tracking-tighter mb-3">
-                JOOL Never Touches Your Money
+                AINORI Never Touches Your Money
               </h2>
               <p className="text-slate-400 text-base mb-12 max-w-2xl leading-relaxed">
-                Payments on JOOL are 100% peer-to-peer via UPI. We do not act as a payment gateway, intermediary, or wallet. We do not store any card numbers, bank details, or UPI transaction records.
+                Payments on AINORI are 100% peer-to-peer via UPI. We do not act as a payment gateway, intermediary, or wallet. We do not store any card numbers, bank details, or UPI transaction records.
               </p>
 
               {/* Flow diagram */}
@@ -269,7 +269,7 @@ export default function SafetyPage() {
 
               <div className="mt-8 p-4 bg-white/5 border border-white/10 rounded-2xl">
                 <p className="text-[11px] text-slate-400 text-center leading-relaxed">
-                  <span className="font-black text-white">Important:</span> JOOL only records whether users have <em>marked</em> a payment as done — not the actual transaction. We have zero visibility into UPI transaction data.
+                  <span className="font-black text-white">Important:</span> AINORI only records whether users have <em>marked</em> a payment as done — not the actual transaction. We have zero visibility into UPI transaction data.
                 </p>
               </div>
             </div>
@@ -316,7 +316,7 @@ export default function SafetyPage() {
               <Heart className="w-8 h-8 text-purple-400 mb-5" />
               <h3 className="text-2xl font-black tracking-tight mb-3">Community Safety Standards</h3>
               <p className="text-slate-400 text-sm leading-relaxed mb-6">
-                Beyond technical security, JOOL enforces community standards that keep every interaction respectful and safe.
+                Beyond technical security, AINORI enforces community standards that keep every interaction respectful and safe.
               </p>
               <div className="space-y-3">
                 {[

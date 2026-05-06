@@ -81,7 +81,7 @@ export default function HistoryPage() {
   const handleRate = async (rideId: number, rateeId: number, rating: number) => {
     try {
       await api.post(`/rides/${rideId}/rate`, { ratee_id: rateeId, rating })
-      toast.success('Rating broadcasted! 🛰️')
+      toast.success('Rating saved! ⭐')
       loadRides()
     } catch (e: any) {
       toast.error(e.response?.data?.error || 'Rating failed')
@@ -122,8 +122,8 @@ export default function HistoryPage() {
               <HistoryIcon className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-4xl font-black tracking-tighter italic uppercase leading-none">Mission Logs</h1>
-              <p className="text-white/20 text-[10px] font-black uppercase tracking-widest mt-1">Personnel Commute Archive</p>
+              <h1 className="text-4xl font-black tracking-tighter italic uppercase leading-none">Ride Logs</h1>
+              <p className="text-white/20 text-[10px] font-black uppercase tracking-widest mt-1">Your Ride History</p>
             </div>
           </div>
 
@@ -143,7 +143,7 @@ export default function HistoryPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 opacity-20">
             <Loader2 className="w-10 h-10 animate-spin mb-4" />
-            <p className="text-[10px] font-black uppercase tracking-[0.5em]">Fetching_Logs...</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.5em]">Loading History...</p>
           </div>
         ) : (
           <div className="space-y-16">
@@ -288,7 +288,7 @@ function HistoryCard({
             </div>
             <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] flex items-center gap-2">
               {isOwner ? <Car className="w-3 h-3 text-amber-400" /> : <User className="w-3 h-3 text-blue-400" />}
-              {isOwner ? 'Command Center' : `Joined · ${ride.user_name || 'Host'}`}
+              {isOwner ? 'Host' : `Joined · ${ride.user_name || 'Host'}`}
             </p>
             {ride.direction && (
               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest mt-1.5 border ${
@@ -345,14 +345,14 @@ function HistoryCard({
                   disabled={marking !== null}
                   className="text-[9px] font-black text-blue-400 hover:text-blue-300 uppercase tracking-tighter underline underline-offset-4 decoration-blue-500/30"
                 >
-                  {marking === -1 ? 'Syncing...' : 'Mark All Received'}
+                  {marking === -1 ? 'Updating...' : 'Mark All Received'}
                 </button>
               )}
             </div>
             {loadingPayments ? (
               <div className="py-4 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-white/10" /></div>
             ) : payments.length === 0 ? (
-              <p className="text-[10px] text-white/10 italic">No payments detected for this mission.</p>
+              <p className="text-[10px] text-white/10 italic">No payments detected for this ride.</p>
             ) : (
               <div className="space-y-2">
                 {payments.map(p => (
@@ -421,7 +421,7 @@ function HistoryCard({
       
       {/* FOOTER */}
       <Link href={`/rides/${ride.id}`} className="mt-6 flex items-center justify-end text-[9px] font-black text-white/20 group-hover:text-blue-400 transition-colors uppercase tracking-widest gap-1">
-        Detailed Roster <ChevronRight className="w-3 h-3" />
+        Ride Details <ChevronRight className="w-3 h-3" />
       </Link>
     </div>
   )

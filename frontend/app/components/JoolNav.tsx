@@ -9,11 +9,11 @@ import {
 } from 'lucide-react'
 
 const NAV_LINKS = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
   { href: '/rides', label: 'Find Ride', icon: Search },
-  { href: '/offer-ride', label: 'Share Ride', icon: Plus },
+  { href: '/offer-ride', label: 'Offer Ride', icon: Plus },
   { href: '/history', label: 'History', icon: HistoryIcon },
-  { href: '/vehicles', label: 'Garage', icon: Wrench },
+  { href: '/vehicles', label: 'My Vehicles', icon: Wrench },
   { href: '/profile', label: 'Profile', icon: User },
 ]
 
@@ -56,7 +56,7 @@ export default function JoolNav({ adminMode = false }: { adminMode?: boolean }) 
             <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
               <Car className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">JOOL</span>
+            <span className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">AINORI</span>
           </Link>
 
           {/* Desktop Nav Items */}
@@ -108,7 +108,7 @@ export default function JoolNav({ adminMode = false }: { adminMode?: boolean }) 
            <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
              <Car className="w-4 h-4 text-white" />
            </div>
-           <span className="text-sm font-black tracking-tighter text-white">JOOL</span>
+           <span className="text-sm font-black tracking-tighter text-white">AINORI</span>
         </Link>
         <div className="flex items-center gap-3">
           {user?.role === 'admin' && (
@@ -137,7 +137,7 @@ export default function JoolNav({ adminMode = false }: { adminMode?: boolean }) 
                 <Icon className={`w-6 h-6 ${active ? 'stroke-[2.5px]' : 'stroke-[1.5px]'}`} />
               </div>
               <span className={`text-[9px] font-black uppercase tracking-tighter ${active ? 'opacity-100' : 'opacity-40'}`}>
-                {link.label === 'Dashboard' ? 'Home' : link.label.split(' ')[0]}
+                {link.label}
               </span>
             </Link>
           )

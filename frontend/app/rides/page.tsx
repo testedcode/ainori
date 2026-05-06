@@ -28,9 +28,9 @@ const fmtDate = (raw: string) => {
 
 // ─── HIGH-FIDELITY CONFIG ──────────────────────────────────────────────────
 const VIBE_CONFIG: Record<string, { label: string, icon: any, sub: string, classes: string, glow: string }> = {
-  'all': { label: 'All Signals', icon: <Zap />, sub: 'Full Grid', classes: 'bg-white text-black border-white', glow: 'shadow-white/20' },
+  'all': { label: 'All Rides', icon: <Zap />, sub: 'Full Grid', classes: 'bg-white text-black border-white', glow: 'shadow-white/20' },
   '6-7': { label: 'Early Birds', icon: <Sun />, sub: '6-7 AM', classes: 'border-cyan-400 text-cyan-400', glow: 'shadow-cyan-400/30 shadow-[0_0_15px_rgba(34,211,238,0.3)]' },
-  '7-8': { label: 'GM Route', icon: <Sunrise />, sub: '7-8 AM', classes: 'border-amber-400 text-amber-400', glow: 'shadow-amber-400/30 shadow-[0_0_15px_rgba(251,191,36,0.3)]' },
+  '7-8': { label: 'Morning Route', icon: <Sunrise />, sub: '7-8 AM', classes: 'border-amber-400 text-amber-400', glow: 'shadow-amber-400/30 shadow-[0_0_15px_rgba(251,191,36,0.3)]' },
   '8-9': { label: 'Rush Hour', icon: <Navigation2 />, sub: '8-9 AM', classes: 'border-red-400 text-red-400', glow: 'shadow-red-400/30 shadow-[0_0_15px_rgba(248,113,113,0.3)]' },
   '9-10': { label: 'Pick Perfect', icon: <CheckCircle2 />, sub: '9-10 AM', classes: 'border-green-400 text-green-400', glow: 'shadow-green-400/30 shadow-[0_0_15px_rgba(74,222,128,0.3)]' },
   '10-11': { label: 'Still Looking', icon: <Search />, sub: '10-11 AM', classes: 'border-white/40 text-white/40', glow: 'shadow-white/10' },
@@ -217,7 +217,7 @@ function CardView({
                      </div>
                      <div className="flex items-center gap-1 mt-1">
                         <span className={`text-[7px] font-black uppercase tracking-[0.2em] ${ride.user_approved ? 'text-amber-400/60' : 'text-white/20'}`}>
-                           {ride.user_approved ? 'VERIFIED EXECUTIVE' : 'SYNDICATE MEMBER'}
+                           {ride.user_approved ? 'VERIFIED HOST' : 'COMMUNITY MEMBER'}
                         </span>
                      </div>
                   </div>
@@ -239,7 +239,7 @@ function CardView({
                 </div>
                 {isOwnRide && (
                    <div className="px-3 py-1 bg-amber-400 text-black rounded-lg text-[8px] font-black uppercase tracking-widest shadow-xl">
-                      YOUR FLEET
+                      YOUR RIDE
                    </div>
                 )}
                {ride.user_approved && !isOwnRide && (
@@ -256,7 +256,7 @@ function CardView({
                         {Math.floor(ride.price_per_seat)}
                      </span>
                   </div>
-                  <span className="text-[7px] font-black text-white/20 uppercase tracking-[0.2em] mt-1 mr-2">Auth Rate</span>
+                  <span className="text-[7px] font-black text-white/20 uppercase tracking-[0.2em] mt-1 mr-2">Ride Rate</span>
                </div>
             </div>
          </div>
@@ -336,7 +336,7 @@ function CardView({
                     href={`/rides/${ride.id}`}
                     className="w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] bg-amber-400 text-black shadow-[0_20px_40px_rgba(251,191,36,0.2)] flex items-center justify-center gap-3 transition-all hover:scale-105"
                   >
-                     MANAGE ROSTER <ArrowRight className="w-4 h-4" />
+                     MANAGE RIDE <ArrowRight className="w-4 h-4" />
                   </Link>
                ) : !isRequested ? (
                   <button 
@@ -356,12 +356,12 @@ function CardView({
                 onClick={() => onRetract(ride.id)}
                 className="w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] bg-blue-600/10 border border-blue-500/30 text-blue-400 hover:bg-blue-600 hover:text-white transition-all group flex items-center justify-center gap-3"
               >
-                <Check className="w-4 h-4" /> BROADCASTING...
+                <Check className="w-4 h-4" /> SENDING...
               </button>
             )}
 
             <Link href={`/rides/${ride.id}`} className="block w-full text-center mt-4 text-[9px] font-black text-white/20 hover:text-white uppercase tracking-widest transition-colors mb-2">
-               VIEW ROSTER DETAILS
+               VIEW RIDE DETAILS
             </Link>
          </div>
       </div>
@@ -636,7 +636,7 @@ function RidesContent() {
                 ))}
              </div>
 
-             {/* Temporal Node (Date) */}
+             {/* Travel Date */}
              <div className="bg-white/5 border border-white/10 p-1.5 rounded-2xl flex items-center gap-1">
                 {[
                   { label: 'Today', date: new Date().toISOString().split('T')[0] },
@@ -727,7 +727,7 @@ function RidesContent() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 opacity-20">
              <div className="w-12 h-12 border-2 border-white border-t-transparent rounded-full animate-spin mb-4" />
-             <p className="text-[10px] font-black uppercase tracking-[0.5em]">Syncing_Grid...</p>
+             <p className="text-[10px] font-black uppercase tracking-[0.5em]">Loading Rides...</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-32 bg-white/5 border border-white/5 rounded-[3rem] backdrop-blur-xl">
@@ -811,7 +811,7 @@ function RidesContent() {
 
 export default function RidesPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#020617] flex items-center justify-center text-[10px] font-black uppercase tracking-[0.5em] text-white/20 animate-pulse">Initializing_Jool_Core...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#020617] flex items-center justify-center text-[10px] font-black uppercase tracking-[0.5em] text-white/20 animate-pulse">Loading Ainori...</div>}>
       <RidesContent />
     </Suspense>
   )

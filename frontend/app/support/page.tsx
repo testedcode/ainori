@@ -203,7 +203,7 @@ function SupportContent() {
     setCheckLoading(true)
     setTicketStatus(null)
     try {
-      const ref = checkRef.trim().toUpperCase().startsWith('JOOL-') ? checkRef.trim() : `JOOL-${checkRef.trim()}`
+      const ref = checkRef.trim().toUpperCase().startsWith('AINORI-') ? checkRef.trim() : `AINORI-${checkRef.trim()}`
       const data = await api.get(`/support/${ref}`) as any
       setTicketStatus(data)
     } catch {
@@ -233,14 +233,14 @@ function SupportContent() {
         <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-4">
-              <LifeBuoy className="w-3 h-3" /> JOOL SUPPORT CENTER
+              <LifeBuoy className="w-3 h-3" /> COMMUNITY SUPPORT CENTER
             </div>
             <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-white leading-tight">
               We have Got<br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Your Back.</span>
             </h1>
             <p className="text-slate-400 mt-4 text-base max-w-lg leading-relaxed">
-              Everything you need to understand JOOL, resolve issues, and make your commute experience smooth.
+              Everything you need to understand AINORI, resolve issues, and make your commute experience smooth.
             </p>
           </div>
 
@@ -258,7 +258,7 @@ function SupportContent() {
                 </div>
               </div>
               <p className="text-white font-bold text-sm leading-relaxed">
-                Every shared seat on JOOL means one fewer solo car on the road — directly reducing CO2 emissions for your corridor.
+                Every shared seat on AINORI means one fewer solo car on the road — directly reducing CO2 emissions for your corridor.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {['Fewer Solo Cars', 'Verified Routes', 'Tracked Impact'].map(tag => (
@@ -305,7 +305,7 @@ function SupportContent() {
           <div className="space-y-16">
             <div className="text-center mb-4">
               <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">User Journey</p>
-              <h2 className="text-3xl font-black tracking-tighter">Two ways to use JOOL</h2>
+              <h2 className="text-3xl font-black tracking-tighter">Two ways to use AINORI</h2>
               <p className="text-slate-500 mt-2 text-sm">Whether you are offering a ride or looking for one, here is exactly how it works.</p>
             </div>
 
@@ -350,7 +350,7 @@ function SupportContent() {
                 {[
                   { icon: ShieldCheck, title: 'Verified Network', desc: 'Every user is profile-verified. Only real colleagues from your building commute together.', color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20' },
                   { icon: Activity, title: 'Live Ride Tracking', desc: 'Track ride status in real-time from open through pickup and drop-off via the ride detail page.', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-                  { icon: Zap, title: 'AI Corridor Matching', desc: 'Our routing engine suggests the best rides based on your corridor, time of day, and past commutes.', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+                  { icon: Zap, title: 'Community Route Matching', desc: 'Our routing engine suggests the best rides based on your corridor, time of day, and past commutes.', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
                   { icon: IndianRupee, title: 'Transparent Pricing', desc: 'Price per seat is set by the host. No surge, no platform commission — what you see is what you pay.', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
                   { icon: Users, title: 'Co-Commuter Profiles', desc: 'See trust scores, ride history, and ratings before sending or accepting a join request.', color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20' },
                   { icon: Leaf, title: 'Carbon Credits', desc: 'Every shared ride earns you carbon credits — a measure of your positive environmental footprint.', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
@@ -374,7 +374,7 @@ function SupportContent() {
             <div className="text-center mb-10">
               <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">Quick Answers</p>
               <h2 className="text-3xl font-black tracking-tighter">Common Questions</h2>
-              <p className="text-slate-500 mt-2 text-sm">Everything you might wonder about JOOL — answered simply.</p>
+              <p className="text-slate-500 mt-2 text-sm">Everything you might wonder about AINORI — answered simply.</p>
             </div>
             <div className="max-w-3xl mx-auto space-y-3">
               {FAQ_ITEMS.map((item, i) => (
@@ -400,7 +400,7 @@ function SupportContent() {
             <div className="text-center mb-4">
               <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">Transparent Pricing</p>
               <h2 className="text-3xl font-black tracking-tighter">Payment Info</h2>
-              <p className="text-slate-500 mt-2 text-sm max-w-xl mx-auto">JOOL has zero platform commission. Contributions go directly from co-commuter to host via UPI.</p>
+              <p className="text-slate-500 mt-2 text-sm max-w-xl mx-auto">AINORI has zero platform commission. Contributions go directly from co-commuter to host via UPI.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
@@ -473,7 +473,7 @@ function SupportContent() {
               <div className="bg-white/[0.03] border border-white/10 rounded-[2rem] p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <ShieldCheck className="w-5 h-5 text-green-400" />
-                  <h4 className="font-black text-white">What JOOL guarantees</h4>
+                  <h4 className="font-black text-white">What AINORI guarantees</h4>
                 </div>
                 <ul className="space-y-2">
                   {[
@@ -514,7 +514,7 @@ function SupportContent() {
             <div className="text-center mb-10">
               <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-3">Your Voice Matters</p>
               <h2 className="text-3xl font-black tracking-tighter">Share Feedback</h2>
-              <p className="text-slate-500 mt-2 text-sm">Help us make JOOL better for everyone. All feedback is reviewed by our product team.</p>
+              <p className="text-slate-500 mt-2 text-sm">Help us make AINORI better for everyone. All feedback is reviewed by our product team.</p>
             </div>
 
             <form onSubmit={handleFeedbackSubmit} className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 space-y-6">
@@ -763,7 +763,7 @@ function SupportContent() {
 
               <div className="flex gap-3">
                 <div className="relative flex-1">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 font-black text-sm">JOOL-</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 font-black text-sm">AINORI-</span>
                   <input
                     type="text"
                     value={checkRef.replace(/^JOOL-/i, '')}

@@ -233,7 +233,7 @@ export default function RideDetailPage() {
       setRide(r)
       setLoading(false)
     } catch {
-      toast.error('Mission link severed.')
+      toast.error('Connection failed.')
       setLoading(false)
     }
     api.get(`/rides/${rideId}/messages`).then((m: any) => { if (Array.isArray(m)) setMessages(m) }).catch(() => { })
@@ -272,7 +272,7 @@ export default function RideDetailPage() {
     setMarkingAllPayment(true)
     try {
       await Promise.all(pending.map(p => api.put(`/rides/${rideId}/payments/${p.rider_id}`, { giver_status: 'received' })))
-      toast.success('All mission dues settled! 💰', { icon: '✅' })
+      toast.success('All dues settled! 💰', { icon: '✅' })
       fetchAll()
     } catch { toast.error('Batch settlement failed') }
     finally { setMarkingAllPayment(false) }
@@ -282,16 +282,16 @@ export default function RideDetailPage() {
     setUpdatingStage(true)
     try {
       await api.put(`/rides/${rideId}`, { status: stage })
-      toast.success(`Mission Status: ${stage.toUpperCase()}`, { icon: '🛰️' })
+      toast.success(`Ride Status: ${stage.toUpperCase()}`, { icon: '🛰️' })
       fetchAll()
-    } catch { toast.error('Comms link failed') }
+    } catch { toast.error('Update failed') }
     finally { setUpdatingStage(false) }
   }
 
   const handleRate = async (rating: number, rateeId: number) => {
     try {
       await api.post(`/rides/${rideId}/rate`, { rating, ratee_id: rateeId })
-      toast.success('Rating synchronized', { icon: '⭐' })
+      toast.success('Rating saved', { icon: '⭐' })
       fetchAll()
     } catch { toast.error('Rating failed') }
   }
@@ -339,7 +339,7 @@ export default function RideDetailPage() {
     setJoining(true)
     try {
       await api.post(`/rides/${rideId}/requests`, payload)
-      toast.success(`Broadcasting ${selectedSeats} seat request!`, { icon: '🚀' })
+      toast.success(`Sending ${selectedSeats} seat request!`, { icon: '🚀' })
       fetchAll()
     } catch (e: any) {
       const serverError = e.response?.data?.error || e.message || 'Connection failed'
@@ -394,12 +394,12 @@ export default function RideDetailPage() {
       {loading ? (
         <div className="max-w-4xl mx-auto px-6 mt-12 flex flex-col items-center justify-center py-32 opacity-20">
           <div className="w-12 h-12 border-2 border-white border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-[10px] font-black uppercase tracking-[0.5em]">Syncing_Mission_Data...</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.5em]">Setting up...</p>
         </div>
       ) : !ride ? (
         <div className="max-w-4xl mx-auto px-6 mt-32 text-center py-20 bg-white/5 rounded-[3rem] border border-white/5">
-          <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Ride Terminal Not Found</h2>
-          <Link href="/rides" className="text-blue-400 font-bold mt-4 block text-xs uppercase tracking-widest">Return to Roster</Link>
+          <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Ride Not Found</h2>
+          <Link href="/rides" className="text-blue-400 font-bold mt-4 block text-xs uppercase tracking-widest">Return to All Rides</Link>
         </div>
       ) : (
         <main className="max-w-4xl mx-auto px-6 mt-12 space-y-6 animate-in fade-in duration-700">
@@ -411,7 +411,7 @@ export default function RideDetailPage() {
                   <AlertCircle className="w-8 h-8 text-red-500" />
                </div>
                <h2 className="text-3xl font-black text-red-500 uppercase italic tracking-tighter">This trip has been cancelled</h2>
-               <p className="text-red-400/60 text-xs font-black uppercase tracking-widest mt-2">All associated requests and nodes have been de-synchronized</p>
+               <p className="text-red-400/60 text-xs font-black uppercase tracking-widest mt-2">All associated requests have been cancelled</p>
             </div>
           )}
 
@@ -574,7 +574,7 @@ export default function RideDetailPage() {
             </div>
           </GlassPanel>
 
-          {/* ─── TRIP JOURNEY STRIP ────────────────────────────────────────── */}
+          {/* ─── TRIP PROGRESS ────────────────────────────────────────── */}
           <GlassPanel className="border-blue-500/20 !p-8">
             <div className="relative">
               <div className="flex items-center justify-between relative z-10">
@@ -658,7 +658,7 @@ export default function RideDetailPage() {
                   onClick={() => {
                     if (confirm('Permanently cancel this ride? All accepted riders will be notified.')) {
                       api.delete(`/rides/${rideId}`).then(() => {
-                        toast.success('Mission aborted.');
+                        toast.success('Ride cancelled.');
                         router.push('/rides');
                       }).catch(() => toast.error('Abort failed'))
                     }
@@ -821,17 +821,17 @@ export default function RideDetailPage() {
             </GlassPanel>
           )}
 
-          {/* ─── SOCIAL CABIN STRIP (VISIBLE TO ALL) ───────────────────────── */}
+          {/* ─── SOCIAL SEATING STRIP (VISIBLE TO ALL) ───────────────────────── */}
           <GlassPanel className="border-white/5 !p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
                 <Car className="w-4 h-4 text-blue-400" />
               </div>
-              <h3 className="text-xs font-black text-white/60 uppercase tracking-[0.3em]">Social Cabin</h3>
+              <h3 className="text-xs font-black text-white/60 uppercase tracking-[0.3em]">Social Seating</h3>
             </div>
 
             <div className="flex flex-col items-center gap-6">
-              {/* CABIN VISUALIZATION */}
+              {/* SEATING ARRANGEMENT */}
               <div className="w-full flex items-center justify-between gap-4 px-6 py-4 bg-white/[0.03] border border-white/5 rounded-[2.5rem] relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent pointer-events-none" />
 
@@ -1073,7 +1073,7 @@ export default function RideDetailPage() {
               {isOwner && acceptedRequests.length > 0 && (
                 <div className="space-y-4 mt-6">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Payment Roster</p>
+                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Payment Status</p>
                     {ridePayments.filter((p: any) => p.giver_status !== 'received').length > 1 && (
                       <button 
                         onClick={handleMarkAllReceived}
