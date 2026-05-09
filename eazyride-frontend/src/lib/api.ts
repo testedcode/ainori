@@ -40,26 +40,26 @@ apiClient.interceptors.response.use(
 
 export const api = {
   // Auth
-  login: (email: string, password: string) =>
+  login: (email: string, password: string): Promise<any> =>
     apiClient.post('/auth/login', { email, password }),
 
-  register: (data: any) =>
+  register: (data: any): Promise<any> =>
     apiClient.post('/auth/register', data),
 
-  getProfile: () =>
+  getProfile: (): Promise<any> =>
     apiClient.get('/auth/profile'),
 
   // Stats
-  get: (endpoint: string) =>
+  get: (endpoint: string): Promise<any> =>
     apiClient.get(endpoint),
 
-  post: (endpoint: string, data?: any) =>
+  post: (endpoint: string, data?: any): Promise<any> =>
     apiClient.post(endpoint, data),
 
-  put: (endpoint: string, data?: any) =>
+  put: (endpoint: string, data?: any): Promise<any> =>
     apiClient.put(endpoint, data),
 
-  delete: (endpoint: string) =>
+  delete: (endpoint: string): Promise<any> =>
     apiClient.delete(endpoint),
 }
 
