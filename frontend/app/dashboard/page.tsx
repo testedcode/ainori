@@ -528,10 +528,13 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Booked Sections */}
             <div className="space-y-6">
-              <div className="flex items-center gap-3 mb-2">
-                 <Bookmark className="w-4 h-4 text-blue-500" />
-                 <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Booked Rides</h3>
-              </div>
+                 <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                       <Bookmark className="w-4 h-4 text-blue-500" />
+                       <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Booked Rides</h3>
+                    </div>
+                    <Link href="/my-rides" className="text-[9px] font-black text-blue-400 hover:text-white uppercase tracking-widest transition-colors">View All</Link>
+                 </div>
               
               {bookedRides.length === 0 ? (
                 <div className="bg-white/[0.02] border border-white/5 border-dashed rounded-[3rem] p-16 text-center group hover:bg-white/[0.04] transition-all">
@@ -643,10 +646,13 @@ export default function DashboardPage() {
 
             {/* Offered Sections */}
             <div className="space-y-6">
-              <div className="flex items-center gap-3 mb-2">
-                 <Car className="w-4 h-4 text-green-500" />
-                 <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Offered Rides</h3>
-              </div>
+               <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                     <Car className="w-4 h-4 text-green-500" />
+                     <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Offered Rides</h3>
+                  </div>
+                  <Link href="/my-rides" className="text-[9px] font-black text-green-400 hover:text-white uppercase tracking-widest transition-colors">View All</Link>
+               </div>
 
               {offeredRides.length === 0 ? (
                 <div className="bg-white/[0.02] border border-white/5 border-dashed rounded-[3rem] p-16 text-center group hover:bg-white/[0.04] transition-all">

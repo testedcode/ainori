@@ -127,8 +127,25 @@ export default function OfferRidePage() {
       toast.error('Ride data incomplete.')
       return
     }
+
     setLoading(true)
     try {
+      // ─── GUARD: DUPLICATE DIRECTION CHECK ───
+      const userRides = await api.get('/user/rides') as any[]
+      if (Array.isArray(userRides)) {
+        const hasDuplicate = userRides.some(r => 
+          r.status !== 'cancelled' && 
+          String(r.corridor_id) === String(form.corridor_id) && 
+          r.direction === direction && 
+          (r.ride_date || '').split('T')[0] === form.ride_date
+        )
+        if (hasDuplicate) {
+          toast.error(`You already have a trip scheduled ${direction === 'to_office' ? 'To Office' : 'To Home'} for this route on this date.`, { duration: 5000 })
+          setLoading(false)
+          return
+        }
+      }
+
       const payload = {
         ...form,
         corridor_id: parseInt(form.corridor_id),
@@ -146,13 +163,24 @@ export default function OfferRidePage() {
         const [h, m] = form.ride_time.split(':').map(Number)
         const returnTime = `${String((h + 10) % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}`
         const returnDir = direction === 'to_office' ? 'to_home' : 'to_office'
-        await api.post('/rides', {
-          ...payload,
-          ride_time: returnTime,
-          pickup_point: form.drop_point,
-          drop_point: form.pickup_point,
-          direction: returnDir,
-        })
+        
+        // Double check return trip too (unlikely to exist if main trip didn't, but for safety)
+        const hasReturnDuplicate = Array.isArray(userRides) && userRides.some(r => 
+          r.status !== 'cancelled' && 
+          String(r.corridor_id) === String(form.corridor_id) && 
+          r.direction === returnDir && 
+          (r.ride_date || '').split('T')[0] === form.ride_date
+        )
+
+        if (!hasReturnDuplicate) {
+          await api.post('/rides', {
+            ...payload,
+            ride_time: returnTime,
+            pickup_point: form.drop_point,
+            drop_point: form.pickup_point,
+            direction: returnDir,
+          })
+        }
       }
 
       localStorage.removeItem(DRAFT_KEY) 

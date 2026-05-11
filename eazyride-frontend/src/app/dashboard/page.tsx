@@ -42,9 +42,14 @@ export default function Dashboard() {
         // Fallback for demo
         setStats({ carbon: 450, rides: 12, money: 3420 });
       }
-    } catch (e) {
-      toast.error("Session expired. Please login.");
-      router.push('/login');
+    } catch (e: any) {
+      console.error('Dashboard fetch failed:', e);
+      if (e.response?.status === 401 || e.response?.status === 503) {
+        toast.error("Session expired. Please login.");
+        router.push('/login');
+      } else {
+        toast.error("Could not sync latest ride data.");
+      }
     } finally {
       setLoading(false);
     }

@@ -336,8 +336,36 @@ export default function RideDetailPage() {
       toast.error('Please select your seats on the diagram first.', { icon: '💺' })
       return
     }
+    
     setJoining(true)
     try {
+      // ─── GUARD: DUPLICATE DIRECTION CHECK ───
+      // Fetch both confirmed rides and pending requests
+      const [userRides, userRequests] = await Promise.all([
+        api.get('/user/rides'),
+        api.get('/user/requests')
+      ])
+
+      const rideDate = (ride.ride_date || '').split('T')[0]
+
+      const hasDuplicateRide = Array.isArray(userRides) && userRides.some(r => 
+        r.status !== 'cancelled' && 
+        r.direction === ride.direction && 
+        (r.ride_date || '').split('T')[0] === rideDate
+      )
+
+      const hasDuplicateRequest = Array.isArray(userRequests) && userRequests.some(r => 
+        r.status === 'pending' && 
+        r.direction === ride.direction && 
+        (r.ride_date || '').split('T')[0] === rideDate
+      )
+
+      if (hasDuplicateRide || hasDuplicateRequest) {
+        toast.error(`You already have a trip ${hasDuplicateRide ? 'confirmed' : 'requested'} ${ride.direction === 'to_office' ? 'To Office' : 'To Home'} for today.`, { duration: 5000 })
+        setJoining(false)
+        return
+      }
+
       await api.post(`/rides/${rideId}/requests`, payload)
       toast.success(`Sending ${selectedSeats} seat request!`, { icon: '🚀' })
       fetchAll()

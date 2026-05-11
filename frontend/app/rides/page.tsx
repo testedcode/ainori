@@ -10,7 +10,7 @@ import {
   EyeOff, ChevronLeft, Info, Calendar,
   ArrowRight, Check, X, ShieldCheck, Crown,
   Building2, Home, Users, Sun, Sunrise,
-  Navigation2, CheckCircle2, Timer, Moon
+  Navigation2, CheckCircle2, Timer, Moon, Share2
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import { getVibe, VIBE_THEMES, VibeState } from '@/lib/vibe-utils'
@@ -145,6 +145,20 @@ function CardView({
          })}
       </div>
     )
+  }
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const url = `${window.location.origin}/rides/${ride.id}`
+    const text = `Join my ride on Pulse: ${ride.corridor_name} at ${fmtTime(ride.ride_time)}! 🚀`
+    
+    if (navigator.share) {
+      navigator.share({ title: 'Pulse Ride', text, url }).catch(() => {})
+    } else {
+      navigator.clipboard.writeText(url)
+      toast.success('Link copied to clipboard!')
+    }
   }
 
   return (
@@ -360,9 +374,18 @@ function CardView({
               </button>
             )}
 
-            <Link href={`/rides/${ride.id}`} className="block w-full text-center mt-4 text-[9px] font-black text-white/20 hover:text-white uppercase tracking-widest transition-colors mb-2">
-               VIEW RIDE DETAILS
-            </Link>
+            <div className="flex items-center gap-2 mt-4 mb-2">
+               <Link href={`/rides/${ride.id}`} className="flex-1 text-center text-[9px] font-black text-white/20 hover:text-white uppercase tracking-widest transition-colors">
+                  VIEW RIDE DETAILS
+               </Link>
+               <button 
+                  onClick={handleShare}
+                  className="p-3 bg-white/5 border border-white/10 rounded-2xl text-white/40 hover:text-white hover:bg-white/10 transition-all active:scale-90"
+                  title="Share Ride"
+               >
+                  <Share2 className="w-4 h-4" />
+               </button>
+            </div>
          </div>
       </div>
     </div>

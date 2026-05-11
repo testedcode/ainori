@@ -50,16 +50,16 @@ export const api = {
     apiClient.get('/auth/profile'),
 
   // Stats
-  get: (endpoint: string) =>
+  get: (endpoint: string): Promise<any> =>
     apiClient.get(endpoint),
 
-  post: (endpoint: string, data?: any) =>
+  post: (endpoint: string, data?: any): Promise<any> =>
     apiClient.post(endpoint, data),
 
-  put: (endpoint: string, data?: any) =>
+  put: (endpoint: string, data?: any): Promise<any> =>
     apiClient.put(endpoint, data),
 
-  delete: (endpoint: string) =>
+  delete: (endpoint: string): Promise<any> =>
     apiClient.delete(endpoint),
 }
 

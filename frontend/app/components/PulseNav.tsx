@@ -122,7 +122,7 @@ export default function PulseNav({ adminMode = false }: { adminMode?: boolean })
       </header>
 
       {/* Mobile Top Header - Enhanced Clickability & Design */}
-      <div className={`md:hidden fixed top-0 left-0 right-0 z-[100] transition-all duration-500 px-6 py-4 flex justify-between items-center ${
+      <div className={`md:hidden fixed top-0 left-0 right-0 z-[100] transition-all duration-500 px-6 pt-[env(safe-area-inset-top,1rem)] pb-4 flex justify-between items-center ${
         scrolled ? 'bg-[#0f172a]/90 backdrop-blur-2xl border-b border-white/10' : 'bg-transparent'
       }`}>
         <Link href="/" className="flex items-center gap-2 active:scale-95 transition-transform">
@@ -184,7 +184,7 @@ export default function PulseNav({ adminMode = false }: { adminMode?: boolean })
       {pathname !== '/support' && (
         <Link
           href="/support"
-          className="fixed bottom-6 right-6 z-[110] hidden md:flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black rounded-2xl shadow-2xl shadow-blue-600/40 transition-all hover:scale-105 active:scale-95"
+          className="fixed bottom-28 md:bottom-6 right-6 z-[110] flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black rounded-2xl shadow-2xl shadow-blue-600/40 transition-all hover:scale-105 active:scale-95"
         >
           <LifeBuoy className="w-4 h-4" />
           <span className="hidden sm:inline">Help</span>
