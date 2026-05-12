@@ -193,31 +193,57 @@ function BookContent() {
                     <div key={ride.id} className={`ride-card ${ride.user_approved ? 'top-match' : ''}`}>
                        <div className="ride-top">
                           <div className="driver">
-                             <div className={`avatar ${ride.user_approved ? 'gold' : ''}`}>
-                                {ride.user_avatar_url ? <img src={ride.user_avatar_url} style={{borderRadius:'inherit', width:'100%', height:'100%', objectFit:'cover'}} /> : ride.user_name[0]}
-                             </div>
-                             <div>
-                                <h4>{ride.corridor_name}</h4>
-                                <span>Pilot: {ride.user_name} • {ride.vehicle_make || 'Standard'}</span>
+                             <h1 className="italic-time mb-0" style={{ fontSize: '48px' }}>{fmtTime(ride.ride_time)}</h1>
+                             <div className="tag-row" style={{ margin: '0 0 0 12px' }}>
+                               <span className={`tag ${ride.direction === 'to_home' ? 'gold' : 'blue'}`} style={{ borderRadius: '12px', padding: '6px 12px' }}>
+                                  {ride.direction === 'to_home' ? 'TO HOME' : 'TO OFFICE'}
+                               </span>
                              </div>
                           </div>
                           <div className="price">
-                             <strong>₹{ride.price_per_seat}</strong>
-                             <span>{fmtTime(ride.ride_time)}</span>
+                             <div style={{ background: 'var(--surface-2)', padding: '8px 16px', borderRadius: '14px', border: '1px solid var(--line)' }}>
+                               <strong style={{ fontSize: '24px' }}>₹{ride.price_per_seat}</strong>
+                               <span style={{ fontSize: '8px', opacity: 0.5 }}>RIDE RATE</span>
+                             </div>
                           </div>
                        </div>
 
-                       <div className="tag-row">
-                          <span className="tag green">{ride.available_seats} seats left</span>
-                          <span className={`tag ${ride.direction === 'to_home' ? 'gold' : 'blue'}`}>
-                             {ride.direction === 'to_home' ? 'Homebound' : 'Officebound'}
-                          </span>
-                          {ride.user_approved && <span className="tag gold">Verified Host</span>}
+                       <div className="m-host-block" style={{ margin: '20px 0', background: 'var(--panel-bg)', borderRadius: '24px', padding: '12px', display: 'flex', alignItems: 'center', gap: '12px', border: '1px solid var(--line)' }}>
+                          <div className="avatar" style={{ width: '40px', height: '40px', borderRadius: '12px' }}>
+                             {ride.user_avatar_url ? <img src={ride.user_avatar_url} style={{borderRadius:'inherit', width:'100%', height:'100%', objectFit:'cover'}} /> : ride.user_name[0]}
+                          </div>
+                          <div>
+                             <h4 style={{ fontSize: '13px', fontWeight: 900, textTransform: 'uppercase' }}>{ride.user_name}</h4>
+                             <p style={{ fontSize: '9px', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase' }}>{ride.user_approved ? 'Verified Neighbor' : 'Community Member'} • {ride.vehicle_make || 'Ride'}</p>
+                          </div>
                        </div>
 
-                       <div className="ride-actions">
+                       <div className="seats-panel" style={{ background: 'rgba(16, 32, 51, 0.03)', borderRadius: '24px', padding: '16px', display: 'flex', gap: '8px', marginBottom: '20px', border: '1px solid var(--line)' }}>
+                          {/* Host */}
+                          <div style={{ width: '36px', height: '44px', borderRadius: '8px', border: '1.5px solid var(--accent)', background: 'white', display: 'grid', placeItems: 'center' }}>
+                             <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--accent)', color: 'var(--ink)', fontSize: '10px', fontWeight: 900, display: 'grid', placeItems: 'center' }}>{ride.user_name[0]}</div>
+                          </div>
+                          {/* Riders */}
+                          {Array.from({ length: ride.total_seats - 1 }).map((_, i) => {
+                             const occupant = ride.confirmed_riders?.[i];
+                             return (
+                               <div key={i} style={{ width: '36px', height: '44px', borderRadius: '8px', border: '1.5px dashed var(--line)', display: 'grid', placeItems: 'center' }}>
+                                  {occupant ? (
+                                    <img src={occupant.avatar_url || `https://ui-avatars.com/api/?name=${occupant.name}`} style={{ width: '24px', height: '24px', borderRadius: '50%' }} alt="" />
+                                  ) : (
+                                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--line)' }}></div>
+                                  )}
+                               </div>
+                             );
+                          })}
+                       </div>
+
+                       <div className="ride-actions" style={{ border: 0, paddingTop: 0 }}>
                           <div className="route-mini">
-                             <MapPin size={14} style={{marginRight:'4px'}} /> <b>{ride.pickup_point}</b> to <b>{ride.drop_point}</b>
+                             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)', marginRight: '8px' }}></div>
+                             <b style={{ fontSize: '11px' }}>{ride.pickup_point}</b>
+                             <span style={{ margin: '0 8px', opacity: 0.2 }}>→</span>
+                             <b style={{ fontSize: '11px' }}>{ride.drop_point}</b>
                           </div>
                           <div style={{ display: 'flex', gap: '8px' }}>
                              <Link href={`/book/${ride.id}`} className="light-btn small">Details</Link>

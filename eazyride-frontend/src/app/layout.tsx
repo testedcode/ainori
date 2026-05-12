@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Outfit } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 
-const inter = Inter({
+const outfit = Outfit({
   variable: "--font",
   subsets: ["latin"],
 });
@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable}`}>
+    <html lang="en" className={`${outfit.variable}`}>
       <body>
         <div className="page-shell">
           <Navbar />

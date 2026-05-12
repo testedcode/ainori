@@ -7,7 +7,7 @@ import {
   MessageSquare, Send, Check, X, Loader2, Navigation,
   AlertCircle, Sparkles, CheckCircle2, Banknote, QrCode,
   Timer, ArrowRight, Ticket, Copy, UserCheck, XCircle, Zap,
-  Navigation2, Flag, Building2, Home, User
+  Navigation2, Flag, Building2, Home, User, Calendar
 } from "lucide-react";
 import { api } from "@/lib/api";
 import toast from "react-hot-toast";
@@ -112,18 +112,21 @@ export default function RideDetail() {
   return (
     <div className="screen active">
       <div className="layout">
-        <aside className="panel side-panel" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)', position: 'sticky', top: '100px' }}>
-          <div className="side-title">Live Chat</div>
+        <aside className="panel side-panel" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)', position: 'sticky', top: '100px', background: 'rgba(255, 255, 255, 0.4)' }}>
+          <div className="side-title">Ride Coordination</div>
           <div className="chat-box" style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}>
             {messages.length === 0 ? (
-              <p className="muted small center mt-28">No messages yet. Say hi to your team!</p>
+              <div className="center mt-28" style={{ padding: '20px' }}>
+                <MessageSquare size={32} className="muted mb-12" style={{ opacity: 0.2 }} />
+                <p className="muted small">Start coordinating with your ride team here.</p>
+              </div>
             ) : (
               messages.map((m, i) => (
-                <div key={i} className={`msg ${Number(m.user_id) === currentUserId ? 'own' : ''}`} style={{ marginBottom: '12px' }}>
+                <div key={i} className={`msg ${Number(m.user_id) === currentUserId ? 'own' : ''}`} style={{ marginBottom: '16px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: Number(m.user_id) === currentUserId ? 'flex-end' : 'flex-start' }}>
-                    <span className="small muted" style={{ fontSize: '9px', fontWeight: '900' }}>{m.user_name}</span>
-                    <div className="panel" style={{ padding: '10px 14px', borderRadius: '14px', marginTop: '4px', background: Number(m.user_id) === currentUserId ? 'var(--primary)' : 'var(--bg-panel)', color: Number(m.user_id) === currentUserId ? 'white' : 'inherit' }}>
-                      <p className="small">{m.message}</p>
+                    <span className="small muted" style={{ fontSize: '9px', fontWeight: '950', textTransform: 'uppercase', letterSpacing: '1px' }}>{m.user_name}</span>
+                    <div className="panel" style={{ padding: '12px 16px', borderRadius: '20px', marginTop: '4px', background: Number(m.user_id) === currentUserId ? 'var(--primary)' : 'white', color: Number(m.user_id) === currentUserId ? 'white' : 'inherit', border: '1px solid var(--line)', boxShadow: 'var(--soft-shadow)' }}>
+                      <p className="small" style={{ fontWeight: 600 }}>{m.message}</p>
                     </div>
                   </div>
                 </div>
@@ -136,69 +139,85 @@ export default function RideDetail() {
               value={newMessage} 
               onChange={e => setNewMessage(e.target.value)}
               placeholder="Type message..." 
-              style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1px solid var(--line)', background: 'var(--bg-panel)' }} 
+              style={{ flex: 1, padding: '15px', borderRadius: '18px', border: '1px solid var(--line)', background: 'white' }} 
             />
-            <button type="submit" className="primary-btn" style={{ padding: '12px', borderRadius: '12px', minWidth: 'unset' }}>
+            <button type="submit" className="dark-btn" style={{ width: '50px', height: '50px', borderRadius: '18px', padding: 0 }}>
               {sendingMsg ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
             </button>
           </form>
         </aside>
 
         <section className="content-grid">
-          <div className="panel">
+          <div className="panel" style={{ background: 'white' }}>
             <div className="section-head">
                <div>
-                  <span className="eyebrow"><span className="dot"></span>Ride Overview</span>
-                  <h2 className="mt-12">{ride.corridor_name}</h2>
-                  <p>{fmtDate(ride.ride_date)} at {fmtTime(ride.ride_time)}</p>
+                  <span className="eyebrow"><span className="dot"></span>Ride Portal Active</span>
+                  <h1 className="italic-time mt-12" style={{ fontSize: '72px' }}>{fmtTime(ride.ride_time)}</h1>
+                  <h2 style={{ fontSize: '24px', opacity: 0.6 }}>{ride.corridor_name}</h2>
                </div>
-               <div className="tag gold"><Shield size={12} style={{marginRight:'4px'}} /> Verified Route</div>
+               <div className="price">
+                  <div style={{ background: 'var(--surface-2)', padding: '12px 24px', borderRadius: '20px', border: '1px solid var(--line)' }}>
+                    <strong style={{ fontSize: '32px' }}>₹{ride.price_per_seat}</strong>
+                    <span style={{ fontSize: '10px' }}>PER SEAT</span>
+                  </div>
+               </div>
             </div>
 
             <div className="metric-row mt-28">
-               <div className="metric">
+               <div className="metric" style={{ background: 'var(--surface-2)' }}>
                   <div className="icon-bubble mb-12"><MapPin size={20}/></div>
-                  <strong>{ride.pickup_point}</strong><span>Pickup</span>
+                  <strong>{ride.pickup_point}</strong><span>Start Point</span>
                </div>
-               <div className="metric">
+               <div className="metric" style={{ background: 'var(--surface-2)' }}>
                   <div className="icon-bubble green mb-12"><Navigation size={20}/></div>
-                  <strong>{ride.drop_point}</strong><span>Dropoff</span>
+                  <strong>{ride.drop_point}</strong><span>End Point</span>
                </div>
-               <div className="metric">
-                  <div className="icon-bubble gold mb-12"><IndianRupee size={20}/></div>
-                  <strong>₹{ride.price_per_seat}</strong><span>Per Seat</span>
+               <div className="metric" style={{ background: 'var(--surface-2)' }}>
+                  <div className="icon-bubble gold mb-12"><Calendar size={20}/></div>
+                  <strong>{fmtDate(ride.ride_date)}</strong><span>Trip Date</span>
                </div>
             </div>
 
-            <div className="mt-28 p-20 bg-panel border-line rounded-24">
-               <div className="side-title">Status: <span className="tag blue">{ride.status.toUpperCase()}</span></div>
-               {isOwner && (
-                  <div className="hero-actions mt-12">
-                     {ride.status === 'pending' && <button className="primary-btn small" onClick={() => handleUpdateStatus('starting')}>Start Trip</button>}
-                     {ride.status === 'starting' && <button className="primary-btn small" onClick={() => handleUpdateStatus('at_pickup')}>At Pickup</button>}
-                     {['at_pickup', 'starting'].includes(ride.status) && <button className="dark-btn small" onClick={() => handleUpdateStatus('completed')}>Finish Ride</button>}
-                  </div>
-               )}
+            <div className="mt-28 p-24" style={{ background: 'var(--ink)', borderRadius: '32px', color: 'white' }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                 <div>
+                   <p style={{ fontSize: '10px', fontWeight: 950, opacity: 0.5, letterSpacing: '1px' }}>CURRENT STATUS</p>
+                   <h3 style={{ color: 'white', marginTop: '4px' }}>{ride.status.toUpperCase()}</h3>
+                 </div>
+                 {isOwner && (
+                    <div className="hero-actions">
+                       {ride.status === 'pending' && <button className="secondary-btn small" onClick={() => handleUpdateStatus('starting')}>Start Trip</button>}
+                       {ride.status === 'starting' && <button className="secondary-btn small" onClick={() => handleUpdateStatus('at_pickup')}>At Spot</button>}
+                       {['at_pickup', 'starting'].includes(ride.status) && <button className="primary-btn small" onClick={() => handleUpdateStatus('completed')}>Finish Ride</button>}
+                    </div>
+                 )}
+               </div>
             </div>
           </div>
 
           <div className="panel mt-28">
-             <div className="side-title">Passengers ({acceptedRiders.length + 1} confirmed)</div>
-             <div className="choice-row mt-12">
-                <div className="choice-card active" style={{ cursor: 'default' }}>
-                   <div className="icon-bubble gold"><User size={20}/></div>
-                   <span><strong>{ride.user_name}</strong><br/><span className="muted small">Host (Driver)</span></span>
+             <div className="side-title">Seating Map ({acceptedRiders.length + 1} Confirmed)</div>
+             
+             <div className="choice-row mt-12" style={{ gap: '16px' }}>
+                {/* Visual Seat Representation */}
+                <div style={{ width: '80px', height: '100px', borderRadius: '24px', border: '2px solid var(--accent)', background: 'rgba(255, 176, 55, 0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                   <div className="avatar gold" style={{ width: '40px', height: '40px' }}>{ride.user_name?.[0]}</div>
+                   <span style={{ fontSize: '10px', fontWeight: 950 }}>HOST</span>
                 </div>
+
                 {acceptedRiders.map((r, i) => (
-                   <div key={i} className="choice-card" style={{ cursor: 'default' }}>
-                      <div className="icon-bubble blue"><User size={20}/></div>
-                      <span><strong>{r.user_name || r.rider_name}</strong><br/><span className="muted small">Passenger</span></span>
+                   <div key={i} style={{ width: '80px', height: '100px', borderRadius: '24px', border: '2px solid var(--primary)', background: 'rgba(24, 92, 255, 0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                      <div className="avatar" style={{ width: '40px', height: '40px' }}>{(r.user_name || r.rider_name)?.[0]}</div>
+                      <span style={{ fontSize: '10px', fontWeight: 950 }}>RIDER</span>
                    </div>
                 ))}
+
                 {Array.from({ length: ride.available_seats }).map((_, i) => (
-                   <div key={`v-${i}`} className="choice-card" style={{ opacity: 0.5, borderStyle: 'dashed', cursor: 'default' }}>
-                      <div className="icon-bubble"><Users size={20}/></div>
-                      <span><strong>Vacant</strong><br/><span className="muted small">Seat available</span></span>
+                   <div key={`v-${i}`} style={{ width: '80px', height: '100px', borderRadius: '24px', border: '2px dashed var(--line)', background: 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: 0.4 }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '14px', border: '2px dashed var(--line)', display: 'grid', placeItems: 'center' }}>
+                         <Users size={16} />
+                      </div>
+                      <span style={{ fontSize: '10px', fontWeight: 950 }}>VACANT</span>
                    </div>
                 ))}
              </div>

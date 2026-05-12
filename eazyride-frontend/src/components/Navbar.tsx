@@ -40,17 +40,17 @@ export default function Navbar() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <header className="topbar" aria-label="EazyRide navigation">
-      <Link href="/" className="brand" aria-label="EazyRide home">
-        <span className="brand-mark">ER</span>
-        <span>EazyRide<small>Share your route</small></span>
+    <header className="topbar" aria-label="Pulse navigation">
+      <Link href="/" className="brand" aria-label="Pulse home">
+        <span className="brand-mark"><Car size={24} /></span>
+        <span style={{ fontStyle: 'italic', fontSize: '24px' }}>Pulse<small>Trusted Commute</small></span>
       </Link>
       
       <nav className="nav" aria-label="Primary navigation">
         <Link href="/" className={isActive('/') ? 'active' : ''}>Home</Link>
-        <Link href="/book" className={isActive('/book') ? 'active' : ''}>Book a seat</Link>
-        <Link href="/share" className={isActive('/share') ? 'active' : ''}>Share route</Link>
-        {user && <Link href="/dashboard" className={isActive('/dashboard') ? 'active' : ''}>My trips</Link>}
+        <Link href="/book" className={isActive('/book') ? 'active' : ''}>Find Ride</Link>
+        <Link href="/share" className={isActive('/share') ? 'active' : ''}>Offer Ride</Link>
+        {user && <Link href="/dashboard" className={isActive('/dashboard') ? 'active' : ''}>My Trips</Link>}
       </nav>
 
       <div className="top-actions">

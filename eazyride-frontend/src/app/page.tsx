@@ -30,36 +30,39 @@ export default function Home() {
       {/* HERO SECTION */}
       <section className="hero">
         <div className="hero-card">
-          <div className="eyebrow"><span className="dot"></span>Trusted Community Commuting</div>
-          <h1 style={{ fontSize: 'clamp(3rem, 8vw, 6rem)', lineHeight: 0.9 }}>
+          <div className="eyebrow"><span className="dot"></span>Trusted Community Commute</div>
+          <h1 style={{ fontSize: 'clamp(4rem, 10vw, 8rem)', fontStyle: 'italic', fontWeight: 950, textTransform: 'uppercase', letterSpacing: '-0.05em' }}>
             Shared Rides.<br />
-            <span className="text-primary">Eazy Commute.</span>
+            <span className="text-primary">Pulse Mode.</span>
           </h1>
-          <p className="lead" style={{ maxWidth: '600px' }}>
-            The exclusive carpooling network for professionals. Connect with neighbors, share the journey, and optimize your daily flow.
+          <p className="lead" style={{ maxWidth: '700px', fontSize: '22px', fontWeight: 600 }}>
+            The premium carpooling network for daily commuters. Connect with verified neighbors, share the drive, and save together.
           </p>
           
           <div className="hero-actions">
             {user ? (
               <Link href="/dashboard" className="primary-btn">Go to Dashboard <ArrowRight size={18} /></Link>
             ) : (
-              <Link href="/register" className="primary-btn">Get Started <UserPlus size={18} /></Link>
+              <Link href="/register" className="primary-btn">Join Community <UserPlus size={18} /></Link>
             )}
             <Link href="/book" className="secondary-btn">Find a Ride</Link>
           </div>
 
           <div className="metric-row">
-            <div className="metric">
-              <strong>{stats.rides_today}</strong>
-              <span>rides today</span>
+            <div className="metric" style={{ background: 'white' }}>
+                <div className="icon-bubble green mb-12"><Activity size={20} /></div>
+                <strong>{stats.rides_today}</strong>
+                <span>Rides Today</span>
             </div>
-            <div className="metric">
-              <strong>{stats.live_users}</strong>
-              <span>verified members</span>
+            <div className="metric" style={{ background: 'white' }}>
+                <div className="icon-bubble mb-12"><ShieldCheck size={20} /></div>
+                <strong>{stats.live_users}</strong>
+                <span>Verified Members</span>
             </div>
-            <div className="metric">
-              <strong>{stats.carbon_saved}</strong>
-              <span>CO₂ mitigated</span>
+            <div className="metric" style={{ background: 'white' }}>
+                <div className="icon-bubble gold mb-12"><Leaf size={20} /></div>
+                <strong>{stats.carbon_saved}</strong>
+                <span>CO₂ Mitigated</span>
             </div>
           </div>
         </div>
