@@ -84,7 +84,16 @@ export default function OfferRidePage() {
     if (draft) {
       try {
         const parsed = JSON.parse(draft)
-        setForm(prev => ({ ...prev, ...parsed }))
+        const ist = getISTDefaults()
+        // Only restore draft values if the date is not in the past
+        const isDraftValid = parsed.ride_date && parsed.ride_date >= ist.date;
+        
+        setForm(prev => ({ 
+          ...prev, 
+          ...parsed,
+          ride_date: isDraftValid ? parsed.ride_date : ist.date,
+          ride_time: isDraftValid ? parsed.ride_time : ist.time
+        }))
         if (parsed.pickupPoints) setPickupPoints(parsed.pickupPoints)
         if (parsed.direction) setDirection(parsed.direction)
       } catch (e) {}
