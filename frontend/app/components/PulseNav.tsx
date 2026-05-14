@@ -150,27 +150,39 @@ export default function PulseNav({ adminMode = false }: { adminMode?: boolean })
         </div>
       </div>
 
-      {/* MOBILE BOTTOM NAVIGATION - Glassmorphic / Glossy Design */}
-      <div className="md:hidden fixed bottom-6 left-6 right-6 z-[100] animate-in slide-in-from-bottom-10 duration-700">
-        <nav className="bg-white/[0.08] backdrop-blur-3xl border border-white/20 rounded-[2.5rem] px-2 py-2 flex justify-around items-center shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-          {NAV_LINKS.filter(l => ['/dashboard', '/rides', '/my-rides', '/offer-ride', '/profile'].includes(l.href)).map(link => {
+      {/* MOBILE BOTTOM NAVIGATION - Ultra-Premium Glassmorphic */}
+      <div className="md:hidden fixed bottom-8 left-6 right-6 z-[100] animate-in slide-in-from-bottom-10 duration-700">
+        <nav className="bg-[#0f172a]/40 backdrop-blur-3xl border border-white/20 rounded-[3rem] px-3 py-2 flex justify-between items-center shadow-[0_25px_60px_rgba(0,0,0,0.6)]">
+          {NAV_LINKS.filter(l => ['/dashboard', '/rides', '/offer-ride', '/my-rides', '/profile'].includes(l.href)).map((link, idx) => {
             const Icon = link.icon
             const active = pathname === link.href || (link.href !== '/dashboard' && pathname.startsWith(link.href + '/'))
+            const isOfferRide = link.href === '/offer-ride'
+
+            if (isOfferRide) {
+              return (
+                <Link 
+                  key={link.href}
+                  href={link.href}
+                  className="relative -top-6 flex flex-col items-center justify-center w-16 h-16 bg-blue-600 rounded-full shadow-[0_15px_40px_rgba(37,99,235,0.5)] active:scale-90 transition-all border-4 border-[#0a0f1e]"
+                >
+                  <Plus className="w-8 h-8 text-white" />
+                  <div className="absolute inset-0 bg-white/20 rounded-full blur-lg opacity-0 hover:opacity-100 transition-opacity" />
+                </Link>
+              )
+            }
             
             return (
               <Link 
                 key={link.href} 
                 href={link.href}
-                className={`relative flex flex-col items-center justify-center w-14 h-14 rounded-[1.8rem] transition-all duration-500 active:scale-90 ${
-                  active 
-                    ? 'bg-gradient-to-b from-white/20 to-white/5 shadow-inner' 
-                    : 'text-slate-400'
+                className={`relative flex flex-col items-center justify-center flex-1 h-12 rounded-2xl transition-all duration-300 active:scale-90 ${
+                  active ? 'text-white' : 'text-slate-500'
                 }`}
               >
-                {active && (
-                  <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full animate-pulse" />
-                )}
-                <Icon className={`w-5 h-5 relative z-10 transition-all duration-300 ${active ? 'text-white scale-110' : 'text-slate-500'}`} />
+                <Icon className={`w-5 h-5 transition-all duration-300 ${active ? 'scale-110' : 'opacity-60'}`} />
+                <span className={`text-[8px] font-black uppercase tracking-[0.1em] mt-1 transition-all ${active ? 'opacity-100' : 'opacity-0'}`}>
+                  {link.label.split(' ')[0]}
+                </span>
                 {active && (
                   <div className="absolute -bottom-1 w-1 h-1 bg-blue-400 rounded-full shadow-[0_0_8px_rgba(96,165,250,1)]" />
                 )}

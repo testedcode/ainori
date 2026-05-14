@@ -36,11 +36,36 @@ export default function OfferRidePage() {
   const [postRoundTrip, setPostRoundTrip] = useState(false)
   const [direction, setDirection] = useState<'to_office' | 'to_home'>('to_office')
   
+  // Helper to get IST date/time
+  const getISTDefaults = () => {
+    const now = new Date();
+    // Add 5.5 hours for IST
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const istTime = new Date(now.getTime() + istOffset);
+    
+    const date = istTime.toISOString().split('T')[0];
+    
+    // Set time to next hour, :00 or :30
+    let hours = istTime.getUTCHours();
+    let mins = istTime.getUTCMinutes();
+    
+    if (mins < 30) mins = 30;
+    else {
+      mins = 0;
+      hours = (hours + 1) % 24;
+    }
+    
+    const time = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+    return { date, time };
+  };
+
+  const ist = getISTDefaults();
+
   const [form, setForm] = useState({
     corridor_id: '',
     vehicle_id: '',
-    ride_date: new Date().toISOString().split('T')[0],
-    ride_time: '08:30',
+    ride_date: ist.date,
+    ride_time: ist.time,
     pickup_point: '',
     drop_point: 'Reliance Corporate Park (RCP)',
     route_description: '',
