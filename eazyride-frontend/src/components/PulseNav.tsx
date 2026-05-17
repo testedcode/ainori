@@ -161,9 +161,6 @@ export default function PulseNav({ adminMode = false }: { adminMode?: boolean })
               <Shield className="w-5 h-5" />
             </Link>
           )}
-          <Link href="/profile" className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-[10px] font-black text-blue-600 active:scale-90 transition-transform">
-            {initials}
-          </Link>
           <button 
             onClick={handleLogout}
             className="w-10 h-10 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-center text-red-400 active:scale-90 transition-transform"
