@@ -1,148 +1,185 @@
-"use client";
-import { useState, useEffect } from 'react';
-import { Bell, BellOff, CheckCircle2, Loader2, Zap } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { api } from '@/lib/api';
+'use client'
 
-const VAPID_PUBLIC_KEY = 'BH03JOrkRvMsAsTc4Zq2mZeqIIZHyXZMt_bgpJVALjdVhygUKBA4G_zF1EvoJRFc-42ERcMSg8gtAU53EJueJjY';
+import { useState, useEffect } from 'react'
+import { Bell, BellOff, CheckCircle2 } from 'lucide-react'
+import toast from 'react-hot-toast'
+import api from '@/lib/api'
+
+// Use the real Public Key generated
+const VAPID_PUBLIC_KEY = 'BH03JOrkRvMsAsTc4Zq2mZeqIIZHyXZMt_bgpJVALjdVhygUKBA4G_zF1EvoJRFc-42ERcMSg8gtAU53EJueJjY' 
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
   const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) { outputArray[i] = rawData.charCodeAt(i); }
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
   return outputArray;
 }
 
 export default function NotificationManager() {
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [isSupported, setIsSupported] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [isSupported, setIsSupported] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
-      setIsSupported(true);
-      checkSubscription();
+      setIsSupported(true)
+      checkSubscription()
     } else {
-      setLoading(false);
+      setLoading(false)
     }
-  }, []);
+  }, [])
 
   const checkSubscription = async () => {
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-      const userStr = localStorage.getItem('user');
+      const registration = await navigator.serviceWorker.ready
+      const subscription = await registration.pushManager.getSubscription()
+      
+      // Also check if the user has a subscription in the DB
+      const userStr = localStorage.getItem('user')
       if (userStr) {
-        const user = JSON.parse(userStr);
-        setIsSubscribed(user.push_subscription || !!subscription);
+        const user = JSON.parse(userStr)
+        if (user.push_subscription) {
+          setIsSubscribed(true)
+        } else {
+          setIsSubscribed(!!subscription)
+        }
       } else {
-        setIsSubscribed(!!subscription);
+        setIsSubscribed(!!subscription)
       }
     } catch (err) {
-      console.error('Error checking subscription:', err);
+      console.error('Error checking subscription:', err)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const subscribe = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      await navigator.serviceWorker.ready;
-      const permission = await Notification.requestPermission();
+      const registration = await navigator.serviceWorker.register('/sw.js')
+      await navigator.serviceWorker.ready
+
+      const permission = await Notification.requestPermission()
       if (permission !== 'granted') {
-        toast.error('Notification permission denied');
-        setLoading(false);
-        return;
+        toast.error('Notification permission denied')
+        setLoading(false)
+        return
       }
+
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-      });
-      await api.post('/auth/push-subscription', { subscription: JSON.stringify(subscription) });
-      const userStr = localStorage.getItem('user');
+      })
+
+      // Save to backend
+      await api.post('/auth/push-subscription', { subscription: JSON.stringify(subscription) })
+      
+      // Update local storage to persist state
+      const userStr = localStorage.getItem('user')
       if (userStr) {
-        const user = JSON.parse(userStr);
-        user.push_subscription = JSON.stringify(subscription);
-        localStorage.setItem('user', JSON.stringify(user));
+        const user = JSON.parse(userStr)
+        user.push_subscription = JSON.stringify(subscription)
+        localStorage.setItem('user', JSON.stringify(user))
       }
-      setIsSubscribed(true);
-      toast.success('Notifications enabled!', { icon: '🔔' });
+
+      setIsSubscribed(true)
+      toast.success('Notifications enabled!', { icon: '🔔' })
     } catch (err) {
-      console.error('Subscription failed:', err);
-      toast.error('Failed to enable notifications');
+      console.error('Subscription failed:', err)
+      toast.error('Failed to enable notifications')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleTestNotification = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const res = await api.post('/auth/push-test', {}) as any;
-      toast.success(res.message || 'Test signal sent!', { icon: '🚀' });
+      const res = await api.post('/auth/push-test', {})
+      toast.success(res.data?.message || 'Test signal sent!', { icon: '🚀' })
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Test signal failed');
+      const msg = err?.response?.data?.error || 'Test signal failed'
+      toast.error(msg, { duration: 6000 })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const unsubscribe = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
+      const registration = await navigator.serviceWorker.ready
+      const subscription = await registration.pushManager.getSubscription()
       if (subscription) {
-        await subscription.unsubscribe();
-        await api.post('/auth/push-subscription', { subscription: null });
-        const userStr = localStorage.getItem('user');
+        await subscription.unsubscribe()
+        await api.post('/auth/push-subscription', { subscription: null })
+        
+        const userStr = localStorage.getItem('user')
         if (userStr) {
-          const user = JSON.parse(userStr);
-          user.push_subscription = null;
-          localStorage.setItem('user', JSON.stringify(user));
+          const user = JSON.parse(userStr)
+          user.push_subscription = null
+          localStorage.setItem('user', JSON.stringify(user))
         }
-        setIsSubscribed(false);
-        toast('Notifications disabled', { icon: '🔕' });
+
+        setIsSubscribed(false)
+        toast('Notifications disabled', { icon: '🔕' })
       }
     } catch (err) {
-      console.error('Unsubscribe failed:', err);
+      console.error('Unsubscribe failed:', err)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  if (!isSupported) return null;
-  if (loading) return <div className="panel animate-pulse" style={{ height: '100px' }} />;
+  if (!isSupported) return null
+  if (loading) return <div className="h-24 bg-white rounded-3xl animate-pulse mb-6" />
 
   return (
-    <div className="panel mb-24" style={{ padding: '24px', border: isSubscribed ? '1px solid var(--green)' : '1px solid var(--line)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div className={`icon-bubble ${isSubscribed ? 'green' : 'blue'}`}>
-            {isSubscribed ? <Bell size={20} /> : <BellOff size={20} />}
+    <div className="bg-white border border-slate-200 rounded-3xl p-6 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className={`p-3 rounded-2xl ${isSubscribed ? 'bg-green-500/10 text-green-600' : 'bg-blue-500/10 text-blue-600'}`}>
+            {isSubscribed ? <CheckCircle2 className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
           </div>
           <div>
-            <h4 style={{ margin: 0 }}>Ride Notifications</h4>
-            <p className="small muted">Stay updated on booking requests and chat messages.</p>
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Ride Updates</h3>
+            <p className="text-xs text-slate-700">Get notified when someone joins or accepts your ride</p>
           </div>
         </div>
         
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="flex gap-2">
           {isSubscribed && (
-            <button onClick={handleTestNotification} className="light-btn small">Test Signal</button>
+            <button
+              onClick={handleTestNotification}
+              className="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-900/60 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              TEST
+            </button>
           )}
           <button
             onClick={isSubscribed ? unsubscribe : subscribe}
-            className={`${isSubscribed ? 'light-btn' : 'primary-btn'} small`}
+            className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${
+              isSubscribed 
+                ? 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20' 
+                : 'bg-blue-600 text-slate-900 shadow-lg shadow-blue-600/20 hover:bg-blue-500'
+            }`}
           >
-            {isSubscribed ? 'Disable' : 'Enable'}
+            {isSubscribed ? 'DISABLE' : 'ENABLE'}
           </button>
         </div>
       </div>
+      
+      {!isSubscribed && (
+        <div className="flex items-center gap-2 p-3 bg-blue-500/5 rounded-2xl border border-blue-500/10">
+          <p className="text-[10px] text-blue-600/80 font-bold leading-tight">
+            * We will send you notifications even when the app is closed. You can turn this off anytime.
+          </p>
+        </div>
+      )}
     </div>
-  );
+  )
 }

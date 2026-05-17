@@ -40,13 +40,13 @@ apiClient.interceptors.response.use(
 
 export const api = {
   // Auth
-  login: (email: string, password: string): Promise<any> =>
+  login: (email: string, password: string) =>
     apiClient.post('/auth/login', { email, password }),
 
-  register: (data: any): Promise<any> =>
+  register: (data: any) =>
     apiClient.post('/auth/register', data),
 
-  getProfile: (): Promise<any> =>
+  getProfile: () =>
     apiClient.get('/auth/profile'),
 
   // Stats

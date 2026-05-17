@@ -594,61 +594,6 @@ export async function handleGetUserRides(pool: Pool, auth: Auth) {
     
     return { ...ride, confirmed_riders: riders.rows, pending_requests: pending, payment_info: paymentInfo, user_rating: userRating }
   }))
-}
-
-
-export async function handleGetUserActiveRides(pool: Pool, auth: Auth) {
-  const query = `
-    SELECT DISTINCT r.id, r.user_id, u.name as user_name, u.approved as user_approved, u.avatar_url as user_avatar_url,
-           r.corridor_id, c.name as corridor_name,
-           c.description as corridor_description,
-           r.ride_date, r.ride_time, r.pickup_point, r.drop_point,
-           r.price_per_seat, r.available_seats, r.total_seats, r.status, r.direction,
-           v.make as vehicle_make, v.model as vehicle_model, v.vehicle_number, v.image_url as vehicle_image_url,
-           CASE WHEN r.user_id = $1 THEN 'host' ELSE 'rider' END as role
-    FROM rides r 
-    JOIN users u ON r.user_id = u.id 
-    JOIN corridors c ON r.corridor_id = c.id
-    LEFT JOIN ride_requests rr ON r.id = rr.ride_id
-    LEFT JOIN vehicles v ON r.vehicle_id = v.id
-    WHERE (r.user_id = $1 OR (rr.user_id = $1 AND rr.status = 'accepted'))
-    AND r.status NOT IN ('completed', 'cancelled')
-    ORDER BY r.ride_date DESC, r.ride_time DESC
-  `
-  const rides = await pool.query(query, [auth.userId])
-  
-  const enrichedRides = await Promise.all(rides.rows.map(async (ride) => {
-    const riders = await pool.query(`
-      SELECT rr.id, rr.user_id, u.name, u.avatar_url, rr.seats_requested,
-             (SELECT rating FROM ride_ratings WHERE ride_id = rr.ride_id AND rater_id = $2 AND ratee_id = rr.user_id) as user_rating
-      FROM ride_requests rr JOIN users u ON rr.user_id = u.id 
-      WHERE rr.ride_id = $1 AND rr.status = 'accepted'
-    `, [ride.id, auth.userId])
-    
-    let pending: any[] = []
-    if (ride.role === 'host') {
-      const p = await pool.query(`
-        SELECT rr.id, rr.user_id, u.name, u.avatar_url, rr.seats_requested, rr.created_at
-        FROM ride_requests rr JOIN users u ON rr.user_id = u.id 
-        WHERE rr.ride_id = $1 AND rr.status = 'pending'
-      `, [ride.id])
-      pending = p.rows
-    }
-
-    let paymentInfo: any = null
-    try {
-      const payCol = ride.role === 'host'
-        ? `WHERE p.ride_id = $1 AND p.ride_giver_id = $2`
-        : `WHERE p.ride_id = $1 AND p.rider_id = $2`
-      const pay = await pool.query(
-        `SELECT p.id, p.rider_id, p.ride_giver_id, p.amount, p.rider_status, p.giver_status FROM payments p ${payCol} LIMIT 1`,
-        [ride.id, auth.userId]
-      )
-      if (pay.rows.length > 0) paymentInfo = pay.rows[0]
-    } catch {}
-    
-    return { ...ride, confirmed_riders: riders.rows, pending_requests: pending, payment_info: paymentInfo }
-  }))
   return jsonResponse(enrichedRides)
 }
 

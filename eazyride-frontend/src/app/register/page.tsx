@@ -1,133 +1,173 @@
-"use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { api } from "@/lib/api";
-import { createClient } from '@/utils/supabase/client';
-import toast from 'react-hot-toast';
-import { Loader2, UserPlus } from 'lucide-react';
+'use client'
 
-export default function Register() {
-  const router = useRouter();
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Car, Loader2 } from 'lucide-react'
+import { createClient } from '@/utils/supabase/client'
+import { api } from '@/lib/api'
+import toast from 'react-hot-toast'
+
+export default function RegisterPage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: ""
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+    email: '',
+    password: '',
+    name: '',
+    phone: '',
+    city: 'Mumbai',
+  })
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
 
-    setLoading(true);
-    setError("");
-    const supabase = createClient();
+    const supabase = createClient()
 
     try {
-      // 1. Supabase Sign Up
+      // 1. Sign up with Supabase
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
-          data: { full_name: formData.name }
+          data: {
+            full_name: formData.name,
+          }
         }
-      });
+      })
 
-      if (authError) throw authError;
+      if (authError) throw authError
 
-      // 2. Create Profile in our DB via API
-      await api.post('/auth/register', {
-        email: formData.email,
-        name: formData.name,
-        password: formData.password // Optional, depends on backend implementation
-      });
-
-      toast.success("Account created! Please login.");
-      router.push("/login");
-    } catch (err: any) {
-      setError(err.message || "Registration failed");
+      // 2. Create the user in our PostgreSQL database via API
+      // We pass the data to our existing register endpoint which will now be updated to handle Supabase users
+      const response = await api.register(formData) as any
+      
+      localStorage.setItem('token', authData.session?.access_token || '')
+      localStorage.setItem('user', JSON.stringify(response.user))
+      
+      toast.success('Registration successful!')
+      
+      // Role-based redirect
+      if (response.user?.role === 'admin') {
+        router.push('/admin')
+      } else {
+        router.push('/dashboard')
+      }
+      router.refresh()
+    } catch (error: any) {
+      toast.error(error.message || 'Registration failed')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="screen active" style={{ display: 'flex', justifyContent: 'center', padding: '60px 20px' }}>
-      <div className="panel" style={{ maxWidth: '480px', width: '100%', padding: '40px' }}>
-        <div className="center">
-          <span className="brand-mark" style={{ width: '64px', height: '64px', fontSize: '24px', margin: '0 auto 24px' }}>ER</span>
-          <h2>Create account</h2>
-          <p className="muted">Join your professional neighbors for a better commute.</p>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 relative overflow-hidden font-sans">
+      {/* Ambient glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-100 blur-[120px] rounded-full pointer-events-none" />
+      
+      <div className="w-full max-w-md relative z-10">
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-3 mb-10">
+          <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+            <Car className="w-7 h-7 text-white" />
+          </div>
+          <span className="text-4xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-600">Pulse</span>
         </div>
 
-        <form onSubmit={handleRegister} className="form-grid mt-28" style={{ gridTemplateColumns: '1fr', gap: '16px' }}>
-          {error && (
-            <div className="tag red" style={{ width: '100%', justifyContent: 'center', padding: '12px', borderRadius: '12px' }}>
-              {error}
-            </div>
-          )}
-          
-          <div className="field">
-            <label>Full Name</label>
-            <input 
-              type="text" 
-              placeholder="Aayushi Singh" 
+        {/* Card */}
+        <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-3xl p-8 shadow-xl">
+          <h2 className="text-2xl font-black text-slate-900 mb-1">Create account</h2>
+          <p className="text-slate-700 text-sm mb-8">Sign up for a premium commute account</p>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Name
+            </label>
+            <input
+              type="text"
+              required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
             />
           </div>
 
-          <div className="field">
-            <label>Email Address</label>
-            <input 
-              type="email" 
-              placeholder="name@company.com" 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
             />
           </div>
-          
-          <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div className="field">
-              <label>Password</label>
-              <input 
-                type="password" 
-                placeholder="••••••••" 
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-              />
-            </div>
-            <div className="field">
-              <label>Confirm</label>
-              <input 
-                type="password" 
-                placeholder="••••••••" 
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                required
-              />
-            </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password (min 6 characters)
+            </label>
+            <input
+              type="password"
+              required
+              minLength={6}
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+            />
           </div>
 
-          <button type="submit" disabled={loading} className="primary-btn mt-12" style={{ width: '100%', height: '54px' }}>
-            {loading ? <Loader2 className="animate-spin" /> : <UserPlus />}
-            {loading ? "Creating account..." : "Register Now"}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Phone (optional)
+            </label>
+            <input
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              City
+            </label>
+            <select
+              value={formData.city}
+              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+            >
+              <option value="Mumbai">Mumbai</option>
+              <option value="Pune">Pune (Coming Soon)</option>
+              <option value="Bangalore">Bangalore (Coming Soon)</option>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-slate-900 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+            Sign Up
           </button>
         </form>
 
-        <div className="center mt-28">
-          <p className="small muted">Already have an account? <Link href="/login" className="active" style={{ color: 'var(--primary)', fontWeight: '900' }}>Log in</Link></p>
+        <p className="mt-6 text-center text-sm text-gray-600">
+          Already have an account?{' '}
+          <Link href="/login" className="text-blue-600 hover:underline">
+            Login
+          </Link>
+        </p>
         </div>
       </div>
     </div>
-  );
+  )
 }
+

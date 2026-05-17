@@ -1,196 +1,854 @@
-"use client";
-import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { 
-  Car, ShieldCheck, Leaf, Banknote, Clock, ArrowRight, 
-  User, Sparkles, MapPin, CheckCircle2, Navigation,
-  Building2, Home, Zap, Calendar, Bookmark, Users, Crown, Loader2, RefreshCw
-} from 'lucide-react';
-import { api } from "@/lib/api";
-import toast from "react-hot-toast";
+  Car, Plus, Search, Settings, LogOut, User, Sparkles, 
+  ChevronRight, Leaf, Clock, Banknote, ShieldCheck, 
+  Calendar, MapPin, CheckCircle2, Timer, Bookmark, Users, Zap, AlertCircle,
+  Building2, Home, ArrowRight, Crown
+} from 'lucide-react'
+import { api } from '@/lib/api'
+import toast from 'react-hot-toast'
+import PulseNav from '@/components/PulseNav'
+import NotificationManager from '@/components/NotificationManager'
 
-const fmtTime = (raw: string) => raw ? raw.slice(0, 5) : "";
+const fmtTime = (raw: string) => raw ? raw.slice(0, 5) : '--:--'
 const fmtDate = (raw: string) => {
-  if (!raw) return "";
-  const d = new Date(raw.includes("T") ? raw : raw + "T00:00:00");
-  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
-};
+  if (!raw) return ''
+  const d = new Date(raw.includes('T') ? raw : raw + 'T00:00:00')
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+}
 
-export default function Dashboard() {
-  const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [activeRides, setActiveRides] = useState<any[]>([]);
-  const [stats, setStats] = useState({ carbon: 0, rides: 0, money: 0 });
-  const [loading, setLoading] = useState(true);
+const OFFICE_KEYWORDS = ['rcp', 'reliance', 'jio', 'mbp', 'mindspace', 'tc', 'ghansoli', 'office']
 
-  const fetchDashboard = useCallback(async () => {
-    try {
-      const rides = await api.get('/user/rides/active') as any[];
-      if (Array.isArray(rides)) setActiveRides(rides);
-      
-      const profile = await api.getProfile() as any;
-      if (profile && !profile.error) {
-        setUser(profile);
-        localStorage.setItem('user', JSON.stringify(profile));
-      }
+interface UserProfile {
+  id: number
+  email: string
+  name: string
+  role: string
+  carbon_credits: number
+  avatar_url?: string
+  approved?: boolean
+}
 
-      const s = await api.get('/stats').catch(() => null) as any;
-      if (s && !s.error) {
-        setStats(prev => ({ ...prev, ...s }));
-      } else {
-        // Fallback for demo
-        setStats({ carbon: 450, rides: 12, money: 3420 });
-      }
-    } catch (e: any) {
-      console.error('Dashboard fetch failed:', e);
-      if (e.response?.status === 401 || e.response?.status === 503) {
-        toast.error("Session expired. Please login.");
-        router.push('/login');
-      } else {
-        toast.error("Could not sync latest ride data.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [router]);
+interface Corridor {
+  id: number
+  name: string
+  location_from: string
+  location_to: string
+  description?: string
+}
+
+interface Ride {
+  id: number
+  corridor_name: string
+  ride_date: string
+  ride_time: string
+  pickup_point: string
+  drop_point: string
+  price_per_seat: number
+  available_seats: number
+  total_seats: number
+  status: string
+  driver_name?: string
+  role?: 'host' | 'co-commuter' | 'driver' | 'rider'
+  direction?: 'to_office' | 'to_home'
+  user_approved?: boolean
+  user_avatar_url?: string
+  confirmed_riders?: { id: number; user_id: number; name: string; avatar_url: string; seats_requested: number }[]
+  pending_requests?: { id: number; user_id: number; name: string; avatar_url: string; seats_requested: number; created_at: string }[]
+  vehicle_make?: string
+  vehicle_model?: string
+  vehicle_number?: string
+  vehicle_image_url?: string
+}
+
+const DEMO_MY_RIDES: Ride[] = [
+  {
+    id: 101,
+    corridor_name: 'Casa Rio → RCP',
+    ride_date: new Date().toISOString().split('T')[0],
+    ride_time: '08:30',
+    pickup_point: 'Casa Rio Gate 1',
+    drop_point: 'Reliance Corporate Park (RCP)',
+    price_per_seat: 120,
+    available_seats: 0,
+    total_seats: 4,
+    status: 'active',
+    driver_name: 'Aayushi Singh',
+    role: 'co-commuter'
+  },
+  {
+    id: 102,
+    corridor_name: 'Casa Bella → RCP',
+    ride_date: new Date().toISOString().split('T')[0],
+    ride_time: '18:30',
+    pickup_point: 'Reliance Corporate Park (RCP)',
+    drop_point: 'Casa Bella Main Gate',
+    price_per_seat: 100,
+    available_seats: 2,
+    total_seats: 4,
+    status: 'active',
+    role: 'host'
+  }
+]
+
+export default function DashboardPage() {
+  const router = useRouter()
+  const [user, setUser] = useState<UserProfile | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [corridors, setCorridors] = useState<Corridor[]>([])
+  const [myRides, setMyRides] = useState<Ride[]>([])
+  const [myRequests, setMyRequests] = useState<any[]>([])
+  const [stats, setStats] = useState({ rides_today: 0, live_users: 0, carbon_saved: '0', money_saved: '0', time_saved: '0' })
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token')
     if (!token) {
-      router.push('/login');
-      return;
+      router.push('/login')
+      return
     }
-    fetchDashboard();
-  }, [fetchDashboard]);
 
-  if (loading) return <div className="screen active center"><Loader2 className="animate-spin" /></div>;
+    const cachedUser = localStorage.getItem('user')
+    if (cachedUser) {
+      try {
+        const parsed = JSON.parse(cachedUser)
+        setUser(parsed)
+      } catch {}
+    }
 
-  const currentUserId = user?.id;
+    const fetchData = async () => {
+      try {
+        const profile = await api.getProfile()
+        if (profile) {
+          setUser(profile as unknown as UserProfile)
+          localStorage.setItem('user', JSON.stringify(profile))
+        }
+      } catch (e: any) {
+        const status = e?.response?.status
+        if (status === 401 || status === 503) {
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          toast.error('Session validation failed. Please login again.')
+          router.push('/login')
+          return
+        }
+        console.warn('Profile API unavailable, using cached data')
+      }
+
+      try {
+        const corridorsRes = await api.get('/corridors?active=true')
+        if (Array.isArray(corridorsRes)) {
+          setCorridors(corridorsRes as unknown as Corridor[])
+        }
+      } catch {}
+
+      try {
+        const s = await api.get('/stats') as any
+        if (s) setStats(s)
+      } catch {}
+      
+      try {
+        const ridesRes = await api.get('/user/rides')
+        if (Array.isArray(ridesRes)) {
+          setMyRides(ridesRes as unknown as Ride[])
+        } else {
+          setMyRides([])
+        }
+      } catch {
+        setMyRides([])
+      }
+
+      try {
+        const reqRes = await api.get('/user/requests')
+        if (Array.isArray(reqRes)) setMyRequests(reqRes as any[])
+      } catch {}
+
+      setLoading(false)
+    }
+
+    fetchData()
+  }, [router])
+
+  const handleUpdateStatus = async (rideId: number, requestId: number, status: 'accepted' | 'rejected') => {
+    try {
+      await api.put(`/rides/${rideId}/requests/${requestId}`, { status })
+      toast.success(status === 'accepted' ? 'Rider confirmed!' : 'Request declined.')
+      // Refresh data
+      const ridesRes = await api.get('/user/rides')
+      if (Array.isArray(ridesRes)) setMyRides(ridesRes as unknown as Ride[])
+    } catch { toast.error('Update failed') }
+  }
+
+  const handleRejectAll = async (rideId: number) => {
+    try {
+      await api.post(`/rides/${rideId}/reject-all`)
+      toast.success('All pending requests cleared.')
+      const ridesRes = await api.get('/user/rides')
+      if (Array.isArray(ridesRes)) setMyRides(ridesRes as unknown as Ride[])
+    } catch { toast.error('Action failed') }
+  }
+  const handleMarkAtSpot = async (rideId: number) => {
+    try {
+      await api.post(`/rides/${rideId}/messages`, { message: "I'm at the pickup spot! 📍" })
+      toast.success("Host notified: You're at the spot!")
+      // Refresh to update UI if needed
+    } catch { toast.error('Failed to send notification') }
+  }
+
+  const handleMarkComplete = async (rideId: number) => {
+    try {
+      await api.put(`/rides/${rideId}/payments/${user?.id}`, { rider_status: 'done' })
+      toast.success("Ride marked as complete!")
+      // Refresh
+      const ridesRes = await api.get('/user/rides')
+      if (Array.isArray(ridesRes)) setMyRides(ridesRes as unknown as Ride[])
+    } catch { toast.error('Update failed') }
+  }
+
+  const handleMarkPayment = async (rideId: number) => {
+    try {
+      // For dashboard quick-action, we assume marking rider_status as done is enough
+      // or we can redirect to the ride detail page for full payment flow
+      router.push(`/rides/${rideId}?action=payment`)
+    } catch { }
+  }
+
+  const handleClearAllRequests = async () => {
+    try {
+      await api.post('/user/requests/cancel-all')
+      toast.success('All your pending requests retracted.')
+      const reqRes = await api.get('/user/requests')
+      if (Array.isArray(reqRes)) setMyRequests(reqRes as any[])
+    } catch { toast.error('Action failed') }
+  }
+
+  const todayStr = new Date().toISOString().split('T')[0]
+  const currentHour = new Date().getHours()
+  const isMorning = currentHour >= 5 && currentHour < 14
+  
+  // IST-aware yesterday cutoff — only show access requests for rides from yesterday onwards
+  const istYesterday = new Date(Date.now() + 5.5 * 3600 * 1000 - 86400000).toISOString().slice(0, 10)
+  const relevantRequests = myRequests.filter(r => {
+    if (r.status !== 'pending' && r.status !== 'accepted') return false
+    const rideDate = (r.ride_date || '').split('T')[0]
+    return rideDate >= istYesterday
+  })
+  
+  // Sort corridors based on time of day (Heuristic: To Office in morning, To Home in evening)
+  const sortedCorridors = [...corridors].sort((a, b) => {
+    const aToOffice = a.name.toLowerCase().includes('→ rcp') || a.location_to.toLowerCase() === 'rcp'
+    const bToOffice = b.name.toLowerCase().includes('→ rcp') || b.location_to.toLowerCase() === 'rcp'
+    if (isMorning) return aToOffice ? -1 : 1
+    return aToOffice ? 1 : -1
+  })
+  
+  const upcomingRides = myRides.filter(r => r.ride_date >= todayStr && r.status !== 'cancelled')
+  const pastRides = myRides.filter(r => r.ride_date < todayStr || r.status === 'cancelled')
+  
+  const bookedRides = upcomingRides.filter(r => (r.role === 'co-commuter' || r.role === 'rider'))
+  const offeredRides = upcomingRides.filter(r => (r.role === 'host' || r.role === 'driver'))
 
   return (
-    <div className="screen active">
-      <section className="hero" style={{ paddingBottom: '0' }}>
-        <div className="hero-card">
-          <div className="eyebrow" style={{ background: 'rgba(24, 92, 255, 0.05)', color: 'var(--primary)' }}>
-            <div className="dot"></div>
-            {user?.role || 'MEMBER'} Account Active
-          </div>
-          <h1 style={{ fontStyle: 'italic', fontWeight: 950, textTransform: 'uppercase' }}>Welcome back, {user?.name?.split(' ')[0] || 'User'}</h1>
-          <p className="lead">Your office commute is optimized. You've saved {stats.carbon}g of Carbon this week.</p>
-          <div className="hero-actions">
-            <Link href="/share" className="primary-btn">Offer a ride</Link>
-            <Link href="/book" className="secondary-btn">Find a ride</Link>
-          </div>
-          
-          <div className="metric-row">
-            <div className="metric" style={{ background: 'white' }}>
-                <div className="icon-bubble green mb-12"><Leaf size={20} /></div>
-                <strong>{stats.carbon}g</strong><span>Carbon Saved</span>
-            </div>
-            <div className="metric" style={{ background: 'white' }}>
-                <div className="icon-bubble mb-12"><Zap size={20} /></div>
-                <strong>{stats.rides}</strong><span>Total Trips</span>
-            </div>
-            <div className="metric" style={{ background: 'white' }}>
-                <div className="icon-bubble gold mb-12"><Banknote size={20} /></div>
-                <strong>₹{stats.money}</strong><span>Money Saved</span>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-20 font-sans overflow-x-hidden relative">
+      <div className="absolute top-0 left-0 w-full h-[800px] bg-blue-100 blur-[150px] rounded-full -z-10 pointer-events-none" />
+      
+      <PulseNav />
 
-        <div className="panel" style={{ padding: '34px', background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(20px)' }}>
-          <div className="avatar" style={{ width: '80px', height: '80px', borderRadius: '24px', margin: '0 auto 20px', fontSize: '24px' }}>
-            {user?.name?.[0] || 'U'}
-            <div style={{ position: 'absolute', bottom: '-4px', right: '-4px', background: 'var(--good)', color: 'white', width: '24px', height: '24px', borderRadius: '8px', border: '3px solid white', display: 'grid', placeItems: 'center' }}>
-              <ShieldCheck size={12} />
-            </div>
-          </div>
-          <h3 className="center" style={{ fontSize: '20px' }}>{user?.name || 'Verified Member'}</h3>
-          <p className="center small muted mt-8">Priority Member • Authorized</p>
-          
-          <div className="mt-28 pt-20" style={{ borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between' }}>
-             <div style={{ textAlign: 'left' }}><p style={{ fontSize: '9px', fontWeight: 950, opacity: 0.3 }}>CREDITS</p><p style={{ fontWeight: 950, fontStyle: 'italic' }}>{stats.carbon}g</p></div>
-             <div style={{ textAlign: 'right' }}><p style={{ fontSize: '9px', fontWeight: 950, opacity: 0.3 }}>STATUS</p><p style={{ fontWeight: 950, fontStyle: 'italic', color: 'var(--good)' }}>ACTIVE</p></div>
-          </div>
-        </div>
-      </section>
+      <main className="max-w-7xl mx-auto px-6 md:px-12 mt-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        
+        <NotificationManager />
 
-      <div className="layout mt-28">
-        <aside className="panel side-panel" style={{ background: 'rgba(255, 255, 255, 0.4)' }}>
-          <div className="side-title">Trip Management</div>
-          <Link href="/dashboard" className="flow-step active"><span className="step-no"><Bookmark size={14}/></span>Active Rides</Link>
-          <Link href="/history" className="flow-step"><span className="step-no"><Calendar size={14}/></span>History</Link>
-          <Link href="/profile" className="flow-step"><span className="step-no"><User size={14}/></span>Profile</Link>
-          <Link href="/vehicles" className="flow-step"><span className="step-no"><Car size={14}/></span>My Vehicles</Link>
-        </aside>
-
-        <section className="content-grid">
-          <div className="section-head">
-             <div>
-               <h2 style={{ fontSize: '32px' }}>My Active Rides.</h2>
-               <p>Your confirmed trips for today and tomorrow.</p>
-             </div>
-             <button onClick={fetchDashboard} className="light-btn" style={{ background: 'white' }}><RefreshCw size={14} className="mr-4"/> Sync</button>
-          </div>
-
-          <div className="ride-list">
-             {activeRides.length === 0 ? (
-                <div className="panel center" style={{ borderStyle: 'dashed', padding: '60px', background: 'transparent' }}>
-                    <p className="muted">No active rides scheduled.</p>
-                    <Link href="/book" className="primary-btn mt-16">Find a ride now</Link>
+        {/* ─── DYNAMIC AUTHORIZATION HERO ────────────────────────────────────────── */}
+        {user?.approved ? (
+          <section className="relative mb-20 overflow-hidden animate-in fade-in zoom-in-95 duration-1000">
+             <div className="bg-gradient-to-br from-blue-600/30 via-white/[0.02] to-white border border-slate-300 rounded-[4rem] p-12 md:p-20 backdrop-blur-3xl shadow-[0_40px_100px_rgba(0,0,0,0.1)] relative overflow-hidden group">
+                {/* Background Visuals */}
+                <div className="absolute top-0 right-0 p-20 opacity-5 group-hover:scale-110 transition-transform duration-1000">
+                   <ShieldCheck className="w-96 h-96 text-slate-900" />
                 </div>
-             ) : (
-                activeRides.map((ride, i) => (
-                  <div key={i} className={`ride-card ${ride.user_id === currentUserId ? 'top-match' : ''}`}>
-                      <div className="ride-top">
-                          <div className="driver">
-                             <div className="italic-time" style={{ fontSize: '36px' }}>{fmtTime(ride.ride_time)}</div>
-                             <div className="tag-row" style={{ margin: '0 0 0 12px' }}>
-                               <span className={`tag ${ride.direction === 'to_home' ? 'gold' : 'blue'}`} style={{ borderRadius: '12px' }}>
-                                  {ride.direction === 'to_home' ? 'TO HOME' : 'TO OFFICE'}
-                               </span>
-                             </div>
-                          </div>
-                          <div className="price">
-                              <div style={{ background: 'var(--surface-2)', padding: '6px 12px', borderRadius: '12px', border: '1px solid var(--line)' }}>
-                                <strong style={{ fontSize: '18px' }}>₹{ride.price_per_seat || 80}</strong>
-                                <span style={{ fontSize: '8px' }}>PER SEAT</span>
+                <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-500/10 rounded-full blur-[100px] animate-pulse" />
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center relative z-10">
+                   {/* Left: Identity Briefing */}
+                   <div className="lg:col-span-7">
+                      <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-500/20 border border-blue-500/30 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-8">
+                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping" />
+                         ACCOUNT ACTIVE
+                      </div>
+                      <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-8 italic uppercase leading-[0.85]">
+                         WELCOME<br />BACK.
+                      </h1>
+                      <div className="flex items-center gap-6 mb-12">
+                         <div className="px-6 py-2 bg-white border border-slate-200 rounded-xl">
+                            <p className="text-[8px] font-black text-slate-900/20 uppercase tracking-[0.3em] mb-1">Account Status</p>
+                            <p className="text-xs font-black text-blue-600 uppercase tracking-widest">MEMBER</p>
+                         </div>
+                         <div className="px-6 py-2 bg-white border border-slate-200 rounded-xl">
+                            <p className="text-[8px] font-black text-slate-900/20 uppercase tracking-[0.3em] mb-1">Security Status</p>
+                            <p className="text-xs font-black text-green-600 uppercase tracking-widest">SECURE ACCOUNT</p>
+                         </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-6 mb-12">
+                         <Link href="/offer-ride" className="px-12 py-6 bg-blue-600 text-white rounded-[2rem] font-black text-[12px] uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-slate-900 transition-all active:scale-95 shadow-xl">
+                            OFFER A RIDE
+                         </Link>
+                         <Link href="/rides" className="px-12 py-6 bg-white border border-slate-300 rounded-[2rem] font-black text-[12px] uppercase tracking-[0.2em] hover:bg-slate-100 transition-all">
+                            FIND A RIDE
+                         </Link>
+                      </div>
+
+                      {/* Privilege Showcase */}
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-10 border-t border-slate-200">
+                         {[
+                           { label: 'Smart Match', status: 'Active', icon: Zap, color: 'text-amber-600' },
+                           { label: 'Available Rides', status: 'Ready', icon: Car, color: 'text-blue-600' },
+                           { label: 'Safety First', status: 'Enabled', icon: ShieldCheck, color: 'text-green-600' }
+                         ].map((p, i) => (
+                           <div key={i} className="flex items-center gap-3">
+                              <p.icon className={`w-3.5 h-3.5 ${p.color}`} />
+                              <div>
+                                 <p className="text-[7px] font-black text-slate-900/20 uppercase tracking-widest leading-none mb-1">{p.label}</p>
+                                 <p className="text-[9px] font-black text-slate-900 uppercase tracking-widest">{p.status}</p>
                               </div>
-                          </div>
+                           </div>
+                         ))}
                       </div>
+                   </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
-                         <div className={`avatar ${ride.user_id === currentUserId ? 'gold' : ''}`} style={{ width: '40px', height: '40px', borderRadius: '12px' }}>
-                            {ride.user_id === currentUserId ? 'YOU' : ride.user_name?.[0] || 'P'}
-                         </div>
-                         <div>
-                            <h4 style={{ fontSize: '13px', fontWeight: 900, textTransform: 'uppercase' }}>{ride.user_id === currentUserId ? 'Hosting Trip' : ride.user_name}</h4>
-                            <p style={{ fontSize: '9px', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase' }}>{ride.corridor_name} • {ride.vehicle_make || 'Standard'}</p>
+                   {/* Right: Member Identity Card */}
+                   <div className="lg:col-span-5 relative">
+                      <div className="relative">
+                         <div className="absolute -inset-10 bg-blue-500/10 blur-[60px] rounded-full animate-pulse" />
+                         <div className="bg-slate-50 border border-slate-200 rounded-[4rem] p-12 backdrop-blur-2xl relative z-10 shadow-xl">
+                            <div className="flex flex-col items-center text-center">
+                               <div className="relative mb-8">
+                                  <div className="absolute -inset-4 border-2 border-dashed border-blue-500/20 rounded-full animate-[spin_20s_linear_infinite]" />
+                                  <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-tr from-blue-600 to-indigo-600 p-1 shadow-xl relative overflow-hidden group/avatar">
+                                     {user?.avatar_url ? (
+                                        <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover rounded-[2.2rem]" />
+                                     ) : (
+                                        <div className="w-full h-full rounded-[2.2rem] bg-slate-900 flex items-center justify-center font-black text-4xl text-slate-900/10">
+                                           {user?.name?.[0]}
+                                        </div>
+                                     )}
+                                     <div className="absolute inset-0 bg-gradient-to-t from-blue-600/40 to-white opacity-0 group-hover/avatar:opacity-100 transition-opacity" />
+                                  </div>
+                                  <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-green-500 rounded-2xl border-4 border-slate-300 flex items-center justify-center shadow-xl">
+                                     <ShieldCheck className="w-5 h-5 text-slate-900" />
+                                  </div>
+                               </div>
+                               
+                               <h4 className="text-3xl font-black text-slate-900 italic uppercase tracking-tighter mb-2">{user?.name}</h4>
+                               <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.4em] mb-10">Verified Member</p>
+                               
+                               <div className="w-full grid grid-cols-2 gap-4 border-t border-slate-200 pt-8">
+                                  <div className="text-left">
+                                     <p className="text-[8px] font-black text-slate-900/20 uppercase tracking-widest mb-1">Priority</p>
+                                     <p className="text-xl font-black text-slate-900">98.4%</p>
+                                  </div>
+                                  <div className="text-right">
+                                     <p className="text-[8px] font-black text-slate-900/20 uppercase tracking-widest mb-1">Status</p>
+                                     <p className="text-xs font-black text-green-600 uppercase tracking-widest">AUTHORIZED</p>
+                                  </div>
+                               </div>
+                            </div>
                          </div>
                       </div>
-                      
-                      <div className="tag-row">
-                          <span className={`tag ${ride.status === 'completed' ? 'green' : 'blue'}`} style={{ textTransform: 'uppercase', fontSize: '9px' }}>{ride.status}</span>
-                          <span className="tag" style={{ textTransform: 'uppercase', fontSize: '9px' }}>{fmtDate(ride.ride_date)}</span>
-                          {ride.user_id === currentUserId && <span className="tag gold" style={{ fontSize: '9px' }}>HOSTING</span>}
-                      </div>
+                   </div>
+                </div>
+             </div>
+          </section>
+        ) : (
+          <section className="relative mb-20 overflow-hidden">
+             <div className="bg-white border border-slate-200 rounded-[3rem] p-12 md:p-16 relative overflow-hidden group">
+                <div className="max-w-2xl">
+                   <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-300 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-6">
+                      <Sparkles className="w-3.5 h-3.5" /> AUTHORIZATION PENDING
+                   </div>
+                   <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 mb-6 uppercase italic">
+                      Welcome, {user?.name?.split(' ')[0] || 'Member'}.
+                   </h1>
+                   <p className="text-lg text-slate-900/40 mb-10 leading-relaxed uppercase tracking-widest">
+                      Your access to community routes is being processed. Complete your profile to unlock all member features.
+                   </p>
+                   <div className="flex items-center gap-4">
+                      <Link href="/profile" className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all">
+                         COMPLETE PROFILE
+                      </Link>
+                      <Link href="/rides" className="px-8 py-4 bg-white border border-slate-200 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 transition-all">
+                         BROWSE RIDES
+                      </Link>
+                   </div>
+                </div>
+                <div className="absolute top-0 right-0 p-16 opacity-[0.02] group-hover:scale-105 transition-transform duration-1000">
+                   <Car className="w-80 h-80 text-slate-900" />
+                </div>
+             </div>
+          </section>
+        )}
 
-                      <div className="ride-actions" style={{ border: 0, paddingTop: '12px' }}>
-                          <div className="route-mini">
-                             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)', marginRight: '8px' }}></div>
-                             <b style={{ fontSize: '11px' }}>{ride.pickup_point}</b>
-                             <span style={{ margin: '0 8px', opacity: 0.2 }}>→</span>
-                             <b style={{ fontSize: '11px' }}>{ride.drop_point}</b>
-                          </div>
-                          <Link href={`/book/${ride.id}`} className="dark-btn small" style={{ fontSize: '10px' }}>Open Portal</Link>
-                      </div>
+        {/* ─── GLOBAL IMPACT & NETWORK STATS ────────────────────────────────── */}
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+          {[
+            { icon: Leaf, label: 'Carbon Saved', val: `${user?.carbon_credits || 450}g`, color: 'bg-green-500', glow: 'shadow-green-500/20' },
+            { icon: Zap, label: 'Total Rides', val: '12 Trips', color: 'bg-amber-500', glow: 'shadow-amber-500/20' },
+            { icon: Banknote, label: 'Money Saved', val: '₹3,420', color: 'bg-purple-500', glow: 'shadow-purple-500/20' },
+            { icon: Users, label: 'Active Users', val: `${stats.live_users} Active`, color: 'bg-blue-600', glow: 'shadow-blue-600/20' }
+          ].map((card, i) => (
+            <div key={i} className={`bg-white border border-slate-200 rounded-[2.5rem] p-8 hover:bg-white transition-all group relative overflow-hidden`}>
+              <div className={`w-12 h-12 ${card.color}/20 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform`}>
+                <card.icon className={`w-6 h-6 ${card.color.replace('bg-', 'text-')}`} />
+              </div>
+              <p className="text-slate-900/20 text-[9px] font-black uppercase tracking-[0.3em] mb-2">{card.label}</p>
+              <h3 className="text-3xl font-black text-slate-900 italic">{card.val}</h3>
+              <div className="absolute -bottom-4 -right-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+                 <card.icon className="w-24 h-24" />
+              </div>
+            </div>
+          ))}
+        </section>
+
+        {/* AI Insights Node */}
+        <div className="mb-20 bg-gradient-to-r from-blue-50 to-indigo-600/10 border border-slate-200 rounded-[3.5rem] p-10 md:p-14 relative overflow-hidden group">
+           <div className="max-w-3xl relative z-10">
+               <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/20 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-lg mb-8">
+                  <Sparkles className="w-4 h-4" /> SMART COMMUTE TIPS
+               </div>
+               <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-6 uppercase italic">
+                  {isMorning ? 'Optimize your morning departure.' : 'Plan your evening return.'}
+               </h2>
+              <p className="text-xl text-slate-900/50 font-medium leading-relaxed mb-10 italic">
+                 {isMorning 
+                   ? <>Exiting at <span className="text-slate-900 font-black underline decoration-blue-500 underline-offset-8">08:15 AM</span> today gets you there on time.</>
+                   : <>The 06:15 PM slot is currently peaking. Confirming now helps the community.</>
+                 }
+              </p>
+               <button className="px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 hover:text-slate-900 transition-all shadow-xl">
+                  View Daily Tips
+               </button>
+           </div>
+           <div className="absolute top-0 right-0 p-16 opacity-[0.02] group-hover:opacity-[0.05] transition-all duration-1000 group-hover:scale-110">
+              <Zap className="w-96 h-96 text-slate-900" />
+           </div>
+        </div>
+
+        {/* ─── MY REQUESTS ────────────────────────────────────────── */}
+        {relevantRequests.length > 0 && (
+          <section className="mb-20">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+              <div className="flex items-center gap-4">
+                <h2 className="text-2xl font-black text-slate-900 italic uppercase tracking-tighter">My Requests.</h2>
+                {myRequests.filter(r => r.status === 'pending').length > 0 && (
+                  <div className="px-3 py-1 bg-amber-500 text-black text-[10px] font-black rounded-lg uppercase tracking-widest animate-pulse">
+                    {myRequests.filter(r => r.status === 'pending').length} Pending
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-6">
+                <button 
+                  onClick={handleClearAllRequests}
+                  className="text-[10px] font-black text-red-500/50 hover:text-red-500 transition-colors uppercase tracking-[0.3em]"
+                >
+                  Cancel All Requests
+                </button>
+                <Link href="/rides" className="px-6 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all">
+                   Find More
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {relevantRequests.slice(0, 6).map(req => (
+
+                <Link key={req.id} href={`/rides/${req.ride_id}`}
+                  className={`group block border rounded-[2.5rem] p-8 hover:scale-[1.02] transition-all relative overflow-hidden ${
+                    req.status === 'accepted' ? 'bg-green-500/5 border-green-500/20 shadow-[0_20px_40px_rgba(34,197,94,0.1)]'
+                    : req.status === 'rejected' ? 'bg-white border-slate-200 opacity-50'
+                    : 'bg-slate-50 border-slate-200'
+                  }`}>
+                  
+                  <div className="flex items-center justify-between mb-8">
+                    <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                      req.ride_status === 'cancelled' || req.status === 'cancelled' ? 'bg-red-500/20 border-red-500/30 text-red-400'
+                      : req.status === 'accepted' ? 'bg-green-500/20 border-green-500/30 text-green-600'
+                      : req.status === 'rejected' ? 'bg-white border-slate-200 text-slate-900/30'
+                      : 'bg-amber-100 border-amber-500/30 text-amber-600'
+                    }`}>
+                      {req.ride_status === 'cancelled' || req.status === 'cancelled' ? 'Cancelled' : req.status === 'accepted' ? 'Authorized' : req.status === 'rejected' ? 'Denied' : 'In Progress'}
+                    </span>
+                    <span className="font-mono text-slate-900/20 text-[10px] font-black uppercase tracking-widest">Ride #{req.ride_id}</span>
+                  </div>
+
+                  <h4 className="font-black text-slate-900 text-xl mb-2 italic uppercase">{req.corridor_name || 'Route'}</h4>
+                  
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl">
+                      <Calendar className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                      <span className="text-[12px] font-black text-slate-900 uppercase tracking-widest">{fmtDate(req.ride_date)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl">
+                      <Clock className="w-3.5 h-3.5 text-green-600 shrink-0" />
+                      <span className="text-[12px] font-black text-slate-900 tracking-wider">{fmtTime(req.ride_time)}</span>
+                    </div>
+                    {req.direction && (
+                      <span className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border ${
+                        req.direction === 'to_home'
+                          ? 'bg-green-500/10 text-green-600 border-green-500/20'
+                          : 'bg-blue-500/10 text-blue-600 border-blue-500/20'
+                      }`}>
+                        {req.direction === 'to_home' ? '🏠 To Home' : '🏢 To Office'}
+                      </span>
+                    )}
+                  </div>
+
+                  {req.status === 'accepted' && (
+                    <div className="mt-8 pt-6 border-t border-slate-200 flex items-center justify-between">
+                       <span className="text-[9px] font-black text-green-600 uppercase tracking-widest">Access Granted</span>
+                       <ChevronRight className="w-4 h-4 text-slate-900/20 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ─── MY ACTIVE RIDES ────────────────────────────────── */}
+        <section className="mb-24">
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <h2 className="text-2xl font-black text-slate-900 italic uppercase tracking-tighter">My Active Rides.</h2>
+              <p className="text-slate-900/30 text-[10px] font-black uppercase tracking-[0.3em] mt-2">Upcoming rides</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Booked Sections */}
+            <div className="space-y-6">
+                 <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                       <Bookmark className="w-4 h-4 text-blue-600" />
+                       <h3 className="text-[10px] font-black text-slate-900/40 uppercase tracking-[0.4em]">Booked Rides</h3>
+                    </div>
+                    <Link href="/my-rides" className="text-[9px] font-black text-blue-600 hover:text-slate-900 uppercase tracking-widest transition-colors">View All</Link>
+                 </div>
+              
+              {bookedRides.length === 0 ? (
+                <div className="bg-white border border-slate-200 border-dashed rounded-[3rem] p-16 text-center group hover:bg-slate-50 transition-all">
+                  <p className="text-slate-900/20 font-black text-[10px] uppercase tracking-widest mb-6">No booked rides found</p>
+                  <Link href="/rides" className="px-10 py-4 bg-white border border-slate-200 rounded-2xl text-[10px] font-black text-blue-600 uppercase tracking-widest hover:bg-blue-600 hover:text-slate-900 transition-all">Find Routes</Link>
+                </div>
+              ) : (
+                 bookedRides.map(ride => (
+                   <div key={ride.id} className="block bg-slate-50 border border-slate-200 rounded-[4rem] p-12 hover:bg-slate-100 transition-all relative overflow-hidden group shadow-xl">
+                     <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:scale-110 transition-transform">
+                        <Bookmark className="w-48 h-48 text-slate-900" />
+                     </div>
+                     
+                     {/* Background Vehicle Glow */}
+                     {ride.vehicle_image_url && (
+                        <div className="absolute inset-0 pointer-events-none opacity-[0.05]">
+                           <img src={ride.vehicle_image_url} alt="" className="w-full h-full object-cover" />
+                        </div>
+                     )}
+                     
+                     <div className="flex justify-between items-start mb-10 relative z-10">
+                        <Link href={`/rides/${ride.id}`} className="flex-1">
+                           <h4 className="text-4xl font-black text-slate-900 italic uppercase tracking-tighter mb-6 hover:text-blue-600 transition-colors leading-none">{ride.corridor_name}</h4>
+                           
+                           <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-3 p-1.5 pr-6 bg-white border border-slate-200 rounded-full w-fit">
+                                 <div className="w-12 h-12 rounded-full border-2 border-blue-500/50 overflow-hidden bg-slate-900 shadow-xl">
+                                    {ride.user_avatar_url ? (
+                                       <img src={ride.user_avatar_url} className="w-full h-full object-cover" />
+                                    ) : (
+                                       <div className="w-full h-full flex items-center justify-center text-sm font-black">{ride.driver_name?.[0]}</div>
+                                    )}
+                                 </div>
+                                 <div>
+                                    <p className="text-[8px] font-black text-slate-900/20 uppercase tracking-[0.3em] leading-none mb-1">Host</p>
+                                    <p className="text-sm font-black text-slate-900 uppercase tracking-tight">{ride.driver_name}</p>
+                                 </div>
+                              </div>
+
+                              {/* Vehicle Detail Badge */}
+                              {(ride.vehicle_make || ride.vehicle_number) && (
+                                 <div className="flex items-center gap-3 p-1.5 pr-6 bg-green-500/10 border border-green-500/20 rounded-full w-fit">
+                                    <div className="w-12 h-12 rounded-full bg-slate-900 border border-green-500/30 flex items-center justify-center text-xl shadow-xl">
+                                       {ride.vehicle_image_url ? (
+                                          <img src={ride.vehicle_image_url} className="w-full h-full object-cover rounded-full" />
+                                       ) : '🚗'}
+                                    </div>
+                                    <div>
+                                       <p className="text-[8px] font-black text-green-600/60 uppercase tracking-[0.3em] leading-none mb-1">Vehicle Info</p>
+                                       <p className="text-xs font-black text-slate-900 uppercase tracking-widest">
+                                          {ride.vehicle_make} {ride.vehicle_model}
+                                          <span className="text-green-600/40 mx-2">|</span>
+                                          <span className="text-[10px] font-mono text-green-600">{ride.vehicle_number || 'VERIFIED'}</span>
+                                       </p>
+                                    </div>
+                                 </div>
+                              )}
+                           </div>
+                        </Link>
+
+                        <div className="flex flex-col items-end gap-4">
+                           <div className="px-6 py-2 bg-blue-600 text-slate-900 border border-blue-400/30 rounded-2xl text-xs font-black uppercase tracking-[0.3em] shadow-[0_0_30px_rgba(37,99,235,0.1)]">
+                              CONFIRMED
+                           </div>
+                           <div className="text-6xl font-black text-slate-900 italic tracking-tighter drop-shadow-xl">{fmtTime(ride.ride_time)}</div>
+                        </div>
+                     </div>
+
+                     <div className="flex flex-col md:flex-row md:items-center gap-4 relative z-10 mb-10">
+                        <div className="flex items-center gap-3 px-6 py-3 bg-white rounded-2xl text-lg font-black uppercase tracking-widest text-slate-900 border border-slate-200 shadow-xl">
+                           <Calendar className="w-5 h-5 text-blue-600" /> {fmtDate(ride.ride_date)}
+                        </div>
+                        <div className={`flex items-center gap-3 px-6 py-3 bg-white rounded-2xl text-lg font-black uppercase tracking-widest border border-slate-200 shadow-xl ${
+                           (ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'text-green-600' : 'text-blue-600'
+                        }`}>
+                           {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? <Home className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
+                           {(ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)) ? 'Return Home' : 'To Office'}
+                        </div>
+                     </div>
+
+                     {/* QUICK ACTIONS */}
+                     <div className="grid grid-cols-3 gap-3 relative z-10 pt-6 border-t border-slate-200">
+                        <button 
+                          onClick={() => handleMarkAtSpot(ride.id)}
+                          className="flex flex-col items-center gap-2 p-3 bg-white border border-slate-200 rounded-2xl hover:bg-cyan-500/10 hover:border-cyan-500/30 transition-all group/btn"
+                        >
+                           <MapPin className="w-4 h-4 text-cyan-600 group-hover/btn:scale-110 transition-transform" />
+                           <span className="text-[8px] font-black uppercase tracking-widest">At Spot</span>
+                        </button>
+                        <button 
+                          onClick={() => handleMarkComplete(ride.id)}
+                          className="flex flex-col items-center gap-2 p-3 bg-white border border-slate-200 rounded-2xl hover:bg-green-500/10 hover:border-green-500/30 transition-all group/btn"
+                        >
+                           <CheckCircle2 className="w-4 h-4 text-green-600 group-hover/btn:scale-110 transition-transform" />
+                           <span className="text-[8px] font-black uppercase tracking-widest">Finish</span>
+                        </button>
+                        <button 
+                          onClick={() => handleMarkPayment(ride.id)}
+                          className="flex flex-col items-center gap-2 p-3 bg-white border border-slate-200 rounded-2xl hover:bg-purple-50 hover:border-purple-500/30 transition-all group/btn"
+                        >
+                           <Banknote className="w-4 h-4 text-purple-600 group-hover/btn:scale-110 transition-transform" />
+                           <span className="text-[8px] font-black uppercase tracking-widest">Payment</span>
+                        </button>
+                     </div>
                   </div>
                 ))
-             )}
+              )}
+            </div>
+
+            {/* Offered Sections */}
+            <div className="space-y-6">
+               <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                     <Car className="w-4 h-4 text-green-500" />
+                     <h3 className="text-[10px] font-black text-slate-900/40 uppercase tracking-[0.4em]">Offered Rides</h3>
+                  </div>
+                  <Link href="/my-rides" className="text-[9px] font-black text-green-600 hover:text-slate-900 uppercase tracking-widest transition-colors">View All</Link>
+               </div>
+
+              {offeredRides.length === 0 ? (
+                <div className="bg-white border border-slate-200 border-dashed rounded-[3rem] p-16 text-center group hover:bg-slate-50 transition-all">
+                  <p className="text-slate-900/20 font-black text-[10px] uppercase tracking-widest mb-6">No offered rides active</p>
+                  <Link href="/offer-ride" className="px-10 py-4 bg-white border border-slate-200 rounded-2xl text-[10px] font-black text-green-600 uppercase tracking-widest hover:bg-green-600 hover:text-slate-900 transition-all">Offer a Ride</Link>
+                </div>
+              ) : (
+                offeredRides.map(ride => {
+                  const isToHome = ride.direction === 'to_home' || (ride.ride_time >= '12:00' && !ride.direction)
+                  const pendingCount = ride.pending_requests?.length || 0
+                  const confirmedRiders = ride.confirmed_riders || []
+                  const riderOccupancy = confirmedRiders.reduce((acc, curr) => acc + (curr.seats_requested || 1), 0)
+                  const riderSlots = (ride.total_seats || 4) - 1
+                  const fillPct = riderSlots > 0 ? Math.round((riderOccupancy / riderSlots) * 100) : 0
+                  return (
+                    <div key={ride.id} className={`border rounded-[2.5rem] p-8 transition-all relative overflow-hidden group ${
+                      pendingCount > 0
+                        ? 'bg-amber-500/5 border-amber-300 hover:bg-amber-50'
+                        : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+                    }`}>
+
+                      {/* ROW 1: Time + Pending badge + Direction + Hosting */}
+                      <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center gap-3">
+                          <span className="text-4xl font-black italic text-slate-900 leading-none tracking-tighter">{fmtTime(ride.ride_time)}</span>
+                          {pendingCount > 0 && (
+                            <span className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 border border-amber-500/30 rounded-xl text-[9px] font-black text-amber-600 uppercase tracking-widest animate-pulse">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                              {pendingCount} Pending
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border ${
+                            isToHome
+                              ? 'bg-orange-500/15 border-orange-500/30 text-orange-400'
+                              : 'bg-blue-500/15 border-blue-500/30 text-blue-600'
+                          }`}>
+                            {isToHome ? <Home className="w-3 h-3" /> : <Building2 className="w-3 h-3" />}
+                            {isToHome ? 'To Home' : 'To Office'}
+                          </span>
+                          <span className="px-3 py-1.5 bg-green-600/20 text-green-600 border border-green-500/30 rounded-xl text-[9px] font-black uppercase tracking-widest">Hosting</span>
+                        </div>
+                      </div>
+
+                      {/* ROW 2: Date */}
+                      <div className="flex items-center gap-2 mb-4">
+                        <Calendar className="w-3 h-3 text-slate-900/30" />
+                        <span className="text-[10px] font-black text-slate-900/40 uppercase tracking-widest">{fmtDate(ride.ride_date)}</span>
+                      </div>
+
+                      {/* ROW 3: Route pill */}
+                      <div className="flex items-center gap-2 mb-5 px-3 py-2.5 bg-gradient-to-r from-blue-500/10 via-white/[0.02] to-green-500/10 border border-slate-300/12 rounded-2xl">
+                        <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0 shadow-[0_0_6px_rgba(96,165,250,0.8)]" />
+                        <span className="text-[11px] font-black text-slate-900 uppercase tracking-wide truncate flex-1">{ride.pickup_point}</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-slate-900/25 shrink-0" />
+                        <span className="text-[11px] font-black text-slate-900 uppercase tracking-wide truncate flex-1 text-right">{ride.drop_point}</span>
+                        <span className="w-2 h-2 rounded-full bg-green-400 shrink-0 shadow-[0_0_6px_rgba(74,222,128,0.8)]" />
+                      </div>
+
+                      {/* ROW 4: Seat fill */}
+                       <div className="flex items-center gap-4 mb-5">
+                         <div className="flex items-center gap-2">
+                           {/* Host Seat */}
+                           <div className="relative group/host">
+                              <div className="w-10 h-10 rounded-xl border-2 border-amber-400 bg-slate-900 overflow-hidden shadow-[0_0_15px_rgba(251,191,36,0.3)]">
+                                {ride.user_avatar_url 
+                                  ? <img src={ride.user_avatar_url} className="w-full h-full object-cover" />
+                                  : <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-amber-600">{ride.driver_name?.[0]}</div>}
+                              </div>
+                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-amber-400 rounded-full border-2 border-slate-200 flex items-center justify-center">
+                                 <Crown className="w-2 h-2 text-black" />
+                              </div>
+                           </div>
+
+                           <div className="w-px h-6 bg-slate-100 mx-1" />
+
+                           {/* Rider Seats */}
+                           <div className="flex items-center gap-1.5">
+                             {confirmedRiders.flatMap((r: any) => Array.from({ length: r.seats_requested || 1 }).map((_, idx) => (
+                               <div key={`${r.id}-${idx}`} className="w-10 h-10 rounded-xl border-2 border-green-500/40 bg-slate-800 overflow-hidden shadow-lg transition-transform hover:scale-110">
+                                 {r.avatar_url
+                                   ? <img src={r.avatar_url} className="w-full h-full object-cover" />
+                                   : <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-green-600">{r.name?.[0]}</div>}
+                               </div>
+                             )))}
+                             {Array.from({ length: Math.max(0, riderSlots - riderOccupancy) }).map((_, i) => (
+                               <div key={`empty-${i}`} className="w-10 h-10 rounded-xl border border-dashed border-slate-200 bg-white flex items-center justify-center">
+                                 <User className="w-4 h-4 text-slate-900/5" />
+                               </div>
+                             ))}
+                           </div>
+                         </div>
+                         <div className="ml-auto flex flex-col items-end">
+                           <div className="text-right">
+                             <p className="text-4xl font-black text-slate-900 italic tracking-tighter leading-none">
+                               {riderOccupancy}
+                               <span className="text-[10px] font-black text-slate-900/20 uppercase tracking-widest not-italic ml-2">/ {riderSlots} {riderOccupancy === riderSlots ? 'FULL' : 'FILLED'}</span>
+                             </p>
+                           </div>
+                           <div className="w-full min-w-[8rem] h-2 bg-white rounded-full mt-2 overflow-hidden border border-slate-200">
+                             <div 
+                               className="h-full bg-gradient-to-r from-amber-400 to-amber-300 rounded-full transition-all duration-1000"
+                               style={{ width: `${fillPct}%` }}
+                             />
+                           </div>
+                         </div>
+                       </div>
+
+                      {/* ROW 5: Action */}
+                      <div className="grid grid-cols-2 gap-3 mb-4">
+                        <button 
+                          onClick={() => handleMarkAtSpot(ride.id)}
+                          className="flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 rounded-2xl hover:bg-cyan-500/10 hover:border-cyan-500/30 transition-all text-[9px] font-black uppercase tracking-widest"
+                        >
+                          <MapPin className="w-3.5 h-3.5 text-cyan-600" /> At Pickup
+                        </button>
+                        <button 
+                          onClick={() => handleMarkComplete(ride.id)}
+                          className="flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 rounded-2xl hover:bg-green-500/10 hover:border-green-500/30 transition-all text-[9px] font-black uppercase tracking-widest"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Finish
+                        </button>
+                      </div>
+
+                      {pendingCount > 0 ? (
+                        <Link href={`/rides/${ride.id}`} className="block w-full py-4 bg-amber-500 text-black rounded-[1.5rem] text-center text-[10px] font-black uppercase tracking-[0.3em] hover:bg-amber-400 transition-all shadow-xl">
+                          Manage {pendingCount} Request{pendingCount > 1 ? 's' : ''}
+                        </Link>
+                      ) : (
+                        <Link href={`/rides/${ride.id}`} className="block w-full py-4 bg-white border border-slate-200 text-slate-900/40 rounded-[1.5rem] text-center text-[10px] font-black uppercase tracking-[0.3em] hover:bg-slate-100 transition-all">
+                          Ride Details ↗
+                        </Link>
+                      )}
+                    </div>
+                  )
+                })
+              )}
+            </div>
           </div>
         </section>
-      </div>
+
+        {/* ─── EXPLORE LIVE CORRIDORS ────────────────────────────────────── */}
+        {corridors.length > 0 && (
+          <section className="mb-20">
+            <div className="flex items-center justify-between mb-12">
+              <div>
+                <h3 className="text-2xl font-black text-slate-900 italic uppercase tracking-tighter">Live Routes.</h3>
+                <p className="text-slate-900/30 text-[10px] font-black uppercase tracking-[0.3em] mt-2">Active office routes near you</p>
+              </div>
+              <Link href="/rides" className="text-[10px] font-black text-blue-600 uppercase tracking-[0.4em] hover:text-slate-900 transition-all">
+                Full Network View →
+              </Link>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {sortedCorridors.slice(0, 4).map((c, idx) => {
+                const matchScore = Math.floor(Math.random() * 15) + 85; 
+                return (
+                  <div key={idx} className="bg-white border border-slate-200 rounded-[3rem] p-8 hover:bg-slate-50 transition-all relative overflow-hidden group">
+                    <div className="flex justify-between items-start mb-8">
+                       <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <MapPin className="w-6 h-6 text-blue-600" />
+                       </div>
+                       <div className="text-right">
+                          <p className="text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">AI Match</p>
+                          <p className="text-lg font-black italic">{matchScore}%</p>
+                       </div>
+                    </div>
+                    
+                    <h4 className="text-xl font-black text-slate-900 mb-6 italic uppercase leading-tight line-clamp-1">{c.name}</h4>
+                    
+                    <div className="space-y-4 mb-10">
+                       <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 rounded-full bg-blue-500" />
+                          <span className="text-[10px] font-black text-slate-900/50 uppercase tracking-widest truncate">{c.location_from}</span>
+                       </div>
+                       <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 rounded-full bg-indigo-500" />
+                          <span className="text-[10px] font-black text-slate-900/50 uppercase tracking-widest truncate">{c.location_to}</span>
+                       </div>
+                    </div>
+                    
+                    <button 
+                      onClick={() => router.push(`/rides?corridor=${c.id}`)}
+                      className="w-full py-4 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-slate-900 transition-all"
+                    >
+                      Find Ride
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+      </main>
     </div>
-  );
+  )
 }

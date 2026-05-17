@@ -1,153 +1,187 @@
-"use client";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { api } from "@/lib/api";
-import { createClient } from '@/utils/supabase/client';
-import toast from 'react-hot-toast';
-import { Loader2, ArrowRight } from 'lucide-react';
+'use client'
 
-export default function Login() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Car, Loader2, ArrowRight } from 'lucide-react'
+import { createClient } from '@/utils/supabase/client'
+import { api } from '@/lib/api'
+import toast from 'react-hot-toast'
+
+export default function LoginPage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [formData, setFormData] = useState({ email: '', password: '' })
+  const [errorDetails, setErrorDetails] = useState<string | null>(null)
 
   // Redirect if already logged in
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userStr = localStorage.getItem('user');
+    const token = localStorage.getItem('token')
+    const userStr = localStorage.getItem('user')
     if (token && userStr) {
       try {
-        const user = JSON.parse(userStr);
-        if (user.role === 'admin') router.push('/admin');
-        else router.push('/dashboard');
+        const user = JSON.parse(userStr)
+        if (user.role === 'admin') router.push('/admin')
+        else router.push('/dashboard')
       } catch (e) {
-        router.push('/dashboard');
+        router.push('/dashboard')
       }
     }
-  }, [router]);
+  }, [router])
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    const supabase = createClient();
-
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setErrorDetails(null)
+    const supabase = createClient()
+    
     try {
       // Primary: Try Supabase Auth
       let token = '';
-      let legacyUser: any = null;
+      let legacyUser: any = null
       try {
         const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+          email: formData.email,
+          password: formData.password,
+        })
         if (authError) throw authError;
         token = authData.session?.access_token || '';
       } catch (authError: any) {
-        // Fallback: If Supabase fails, try custom PostgreSQL login
+        // Fallback: If Supabase fails, try custom PostgreSQL login (e.g. for admin@135)
         console.warn('Supabase auth failed, falling back to custom API login:', authError.message);
         try {
-          const res: any = await api.login(email, password);
+          const res = await api.post('/auth/login', { email: formData.email, password: formData.password }) as any;
           if (res.token) {
              token = res.token;
-             legacyUser = res.user || null;
+             legacyUser = res.user || null
           } else {
              throw new Error('Custom login failed');
           }
         } catch (legacyError: any) {
-          throw new Error('Invalid login credentials');
+          throw new Error('Invalid login credentials (both systems failed)');
         }
       }
 
       if (token) {
-        localStorage.removeItem('user');
-        localStorage.setItem('token', token);
-        let finalUser = legacyUser;
+        localStorage.removeItem('user')
+        localStorage.setItem('token', token)
+        let finalUser = legacyUser
 
+        // Always prefer server-verified profile to avoid stale identity.
         try {
-          // Always prefer server-verified profile if we have one
-          const profile = await api.getProfile() as any;
-          if (profile && !profile.error) {
-            localStorage.setItem('user', JSON.stringify(profile));
-            finalUser = profile;
+          const profile = await api.getProfile() as any
+          if (profile) {
+            localStorage.setItem('user', JSON.stringify(profile))
+            finalUser = profile
           }
         } catch (profileErr) {
           console.warn('Profile fetch failed during login, using legacy user data if available');
           if (legacyUser) {
-            localStorage.setItem('user', JSON.stringify(legacyUser));
+            localStorage.setItem('user', JSON.stringify(legacyUser))
           } else {
-            setError("Could not verify profile data.");
-            return;
+            // If we have no profile and no legacy user, we can't determine the role safely
+            toast.error('Could not verify profile data. Please try again.')
+            return
           }
         }
         
-        toast.success(`Welcome back ${finalUser?.name || ''}`);
+        toast.success(`Login successful! Welcome back ${finalUser?.name || ''}`)
         
         // Role-based redirect
         if (finalUser?.role === 'admin') {
-          window.location.href = "/admin";
+          router.push('/admin')
         } else {
-          window.location.href = "/dashboard";
+          router.push('/dashboard')
         }
       }
-    } catch (err: any) {
-      setError(err.message || "Login failed");
+    } catch (error: any) {
+      const msg = error.message || 'Login failed'
+      setErrorDetails(msg)
+      toast.error(msg)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="screen active" style={{ display: 'flex', justifyContent: 'center', padding: '80px 20px' }}>
-      <div className="panel" style={{ maxWidth: '440px', width: '100%', padding: '40px' }}>
-        <div className="center">
-          <span className="brand-mark" style={{ width: '64px', height: '64px', fontSize: '24px', margin: '0 auto 24px' }}>ER</span>
-          <h2>Welcome back</h2>
-          <p className="muted">Sign in to your professional commute network.</p>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 relative overflow-hidden font-sans">
+      {/* Ambient glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-100 blur-[120px] rounded-full pointer-events-none" />
+      
+      <div className="w-full max-w-md relative z-10">
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-3 mb-10">
+          <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+            <Car className="w-7 h-7 text-white" />
+          </div>
+          <span className="text-4xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-600">Pulse</span>
         </div>
 
-        <form onSubmit={handleLogin} className="form-grid mt-28" style={{ gridTemplateColumns: '1fr', gap: '20px' }}>
-          {error && (
-            <div className="tag red" style={{ width: '100%', justifyContent: 'center', padding: '12px', borderRadius: '12px' }}>
-              {error}
+        {/* Card */}
+        <div className="bg-white backdrop-blur-xl border border-slate-200 rounded-3xl p-8 shadow-xl">
+          <h2 className="text-2xl font-black text-slate-900 mb-1">Welcome back</h2>
+          <p className="text-slate-700 text-sm mb-8">Sign in to your premium commute account</p>
+
+          {errorDetails && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl p-4 text-sm mb-6">
+              {errorDetails}
             </div>
           )}
-          
-          <div className="field">
-            <label>Email Address</label>
-            <input 
-              type="email" 
-              placeholder="name@company.com" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          
-          <div className="field">
-            <label>Password</label>
-            <input 
-              type="password" 
-              placeholder="••••••••" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
 
-          <button type="submit" disabled={loading} className="primary-btn mt-12" style={{ width: '100%', height: '54px' }}>
-            {loading ? <Loader2 className="animate-spin" /> : <ArrowRight />}
-            {loading ? "Authenticating..." : "Sign In"}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-widest mb-2">Email</label>
+              <input
+                type="email"
+                required
+                value={formData.email}
+                onChange={e => setFormData({ ...formData, email: e.target.value })}
+                className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:bg-slate-100 transition-all"
+                placeholder="your@email.com"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-widest mb-2">Password</label>
+              <input
+                type="password"
+                required
+                value={formData.password}
+                onChange={e => setFormData({ ...formData, password: e.target.value })}
+                className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:bg-slate-100 transition-all"
+                placeholder="••••••••"
+              />
+            </div>
 
-        <div className="center mt-28">
-          <p className="small muted">New to EazyRide? <Link href="/register" className="active" style={{ color: 'var(--primary)', fontWeight: '900' }}>Create account</Link></p>
+            {/* Quick fill */}
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setFormData({ email: 'admin@cpoolai.com', password: 'admin@1357' })}
+                className="flex-1 text-xs py-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 hover:text-slate-900 hover:border-slate-300 transition-all font-bold">
+                Supabase Admin
+              </button>
+              <button type="button" onClick={() => setFormData({ email: 'admin@135', password: 'password' })}
+                className="flex-1 text-xs py-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 hover:text-slate-900 hover:border-slate-300 transition-all font-bold">
+                Local Admin
+              </button>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-slate-900 py-4 rounded-2xl font-bold text-lg transition-all shadow-lg shadow-blue-600/20 active:scale-95 disabled:opacity-50"
+            >
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowRight className="w-5 h-5" />}
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-slate-700 mt-6">
+            New to Pulse?{' '}
+            <Link href="/register" className="text-blue-600 hover:text-blue-300 font-bold transition-colors">
+              Create account
+            </Link>
+          </p>
         </div>
       </div>
     </div>
-  );
+  )
 }
