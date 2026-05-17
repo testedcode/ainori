@@ -194,71 +194,73 @@ export default function MyRidesPage() {
                     <Link 
                       key={ride.id} 
                       href={`/rides/${ride.id}`}
-                      className="block group bg-white border border-slate-200 rounded-3xl p-6 hover:border-slate-300 transition-all relative overflow-hidden shadow-md"
+                      className="group flex flex-col bg-white border border-slate-200 rounded-[2rem] hover:border-slate-300 hover:shadow-[0_10px_40px_rgba(0,0,0,0.05)] transition-all overflow-hidden relative"
                     >
-                      <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:scale-110 transition-transform">
-                         <Zap className="w-32 h-32 text-slate-900" />
-                      </div>
-                      
-                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-4">
-                             <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
-                               ride.role === 'host' ? 'bg-amber-100 border-amber-500/30 text-amber-600' : 'bg-blue-500/20 border-blue-500/30 text-blue-600'
-                             }`}>
-                               {ride.role === 'host' ? 'Hosting' : 'Confirmed'}
-                             </span>
-                             <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
-                               ride.direction === 'to_home' ? 'bg-green-500/10 border-green-500/20 text-green-600' : 'bg-blue-500/10 border-blue-500/20 text-blue-600'
-                             }`}>
-                               {ride.direction === 'to_home' ? '🏠 To Home' : '🏢 To Office'}
-                             </span>
-                          </div>
-                          <h3 className="text-4xl font-black text-slate-900 italic uppercase tracking-tighter leading-none mb-4 group-hover:text-blue-600 transition-colors">
-                             {ride.corridor_name}
-                          </h3>
-                          <div className="flex items-center gap-4 text-slate-900/40">
-                             <div className="flex items-center gap-1.5">
-                                <Clock className="w-3.5 h-3.5" />
-                                <span className="text-[12px] font-black">{fmtTime(ride.ride_time)}</span>
+                       <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:scale-110 group-hover:opacity-5 transition-all pointer-events-none">
+                          <Zap className="w-32 h-32 text-slate-900" />
+                       </div>
+                       
+                       <div className="p-5 md:p-6 pb-4">
+                          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                             <div className="flex items-center gap-2">
+                                <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
+                                  ride.role === 'host' ? 'bg-amber-50 border-amber-200 text-amber-600' : 'bg-blue-50 border-blue-200 text-blue-600'
+                                }`}>
+                                  {ride.role === 'host' ? 'Hosting' : 'Confirmed'}
+                                </span>
+                                <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
+                                  ride.direction === 'to_home' ? 'bg-green-50 border-green-200 text-green-600' : 'bg-blue-50 border-blue-200 text-blue-600'
+                                }`}>
+                                  {ride.direction === 'to_home' ? '🏠 To Home' : '🏢 To Office'}
+                                </span>
                              </div>
-                             <div className="flex items-center gap-1.5">
-                                <MapPin className="w-3.5 h-3.5" />
-                                <span className="text-[11px] font-black uppercase truncate max-w-[150px]">{ride.pickup_point}</span>
+                             <div className="flex items-center gap-2 text-slate-900/30 group-hover:text-slate-900 transition-colors">
+                                <span className="text-[9px] font-black uppercase tracking-widest">Manage Trip</span>
+                                <ChevronRight className="w-3.5 h-3.5" />
                              </div>
                           </div>
-                        </div>
 
-                         <div className="flex flex-col items-end gap-3">
-                            <div className="flex items-center gap-4 bg-white border border-slate-200 p-4 rounded-3xl group-hover:border-slate-300 transition-all">
-                               <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-slate-900 font-black overflow-hidden border border-slate-200">
-                                  {ride.driver_name?.[0] || 'U'}
-                               </div>
-                               <div className="text-right">
-                                  <p className="text-[8px] font-black text-slate-900/20 uppercase tracking-widest mb-1">{ride.role === 'host' ? 'Riders' : 'Host'}</p>
-                                  <p className="text-xs font-black text-slate-900 uppercase">{ride.driver_name || 'Verified Member'}</p>
-                               </div>
-                            </div>
-                            <button 
-                              onClick={(e) => handleShare(e, ride)}
-                              className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-900/40 hover:text-slate-900 hover:bg-slate-100 transition-all active:scale-90"
-                              title="Share Ride"
-                            >
-                              <Share2 className="w-4 h-4" />
-                            </button>
-                         </div>
-                      </div>
-                      
-                      <div className="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between">
-                         <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-green-500" />
-                            <span className="text-[10px] font-black text-green-600 uppercase tracking-widest">Trip Status: {ride.status}</span>
-                         </div>
-                         <div className="flex items-center gap-2 text-slate-900/20 group-hover:text-slate-900 transition-all">
-                            <span className="text-[9px] font-black uppercase tracking-widest">Manage Trip</span>
-                            <ChevronRight className="w-4 h-4" />
-                         </div>
-                      </div>
+                          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                             <div>
+                                <h3 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter leading-none mb-3 group-hover:text-blue-600 transition-colors uppercase italic">
+                                   {ride.corridor_name}
+                                </h3>
+                                <div className="flex flex-wrap items-center gap-4 text-slate-500">
+                                   <div className="flex items-center gap-1.5">
+                                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                                      <span className="text-xs font-black text-slate-900">{fmtTime(ride.ride_time)}</span>
+                                   </div>
+                                   <div className="flex items-center gap-1.5">
+                                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                                      <span className="text-[10px] font-black uppercase tracking-widest truncate max-w-[150px]">{ride.pickup_point}</span>
+                                   </div>
+                                </div>
+                             </div>
+
+                             <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-1.5 pr-4 rounded-full w-max mt-2 md:mt-0 relative z-10">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-[12px] font-black text-white shadow-inner">
+                                   {ride.driver_name?.[0] || 'U'}
+                                </div>
+                                <div className="flex flex-col justify-center">
+                                   <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{ride.role === 'host' ? 'Riders' : 'Host'}</span>
+                                   <span className="text-[10px] font-black text-slate-900 uppercase tracking-tight leading-none">{ride.driver_name || 'Verified Member'}</span>
+                                </div>
+                             </div>
+                          </div>
+                       </div>
+                       
+                       <div className="px-5 py-3 md:px-6 md:py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between mt-auto">
+                          <div className="flex items-center gap-2">
+                             <div className={`w-2 h-2 rounded-full animate-pulse ${ride.status === 'completed' ? 'bg-green-500' : ride.status === 'cancelled' ? 'bg-red-500' : 'bg-blue-500'}`} />
+                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Status: <span className="text-slate-900">{ride.status}</span></span>
+                          </div>
+                          <button 
+                            onClick={(e) => handleShare(e, ride)}
+                            className="flex items-center gap-1.5 text-[9px] font-black text-slate-400 hover:text-blue-600 uppercase tracking-widest transition-colors relative z-10"
+                          >
+                             <Share2 className="w-3.5 h-3.5" /> Share
+                          </button>
+                       </div>
                     </Link>
                   ))}
                 </div>

@@ -275,69 +275,80 @@ function HistoryCard({
   }
 
   return (
-    <div className={`block rounded-[2.5rem] p-6 transition-all group hover:scale-[1.01] hover:shadow-xl ${
-      isRecent ? 'bg-amber-500/5 border border-amber-300 shadow-[0_20px_40px_rgba(245,158,11,0.05)]'
-      : 'bg-slate-50 border border-slate-200 hover:bg-slate-50'
+    <div className={`group flex flex-col bg-white border rounded-[2rem] hover:shadow-[0_10px_40px_rgba(0,0,0,0.05)] transition-all overflow-hidden relative ${
+      isRecent ? 'border-amber-300 shadow-sm' : 'border-slate-200 hover:border-slate-300'
     }`}>
-      <Link href={`/rides/${ride.id}`}>
-        <div className="flex justify-between items-start mb-6">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-black text-slate-900 text-xl tracking-tighter uppercase italic truncate">{ride.corridor_name}</h3>
-              <ExternalLink className="w-3.5 h-3.5 text-slate-900/20 group-hover:text-blue-600 transition-colors" />
-            </div>
-            <p className="text-[10px] font-black text-slate-900/30 uppercase tracking-[0.2em] flex items-center gap-2">
-              {isOwner ? <Car className="w-3 h-3 text-amber-600" /> : <User className="w-3 h-3 text-blue-600" />}
-              {isOwner ? 'Host' : `Joined · ${ride.user_name || 'Host'}`}
-            </p>
-            {ride.direction && (
-              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest mt-1.5 border ${
-                ride.direction === 'to_home'
-                  ? 'bg-green-500/10 text-green-600 border-green-500/20'
-                  : 'bg-blue-500/10 text-blue-600 border-blue-500/20'
-              }`}>
-                {ride.direction === 'to_home' ? '🏠 To Home' : '🏢 To Office'}
-              </span>
-            )}
+      {isRecent && <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:scale-110 transition-transform"><Zap className="w-24 h-24 text-amber-500" /></div>}
+      
+      <Link href={`/rides/${ride.id}`} className="block">
+        <div className="p-5 md:p-6 pb-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+             <div className="flex items-center gap-2">
+                <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
+                  isOwner ? 'bg-amber-50 border-amber-200 text-amber-600' : 'bg-blue-50 border-blue-200 text-blue-600'
+                }`}>
+                  {isOwner ? 'Hosting' : 'Confirmed'}
+                </span>
+                {ride.direction && (
+                  <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
+                    ride.direction === 'to_home' ? 'bg-green-50 border-green-200 text-green-600' : 'bg-blue-50 border-blue-200 text-blue-600'
+                  }`}>
+                    {ride.direction === 'to_home' ? '🏠 To Home' : '🏢 To Office'}
+                  </span>
+                )}
+             </div>
+             <div className="text-right shrink-0 text-slate-500 group-hover:text-slate-900 transition-colors">
+               <span className="text-[9px] font-black uppercase tracking-widest block">{fmtDate(ride.ride_date)}</span>
+             </div>
           </div>
-          <div className="text-right shrink-0 ml-3">
-            <p className="text-xs font-black text-slate-900 leading-none">{fmtDate(ride.ride_date)}</p>
-            <p className="text-[10px] font-black text-slate-900/50 mt-0.5">{fmtFullDate(ride.ride_date)}</p>
-            <p className="text-sm font-black text-slate-900 mt-1 tracking-wide">{fmtTime(ride.ride_time)}</p>
+
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+             <div>
+                <h3 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter leading-none mb-3 group-hover:text-blue-600 transition-colors uppercase italic truncate">
+                   {ride.corridor_name}
+                </h3>
+                <div className="flex flex-wrap items-center gap-4 text-slate-500">
+                   <div className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-xs font-black text-slate-900">{fmtTime(ride.ride_time)}</span>
+                   </div>
+                   <div className="flex items-center gap-1.5">
+                      <IndianRupee className="w-3.5 h-3.5 text-green-500" />
+                      <span className="text-xs font-black text-slate-900">₹{ride.price_per_seat} <span className="text-[8px] text-slate-400 uppercase tracking-widest">/ SEAT</span></span>
+                   </div>
+                </div>
+             </div>
+
+             <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-1.5 pr-4 rounded-full w-max mt-2 md:mt-0 relative z-10">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-[12px] font-black text-white shadow-inner">
+                   {ride.user_name?.[0] || 'U'}
+                </div>
+                <div className="flex flex-col justify-center">
+                   <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{isOwner ? 'Host' : 'Joined'}</span>
+                   <span className="text-[10px] font-black text-slate-900 uppercase tracking-tight leading-none">{ride.user_name || 'Host'}</span>
+                </div>
+             </div>
           </div>
         </div>
-
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-             <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center">
-                <IndianRupee className="w-4 h-4 text-green-600" />
-             </div>
-             <div>
-                <p className="text-[9px] font-black text-slate-900/20 uppercase tracking-widest leading-none">Trip Fare</p>
-                <p className="text-lg font-black text-slate-900 mt-0.5">₹{ride.price_per_seat}</p>
-             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {isPending && (
-              <span className="flex items-center gap-1.5 text-[9px] font-black text-amber-600 uppercase tracking-widest bg-amber-400/10 px-3 py-1 rounded-full animate-pulse border border-amber-400/20">
-                <Zap className="w-3 h-3 fill-amber-400" /> Settle Now
-              </span>
-            )}
-            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase border ${
-              ride.status === 'completed' ? 'bg-green-500/10 border-green-500/20 text-green-600' 
-              : ride.status === 'cancelled' ? 'bg-red-500/10 border-red-500/20 text-red-400'
-              : 'bg-blue-500/10 border-blue-500/20 text-blue-600'
-            }`}>
-              {ride.status}
-            </span>
-          </div>
+        
+        <div className={`px-5 py-3 md:px-6 md:py-4 border-t flex flex-wrap items-center justify-between gap-4 ${isRecent ? 'bg-amber-50/50 border-amber-100' : 'bg-slate-50/50 border-slate-100'}`}>
+           <div className="flex items-center gap-2">
+             <div className={`w-2 h-2 rounded-full animate-pulse ${ride.status === 'completed' ? 'bg-green-500' : ride.status === 'cancelled' ? 'bg-red-500' : 'bg-blue-500'}`} />
+             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Status: <span className="text-slate-900">{ride.status}</span></span>
+           </div>
+           
+           {isPending && (
+             <span className="flex items-center gap-1.5 text-[9px] font-black text-amber-600 uppercase tracking-widest bg-amber-100 px-3 py-1 rounded-md animate-pulse border border-amber-200 relative z-10">
+               <Zap className="w-3 h-3 fill-amber-400" /> SETTLE NOW
+             </span>
+           )}
         </div>
       </Link>
 
-      <div className="pt-6 border-t border-slate-200 space-y-5">
+      <div className="pt-0 space-y-0">
         {isOwner ? (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="px-5 md:px-6 py-4 border-t border-slate-100">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <p className="text-[10px] font-black text-slate-900/20 uppercase tracking-[0.2em]">Rider Payments</p>
               {payments.filter(p => p.giver_status !== 'received').length > 1 && (
                 <button 
