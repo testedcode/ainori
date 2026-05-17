@@ -155,84 +155,84 @@ export default function HomePage() {
         {/* ─── THE CORE PILLARS: SAFETY & SHIFT (COMPACTED) ────────────────────────── */}
         <section id="shift" className="py-24 relative overflow-hidden bg-slate-50">
            <div className="container max-w-7xl mx-auto px-6 relative z-10">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-                 
-                 {/* SAFETY PROTOCOL (SIDE PANEL) */}
-                 <div className="lg:col-span-4 bg-gradient-to-br from-purple-100 to-white border border-purple-300 rounded-[3rem] p-10 flex flex-col justify-between">
-                    <div>
-                       <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-purple-50 border border-purple-300 rounded-full text-[8px] font-black uppercase tracking-widest mb-8 text-purple-600">
-                          <ShieldCheck className="w-3.5 h-3.5" /> SECURITY
-                       </div>
-                       <h2 className="text-4xl font-black tracking-tighter uppercase italic leading-none mb-8">
-                          PEACE OF <span className="text-purple-600">MIND.</span>
-                       </h2>
-                       <div className="space-y-4">
-                          {[
-                            'Same-Society Verification',
-                            'Real-Time Family Tracking',
-                            'Vetted Corporate Network',
-                            'Secured In-App Comms'
-                          ].map((feat, i) => (
-                            <div key={i} className="flex items-center gap-3 group/item">
-                               <CheckCircle2 className="w-4 h-4 text-purple-500" />
-                               <span className="text-[10px] font-black text-slate-900/60 uppercase tracking-wide group-hover/item:text-slate-900 transition-colors">{feat}</span>
-                            </div>
-                          ))}
-                       </div>
-                    </div>
-                    <div className="mt-12 p-6 bg-white border border-slate-200 rounded-2xl">
-                       <p className="text-[9px] font-bold text-slate-900/30 uppercase leading-relaxed">
-                          Our network is built on trust. We ensure every member is a verified professional from your community.
-                       </p>
-                    </div>
-                 </div>
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  
+                  {/* CARD 1: PEACE OF MIND (PURPLE) */}
+                  <div className="bg-white border border-purple-200 rounded-[3rem] p-10 flex flex-col justify-between shadow-[0_20px_40px_rgba(147,51,234,0.05)] hover:shadow-[0_20px_60px_rgba(147,51,234,0.15)] hover:-translate-y-2 transition-all relative overflow-hidden group">
+                     <div className="absolute top-0 right-0 w-64 h-64 bg-purple-100 blur-[80px] rounded-full -z-10 group-hover:bg-purple-200 transition-colors" />
+                     <div>
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-purple-50 border border-purple-200 rounded-full text-[8px] font-black uppercase tracking-widest mb-8 text-purple-600">
+                           <ShieldCheck className="w-3.5 h-3.5" /> SECURITY
+                        </div>
+                        <h2 className="text-4xl lg:text-5xl font-black tracking-tighter uppercase italic leading-none mb-10 text-slate-900">
+                           PEACE OF <span className="text-purple-600">MIND.</span>
+                        </h2>
+                        <div className="space-y-5 relative z-10">
+                           {[
+                             'Same-Society Verification',
+                             'Real-Time Family Tracking',
+                             'Vetted Corporate Network',
+                             'Secured In-App Comms'
+                           ].map((feat, i) => (
+                             <div key={i} className="flex items-center gap-4 group/item">
+                                <CheckCircle2 className="w-5 h-5 text-purple-500 shrink-0" />
+                                <span className="text-[10px] font-black text-slate-900/60 uppercase tracking-widest group-hover/item:text-slate-900 transition-colors">{feat}</span>
+                             </div>
+                           ))}
+                        </div>
+                     </div>
+                     <div className="mt-12 pt-6 border-t border-slate-100 relative z-10">
+                        <p className="text-[9px] font-black text-slate-900/40 uppercase tracking-widest leading-relaxed">
+                           Our network is built on trust. We ensure every member is a verified professional from your community.
+                        </p>
+                     </div>
+                  </div>
 
-                 {/* THE SHIFT (INTERACTIVE DUAL PLATE) */}
-                 <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* CHAOS */}
-                    <div className="bg-rose-50 border border-rose-200 rounded-[3rem] p-8 relative overflow-hidden group hover:border-red-500/30 transition-all">
-                       <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:scale-110 transition-transform">
-                          <ZapOff className="w-48 h-48 text-red-500" />
-                       </div>
-                       <h3 className="text-xl font-black uppercase italic text-red-500/50 mb-6 tracking-widest">01. THE CHAOS</h3>
-                       <div className="space-y-3 relative z-10">
-                          {[
-                            { t: 'Unvetted Groups', icon: XCircle },
-                            { t: 'Identity Leaks', icon: EyeOff },
-                            { t: 'Surge Pricing', icon: TrendingUp },
-                            { t: 'Safety Risks', icon: ShieldAlert }
-                          ].map((item, i) => (
-                            <div key={i} className="flex items-center gap-4 p-3 bg-rose-100 border border-red-900/10 rounded-xl">
-                               <item.icon className="w-4 h-4 text-rose-600" />
-                               <span className="text-[10px] font-black text-slate-900/30 uppercase">{item.t}</span>
-                            </div>
-                          ))}
-                       </div>
-                    </div>
+                  {/* CARD 2: THE CHAOS (RED) */}
+                  <div className="bg-white border border-rose-200 rounded-[3rem] p-10 flex flex-col shadow-[0_20px_40px_rgba(225,29,72,0.05)] hover:shadow-[0_20px_60px_rgba(225,29,72,0.15)] hover:-translate-y-2 transition-all relative overflow-hidden group">
+                     <div className="absolute top-0 right-0 w-64 h-64 bg-rose-100 blur-[80px] rounded-full -z-10 group-hover:bg-rose-200 transition-colors" />
+                     <div className="absolute bottom-10 right-10 opacity-[0.03] group-hover:scale-110 group-hover:opacity-[0.05] transition-all">
+                        <ZapOff className="w-48 h-48 text-rose-600" />
+                     </div>
+                     <h3 className="text-xl font-black uppercase italic text-rose-500 mb-10 tracking-[0.2em]">01. THE CHAOS</h3>
+                     <div className="space-y-4 relative z-10 flex-1">
+                        {[
+                          { t: 'Unvetted Groups', icon: XCircle },
+                          { t: 'Identity Leaks', icon: EyeOff },
+                          { t: 'Surge Pricing', icon: TrendingUp },
+                          { t: 'Safety Risks', icon: ShieldAlert }
+                        ].map((item, i) => (
+                          <div key={i} className="flex items-center gap-4 p-4 bg-white border border-rose-100 rounded-2xl shadow-sm hover:border-rose-300 transition-colors">
+                             <item.icon className="w-5 h-5 text-rose-500 shrink-0" />
+                             <span className="text-[10px] font-black text-slate-900/60 uppercase tracking-widest">{item.t}</span>
+                          </div>
+                        ))}
+                     </div>
+                  </div>
 
-                    {/* COMMUNITY */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-[3rem] p-8 relative overflow-hidden group hover:border-blue-500/40 transition-all shadow-xl">
-                       <div className="absolute top-0 right-0 p-12 opacity-[0.05] group-hover:scale-110 transition-transform">
-                          <Binary className="w-48 h-48 text-blue-600" />
-                       </div>
-                       <h3 className="text-xl font-black uppercase italic text-blue-600 mb-6 tracking-widest">02. THE COMMUNITY</h3>
-                       <div className="space-y-3 relative z-10">
-                          {[
-                            { t: 'Verified Neighbors', icon: ShieldCheck, color: 'text-blue-600' },
-                            { t: 'Privacy Shield', icon: Fingerprint, color: 'text-cyan-600' },
-                            { t: 'Fixed Fair Rates', icon: Coins, color: 'text-green-600' },
-                            { t: 'Live Tracking', icon: Activity, color: 'text-blue-600' }
-                          ].map((item, i) => (
-                            <div key={i} className="flex items-center gap-4 p-3 bg-blue-50 border border-blue-500/10 rounded-xl group/item hover:bg-blue-100 transition-all">
-                               <item.icon className={`w-4 h-4 ${item.color}`} />
-                               <span className="text-[10px] font-black text-slate-900 uppercase">{item.t}</span>
-                            </div>
-                          ))}
-                       </div>
-                    </div>
-                 </div>
+                  {/* CARD 3: THE COMMUNITY (BLUE) */}
+                  <div className="bg-white border border-blue-200 rounded-[3rem] p-10 flex flex-col shadow-[0_20px_40px_rgba(37,99,235,0.05)] hover:shadow-[0_20px_60px_rgba(37,99,235,0.15)] hover:-translate-y-2 transition-all relative overflow-hidden group">
+                     <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100 blur-[80px] rounded-full -z-10 group-hover:bg-blue-200 transition-colors" />
+                     <div className="absolute bottom-10 right-10 opacity-[0.03] group-hover:scale-110 group-hover:opacity-[0.05] transition-all">
+                        <Binary className="w-48 h-48 text-blue-600" />
+                     </div>
+                     <h3 className="text-xl font-black uppercase italic text-blue-600 mb-10 tracking-[0.2em]">02. THE COMMUNITY</h3>
+                     <div className="space-y-4 relative z-10 flex-1">
+                        {[
+                          { t: 'Verified Neighbors', icon: ShieldCheck, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' },
+                          { t: 'Privacy Shield', icon: Fingerprint, color: 'text-cyan-600', bg: 'bg-cyan-50 border-cyan-200' },
+                          { t: 'Fixed Fair Rates', icon: Coins, color: 'text-green-600', bg: 'bg-green-50 border-green-200' },
+                          { t: 'Live Tracking', icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' }
+                        ].map((item, i) => (
+                          <div key={i} className={`flex items-center gap-4 p-4 border rounded-2xl shadow-sm transition-all hover:shadow-md ${item.bg}`}>
+                             <item.icon className={`w-5 h-5 shrink-0 ${item.color}`} />
+                             <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{item.t}</span>
+                          </div>
+                        ))}
+                     </div>
+                  </div>
 
-              </div>
+               </div>
            </div>
         </section>
 
