@@ -282,38 +282,21 @@ function CardView({
             </div>
          </div>
 
-         {/* STATS STRIP */}
+         {/* STATS STRIP / BE THE FIRST TO JOIN */}
          <div className="px-8 mb-4">
-            <div className="flex items-center gap-3 py-3 px-5 bg-amber-400/5 border border-amber-400/20 rounded-2xl">
-               <div className="flex -space-x-1">
-                  {ride.confirmed_riders?.slice(0, 3).map((r, i) => (
-                    <div key={i} className="w-5 h-5 rounded-full border border-slate-900 bg-slate-800 flex items-center justify-center text-[6px] font-black overflow-hidden">
-                       {r.avatar_url ? <img src={r.avatar_url} className="w-full h-full object-cover" /> : r.name[0]}
-                    </div>
-                  ))}
-               </div>
-               <span className="text-[9px] font-extrabold text-amber-600 uppercase tracking-widest flex-1">
+             <div className="flex items-center justify-between gap-2 bg-amber-500/5 border border-amber-500/10 rounded-[1.5rem] p-2">
+                <span className="text-[10px] font-black text-amber-600/60 uppercase tracking-widest pl-2">
                    {(ride.confirmed_riders?.length || 0) > 0
-                    ? `${ride.confirmed_riders?.length} rider${(ride.confirmed_riders?.length || 0) > 1 ? 's' : ''} confirmed`
-                    : Number(ride.pending_count) > 0
-                    ? `${ride.pending_count} request${Number(ride.pending_count) > 1 ? 's' : ''} pending`
-                    : 'Be the first to join!'}
-               </span>
-               {/* Live pending badge */}
-               {Number(ride.pending_count) > 0 && (
-                 <span className="flex items-center gap-1 text-[8px] font-black text-orange-400 bg-orange-400/10 border border-orange-400/30 px-2 py-1 rounded-lg shrink-0 animate-pulse">
-                   <span className="w-1.5 h-1.5 rounded-full bg-orange-400 inline-block" />
-                   {ride.pending_count} LIVE
-                 </span>
-               )}
-               {/* Vehicle info chip */}
-               {(ride.vehicle_make || ride.vehicle_type) && (
-                 <span className="flex items-center gap-1 text-[8px] font-black text-slate-900/40 bg-white px-2 py-1 rounded-lg shrink-0">
-                   {ride.vehicle_type === 'bike' ? '🏍️' : ride.vehicle_type === 'suv' ? '🚙' : ride.vehicle_type === 'muv' ? '🚐' : '🚗'}
-                   {ride.vehicle_make ? ` ${ride.vehicle_make}` : ''}
-                 </span>
-               )}
-            </div>
+                     ? `${ride.confirmed_riders?.length} RIDER${(ride.confirmed_riders?.length || 0) > 1 ? 'S' : ''} CONFIRMED`
+                     : 'BE THE FIRST TO JOIN!'}
+                </span>
+                {(ride.vehicle_make || ride.vehicle_model) && (
+                   <div className="flex items-center gap-1.5 bg-white/60 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-sm border border-white">
+                      <span className="text-xs leading-none">{ride.vehicle_type === 'bike' ? '🏍️' : ride.vehicle_type === 'suv' ? '🚙' : ride.vehicle_type === 'muv' ? '🚐' : '🚗'}</span>
+                      <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">{[ride.vehicle_make, ride.vehicle_model].filter(Boolean).join(' ')}</span>
+                   </div>
+                )}
+             </div>
          </div>
 
          {/* SEAT VISUALIZATION SECTION */}
@@ -324,14 +307,8 @@ function CardView({
             </div>
          </div>
 
-         {/* VEHICLE CHIP (Locations moved to header) */}
+         {/* VEHICLE CHIP MOVED TO THE 'BE THE FIRST TO JOIN' BAR ABOVE */}
          <div className="px-8 pb-4">
-            {(ride.vehicle_make || ride.vehicle_model) && (
-               <div className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 bg-white/50 border border-slate-300/30 rounded-lg backdrop-blur-sm shadow-sm">
-                  <span className="text-sm leading-none">{ride.vehicle_type === 'bike' ? '🏍️' : ride.vehicle_type === 'suv' ? '🚙' : ride.vehicle_type === 'muv' ? '🚐' : '🚗'}</span>
-                  <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">{[ride.vehicle_make, ride.vehicle_model].filter(Boolean).join(' ')}</span>
-               </div>
-            )}
 
             {/* ACTION SECTION */}
                {isOwnRide ? (
@@ -363,16 +340,16 @@ function CardView({
               </button>
             )}
 
-            <div className="flex items-center gap-2 mt-4 mb-2">
+            <div className="flex items-center gap-4 mt-6 mb-2">
                <button 
                   onClick={handleShare}
-                  className="px-6 py-2.5 bg-blue-600 border border-blue-500 rounded-[1.5rem] text-white hover:bg-blue-500 transition-all active:scale-95 flex items-center justify-center gap-2 shadow-[0_5px_15px_rgba(37,99,235,0.3)]"
+                  className="px-6 py-3 bg-blue-600/10 rounded-[1.5rem] text-blue-600 hover:bg-blue-600/20 transition-all active:scale-95 flex items-center justify-center gap-2"
                   title="Share Ride"
                >
-                  <Share2 className="w-3.5 h-3.5" />
+                  <Share2 className="w-4 h-4" />
                   <span className="text-[10px] font-black uppercase tracking-widest">Share</span>
                </button>
-               <Link href={`/rides/${ride.id}`} className="flex-1 text-right pr-4 text-[10px] font-black text-blue-600 hover:text-blue-500 uppercase tracking-widest transition-colors underline underline-offset-4 decoration-blue-200">
+               <Link href={`/rides/${ride.id}`} className="flex-1 text-right pr-2 text-[10px] font-black text-slate-900/20 hover:text-slate-900 uppercase tracking-widest transition-colors">
                   VIEW RIDE DETAILS
                </Link>
             </div>
@@ -558,7 +535,7 @@ function RidesContent() {
       <PulseNav />
 
       {/* ROUTE HUB - CIRCULAR ORBS */}
-      <div className="w-full py-8 overflow-x-auto scrollbar-hide">
+      <div className="w-full pt-32 pb-8 overflow-x-auto scrollbar-hide">
          <div className="flex items-center justify-start gap-10 px-12 min-w-max">
             <button 
               onClick={() => setFilter({ ...filter, corridor: 'all', direction: 'all' })}

@@ -98,15 +98,6 @@ export default function PulseNav({ adminMode = false }: { adminMode?: boolean })
 
           {/* Right Section */}
           <div className="flex items-center gap-3 shrink-0 relative z-10">
-            {/* Quick Search */}
-            <div className="hidden lg:flex items-center bg-white border border-slate-200 rounded-2xl px-3 py-1.5 focus-within:border-blue-500 focus-within:shadow-[0_0_0_2px_rgba(59,130,246,0.1)] transition-all">
-              <Search className="w-3.5 h-3.5 text-slate-400 mr-2" />
-              <input 
-                type="text" 
-                placeholder="Search..." 
-                className="bg-transparent border-none text-[10px] font-black outline-none w-24 focus:w-32 transition-all placeholder:text-slate-300"
-              />
-            </div>
 
             {user?.carbon_credits !== undefined && (
               <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-xl">
