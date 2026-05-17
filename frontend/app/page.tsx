@@ -158,83 +158,91 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ─── THE CORE PILLARS: SAFETY & SHIFT (COMPACTED) ────────────────────────── */}
+        {/* ─── THE CORE PILLARS: SAFETY & SHIFT (COMPACTED & SPACE OPTIMIZED) ────────────────────────── */}
         <section id="shift" className="py-24 relative overflow-hidden bg-[#050810]/50">
            <div className="container max-w-7xl mx-auto px-6 relative z-10">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
                  
-                 {/* SAFETY PROTOCOL (SIDE PANEL) */}
-                 <div className="lg:col-span-4 bg-gradient-to-br from-purple-900/20 to-transparent border border-purple-500/20 rounded-[3rem] p-10 flex flex-col justify-between">
+                 {/* SAFETY PROTOCOL (PURPLE) */}
+                 <div className="relative overflow-hidden bg-[#0c0d14] border border-purple-500/20 rounded-[2.5rem] p-8 md:p-10 flex flex-col justify-between hover:border-purple-500/40 transition-all duration-500 group shadow-[0_0_50px_rgba(168,85,247,0.05)]">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500/10 blur-[80px] rounded-full pointer-events-none" />
                     <div>
-                       <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-full text-[8px] font-black uppercase tracking-widest mb-8 text-purple-400">
-                          <ShieldCheck className="w-3.5 h-3.5" /> SECURITY
+                       <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full text-[8px] font-black uppercase tracking-widest mb-6 text-purple-400">
+                          <ShieldCheck className="w-3 h-3" /> SECURITY
                        </div>
-                       <h2 className="text-4xl font-black tracking-tighter uppercase italic leading-none mb-8">
+                       <h3 className="text-3xl font-black tracking-tighter uppercase italic leading-none mb-6">
                           PEACE OF <span className="text-purple-400">MIND.</span>
-                       </h2>
-                       <div className="space-y-4">
+                       </h3>
+                       <div className="grid grid-cols-2 gap-2">
                           {[
                             'Same-Society Verification',
                             'Real-Time Family Tracking',
                             'Vetted Corporate Network',
                             'Secured In-App Comms'
                           ].map((feat, i) => (
-                            <div key={i} className="flex items-center gap-3 group/item">
-                               <CheckCircle2 className="w-4 h-4 text-purple-500" />
-                               <span className="text-[10px] font-black text-white/60 uppercase tracking-wide group-hover/item:text-white transition-colors">{feat}</span>
-                            </div>
+                             <div key={i} className="flex items-center gap-2 p-2 bg-purple-950/20 border border-purple-500/10 rounded-xl hover:bg-purple-950/30 transition-colors">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                                <span className="text-[8px] font-black text-white/70 uppercase tracking-wider">${feat}</span>
+                             </div>
                           ))}
                        </div>
                     </div>
-                    <div className="mt-12 p-6 bg-white/[0.02] border border-white/5 rounded-2xl">
-                       <p className="text-[9px] font-bold text-white/30 uppercase leading-relaxed">
+                    <div className="mt-8 pt-4 border-t border-white/5">
+                       <p className="text-[9px] font-medium text-white/40 uppercase tracking-widest leading-relaxed">
                           Our network is built on trust. We ensure every member is a verified professional from your community.
                        </p>
                     </div>
                  </div>
 
-                 {/* THE SHIFT (INTERACTIVE DUAL PLATE) */}
-                 <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* CHAOS */}
-                    <div className="bg-[#0a0505] border border-red-900/20 rounded-[3rem] p-8 relative overflow-hidden group hover:border-red-500/30 transition-all">
-                       <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:scale-110 transition-transform">
-                          <ZapOff className="w-48 h-48 text-red-500" />
-                       </div>
+                 {/* CHAOS (RED) */}
+                 <div className="relative overflow-hidden bg-[#140a0c] border border-red-900/30 rounded-[2.5rem] p-8 md:p-10 flex flex-col justify-between hover:border-red-500/30 transition-all duration-500 group shadow-[0_0_50px_rgba(244,63,94,0.05)]">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-rose-500/10 blur-[80px] rounded-full pointer-events-none" />
+                    <div>
                        <h3 className="text-xl font-black uppercase italic text-red-500/50 mb-6 tracking-widest">01. THE CHAOS</h3>
-                       <div className="space-y-3 relative z-10">
+                       <div className="grid grid-cols-2 gap-2">
                           {[
                             { t: 'Unvetted Groups', icon: XCircle },
                             { t: 'Identity Leaks', icon: EyeOff },
                             { t: 'Surge Pricing', icon: TrendingUp },
                             { t: 'Safety Risks', icon: ShieldAlert }
                           ].map((item, i) => (
-                            <div key={i} className="flex items-center gap-4 p-3 bg-red-950/10 border border-red-900/10 rounded-xl">
-                               <item.icon className="w-4 h-4 text-red-600/40" />
-                               <span className="text-[10px] font-black text-white/30 uppercase">{item.t}</span>
-                            </div>
+                             <div key={i} className="flex items-center gap-2 p-2 bg-red-950/20 border border-red-900/20 rounded-xl hover:bg-red-950/30 transition-colors">
+                                <item.icon className="w-3.5 h-3.5 text-red-500/60 shrink-0" />
+                                <span className="text-[8px] font-black text-white/50 uppercase tracking-wider">${item.t}</span>
+                             </div>
                           ))}
                        </div>
                     </div>
+                    <div className="mt-8 pt-4 border-t border-white/5">
+                       <p className="text-[9px] font-medium text-white/30 uppercase tracking-widest leading-relaxed">
+                          Fragile coordinates with strangers, unverified profiles, high-friction chats, and uncontrolled surge fares.
+                       </p>
+                    </div>
+                 </div>
 
-                    {/* COMMUNITY */}
-                    <div className="bg-[#050a15] border border-blue-900/30 rounded-[3rem] p-8 relative overflow-hidden group hover:border-blue-500/40 transition-all shadow-2xl">
-                       <div className="absolute top-0 right-0 p-12 opacity-[0.05] group-hover:scale-110 transition-transform">
-                          <Binary className="w-48 h-48 text-blue-500" />
-                       </div>
+                 {/* COMMUNITY (BLUE) */}
+                 <div className="relative overflow-hidden bg-[#0a0f1a] border border-blue-900/30 rounded-[2.5rem] p-8 md:p-10 flex flex-col justify-between hover:border-blue-500/40 transition-all duration-500 group shadow-[0_0_50px_rgba(59,130,246,0.05)]">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none" />
+                    <div>
                        <h3 className="text-xl font-black uppercase italic text-blue-400 mb-6 tracking-widest">02. THE COMMUNITY</h3>
-                       <div className="space-y-3 relative z-10">
+                       <div className="grid grid-cols-2 gap-2">
                           {[
                             { t: 'Verified Neighbors', icon: ShieldCheck, color: 'text-blue-400' },
                             { t: 'Privacy Shield', icon: Fingerprint, color: 'text-cyan-400' },
                             { t: 'Fixed Fair Rates', icon: Coins, color: 'text-green-400' },
                             { t: 'Live Tracking', icon: Activity, color: 'text-blue-500' }
                           ].map((item, i) => (
-                            <div key={i} className="flex items-center gap-4 p-3 bg-blue-600/5 border border-blue-500/10 rounded-xl group/item hover:bg-blue-600/10 transition-all">
-                               <item.icon className={`w-4 h-4 ${item.color}`} />
-                               <span className="text-[10px] font-black text-white uppercase">{item.t}</span>
-                            </div>
+                             <div key={i} className="flex items-center gap-2 p-2 bg-blue-950/20 border border-blue-900/20 rounded-xl hover:bg-blue-950/30 transition-colors">
+                                <item.icon className={`w-3.5 h-3.5 shrink-0 ${item.color}`} />
+                                <span className="text-[8px] font-black text-white uppercase tracking-wider">${item.t}</span>
+                             </div>
                           ))}
                        </div>
+                    </div>
+                    <div className="mt-8 pt-4 border-t border-white/5">
+                       <p className="text-[9px] font-medium text-white/40 uppercase tracking-widest leading-relaxed">
+                          Sleek neighbor-to-neighbor rides with full safety protocols, encrypted communications, and flat fair prices.
+                       </p>
                     </div>
                  </div>
 

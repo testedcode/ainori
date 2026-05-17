@@ -25,8 +25,17 @@ export default function PulseNav({ adminMode = false }: { adminMode?: boolean })
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
+    const token = localStorage.getItem('token')
     const usr = localStorage.getItem('user')
-    if (usr) setUser(JSON.parse(usr))
+    if (token && usr) {
+      try {
+        setUser(JSON.parse(usr))
+      } catch {
+        setUser(null)
+      }
+    } else {
+      setUser(null)
+    }
     const onScroll = () => setScrolled(window.scrollY > 10)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -36,9 +45,13 @@ export default function PulseNav({ adminMode = false }: { adminMode?: boolean })
     if (!confirm('Sign out from Pulse?')) return
     localStorage.removeItem('token')
     localStorage.removeItem('user')
-    const { createClient } = await import('@/utils/supabase/client')
-    const supabase = createClient()
-    await supabase.auth.signOut()
+    try {
+      const { createClient } = await import('@/utils/supabase/client')
+      const supabase = createClient()
+      await supabase.auth.signOut()
+    } catch (err) {
+      console.warn('Supabase auth signout failed:', err)
+    }
     window.location.href = '/'
   }
 
