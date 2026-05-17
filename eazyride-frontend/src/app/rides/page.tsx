@@ -165,24 +165,20 @@ function CardView({
       onMouseLeave={() => setIsHovered(false)}
       className="group relative"
     >
-      <div className={`relative backdrop-blur-3xl rounded-[3.5rem] overflow-hidden transition-all duration-500 shadow-[inset_0_1px_1px_rgba(255,255,255,1),_0_20px_40px_rgba(0,0,0,0.05)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,1),_0_30px_60px_rgba(0,0,0,0.1)] border border-white/40 ${
-        isSelected ? 'bg-gradient-to-br from-green-50 to-white scale-[1.01] ring-2 ring-green-400' : 
-        ride.user_approved ? 'bg-gradient-to-br from-slate-100 via-white to-slate-200' : 'bg-gradient-to-br from-slate-50 via-white to-slate-100'
+      <div className={`relative backdrop-blur-3xl rounded-[3.5rem] overflow-hidden transition-all duration-500 shadow-[inset_0_1px_1px_rgba(255,255,255,1),_0_20px_40px_rgba(0,0,0,0.05)] border-2 ${
+        isSelected ? 'bg-gradient-to-br from-[#f8f9f2] to-white scale-[1.01] border-green-400' : 
+        ride.user_approved ? 'bg-gradient-to-br from-[#f8f9f2] via-white to-[#f4f7eb] border-[#eaf0d8]' : 'bg-gradient-to-br from-slate-50 via-white to-slate-100 border-white/40'
       }`}>
          {/* Premium Badge Overlay */}
          {ride.user_approved && (
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-400 to-white opacity-50" />
          )}
          
-         {/* Vehicle image as subtle glassmorphism background */}
+         {/* Vehicle image as faint background covering the whole card */}
          {ride.vehicle_image_url && (
-            <div className="absolute inset-0 pointer-events-none">
-              <img src={ride.vehicle_image_url} alt="" className="w-full h-full object-cover opacity-[0.05]" />
-              <div className={`absolute inset-0 bg-gradient-to-b ${
-                ride.user_approved 
-                  ? 'from-amber-500/10 via-amber-50/60 to-white/95' 
-                  : 'from-slate-50/40 via-slate-50/80 to-white/95'
-              }`} />
+            <div className="absolute inset-0 pointer-events-none rounded-[3.5rem] overflow-hidden">
+              <img src={ride.vehicle_image_url} alt="" className="w-full h-full object-cover opacity-15 saturate-50" />
+              <div className="absolute inset-0 bg-gradient-to-b from-[#f8f9f2]/60 via-[#f8f9f2]/80 to-[#f8f9f2]/95" />
             </div>
          )}
          {/* HEADER - MOCKUP STYLE */}
@@ -340,16 +336,16 @@ function CardView({
               </button>
             )}
 
-            <div className="flex items-center gap-4 mt-6 mb-2">
+            <div className="flex items-center gap-4 mt-6 mb-2 opacity-50 hover:opacity-100 transition-opacity">
                <button 
                   onClick={handleShare}
-                  className="px-6 py-3 bg-blue-600/10 rounded-[1.5rem] text-blue-600 hover:bg-blue-600/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                  className="flex-1 py-3 text-slate-500 hover:text-blue-600 transition-all flex items-center justify-center gap-2"
                   title="Share Ride"
                >
                   <Share2 className="w-4 h-4" />
                   <span className="text-[10px] font-black uppercase tracking-widest">Share</span>
                </button>
-               <Link href={`/rides/${ride.id}`} className="flex-1 text-right pr-2 text-[10px] font-black text-slate-900/20 hover:text-slate-900 uppercase tracking-widest transition-colors">
+               <Link href={`/rides/${ride.id}`} className="flex-1 py-3 text-center text-[10px] font-black text-slate-500 hover:text-slate-900 uppercase tracking-widest transition-colors">
                   VIEW RIDE DETAILS
                </Link>
             </div>
@@ -596,15 +592,16 @@ function RidesContent() {
       <main className="max-w-7xl mx-auto px-6 md:px-12 pt-12">
         <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-8 mb-16">
           <div>
-            <div className="flex items-center gap-3 mb-4">
-               <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-slate-900 shadow-xl shadow-blue-600/20">
-                  <Search className="w-6 h-6" />
-               </div>
-               <div>
-                 <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">Find Ride</h1>
-                 <p className="text-slate-900/30 text-[10px] mt-1 font-black uppercase tracking-widest">{filtered.length} Active Ride{filtered.length !== 1 ? 's' : ''} detected</p>
-               </div>
-            </div>
+             <div className="flex flex-col relative pl-4">
+                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white absolute -left-2 top-2 shadow-xl z-10">
+                   <Search className="w-5 h-5" />
+                </div>
+                <h1 className="text-7xl md:text-[7rem] font-black text-slate-900 tracking-tighter uppercase italic leading-[0.85] relative z-0">
+                  <span className="block text-slate-800">FIND</span>
+                  <span className="block text-slate-900">RIDE</span>
+                </h1>
+                <p className="text-slate-900/40 text-[10px] mt-4 font-black uppercase tracking-widest pl-2">{filtered.length} ACTIVE RIDE{filtered.length !== 1 ? 'S' : ''} DETECTED</p>
+             </div>
           </div>
 
           {/* COOL TOGGLES */}
