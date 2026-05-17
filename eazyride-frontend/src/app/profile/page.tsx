@@ -262,7 +262,7 @@ export default function ProfilePage() {
                        )}
                     </div>
 
-                    <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-8 leading-[0.85] uppercase italic text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/20">
+                    <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-8 leading-[0.85] uppercase italic text-transparent bg-clip-text bg-gradient-to-b from-slate-900 via-slate-700 to-slate-400 drop-shadow-sm">
                        {profile?.name}
                     </h1>
 

@@ -992,7 +992,7 @@ export default function RideDetailPage() {
                 </div>
 
                 {/* Right: Visual */}
-                <div className="relative min-h-[300px] md:min-h-full overflow-hidden bg-slate-900 flex items-center justify-center">
+                <div className="relative min-h-[300px] md:min-h-full overflow-hidden bg-slate-100 flex items-center justify-center">
                   {ride.vehicle_info.image_url ? (
                     <img
                       src={ride.vehicle_info.image_url}
@@ -1000,10 +1000,10 @@ export default function RideDetailPage() {
                       alt=""
                     />
                   ) : (
-                    <Car className="w-24 h-24 text-slate-900/5" />
+                    <Car className="w-24 h-24 text-slate-300" />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-white to-white hidden md:block" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-white to-white md:hidden" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-white via-white/40 to-transparent hidden md:block" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent md:hidden" />
                 </div>
               </div>
             </GlassPanel>
