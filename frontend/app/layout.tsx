@@ -25,6 +25,28 @@ export const metadata: Metadata = {
     statusBarStyle: 'black-translucent',
     title: 'PulseIn',
   },
+  openGraph: {
+    title: 'PulseIn — Community Office Commute',
+    description: 'Simple and shared office carpooling for professionals.',
+    url: 'https://pulsein.vercel.app',
+    siteName: 'PulseIn',
+    images: [
+      {
+        url: 'https://pulsein.vercel.app/icon-512.png',
+        width: 512,
+        height: 512,
+        alt: 'PulseIn App Icon',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'PulseIn — Community Office Commute',
+    description: 'Simple and shared office carpooling for professionals.',
+    images: ['https://pulsein.vercel.app/icon-512.png'],
+  },
 }
 
 export default function RootLayout({

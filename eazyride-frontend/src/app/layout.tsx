@@ -25,6 +25,28 @@ export const metadata: Metadata = {
     statusBarStyle: 'black-translucent',
     title: 'PulseGo',
   },
+  openGraph: {
+    title: 'PulseGo — Community Office Commute',
+    description: 'Simple and shared office carpooling for professionals.',
+    url: 'https://pulsego.vercel.app',
+    siteName: 'PulseGo',
+    images: [
+      {
+        url: 'https://pulsego.vercel.app/icon-512.png',
+        width: 512,
+        height: 512,
+        alt: 'PulseGo App Icon',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'PulseGo — Community Office Commute',
+    description: 'Simple and shared office carpooling for professionals.',
+    images: ['https://pulsego.vercel.app/icon-512.png'],
+  },
 }
 
 export default function RootLayout({
