@@ -76,7 +76,7 @@ export default function HomePage() {
               <Car className="w-6 h-6 text-slate-900 relative z-10" />
             </div>
             <div className="flex flex-col text-left">
-              <span className="text-xl font-black tracking-tighter leading-none">Pulse Lite</span>
+              <span className="text-xl font-black tracking-tighter leading-none">Pulse</span>
               <span className="text-[8px] font-black tracking-[0.3em] text-blue-600 uppercase">Simple & Shared</span>
             </div>
           </Link>

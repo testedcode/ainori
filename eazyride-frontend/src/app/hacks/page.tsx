@@ -48,11 +48,11 @@ export default function HacksPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-blue-600 text-white selection:bg-blue-200">
+    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-200">
       <PulseNav />
       
       <main className="max-w-4xl mx-auto px-6 py-20">
-        <Link href="/" className="inline-flex items-center gap-2 text-slate-700 hover:text-slate-900 transition-colors mb-12 group">
+        <Link href="/" className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors mb-12 group">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           <span className="text-xs font-black uppercase tracking-widest">Back to Home</span>
         </Link>
@@ -61,11 +61,11 @@ export default function HacksPage() {
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-600 text-[10px] font-black uppercase tracking-widest mb-6">
             <Sparkles className="w-3 h-3" /> BETTER COMMUTING
           </div>
-          <h1 className="text-5xl md:text-7xl font-black tracking-tighter italic uppercase italic leading-none mb-8">
+          <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase italic leading-none mb-8 text-slate-900">
             HELPFUL RIDE<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600">TIPS.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">TIPS.</span>
           </h1>
-          <p className="text-slate-700 text-lg leading-relaxed font-medium">
+          <p className="text-slate-600 text-lg leading-relaxed font-medium">
             Our community is built on trust, punctuality, and a smooth experience. 
             Follow these simple tips to ensure every trip is a premium experience for everyone involved.
           </p>
@@ -73,14 +73,14 @@ export default function HacksPage() {
 
         <div className="space-y-6">
           {hacks.map((hack, i) => (
-            <div key={i} className="group bg-white border border-slate-200 rounded-[2.5rem] p-8 md:p-12 hover:bg-slate-50 transition-all">
+            <div key={i} className="group bg-white border border-slate-200 rounded-[2.5rem] p-8 md:p-12 hover:bg-slate-50 hover:border-slate-300 transition-all hover:shadow-xl">
               <div className="flex flex-col md:flex-row gap-8 items-start">
                 <div className={`w-16 h-16 rounded-3xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform ${hack.color}`}>
                   <hack.icon className="w-8 h-8" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black mb-4 uppercase tracking-tight">{hack.title}</h3>
-                  <p className="text-slate-700 leading-relaxed font-medium">
+                  <h3 className="text-2xl font-black mb-4 uppercase tracking-tight text-slate-900">{hack.title}</h3>
+                  <p className="text-slate-600 leading-relaxed font-medium">
                     {hack.desc}
                   </p>
                 </div>
@@ -89,16 +89,16 @@ export default function HacksPage() {
           ))}
         </div>
 
-        <div className="mt-20 p-12 bg-gradient-to-br from-blue-600/20 to-white border border-slate-200 rounded-[3rem] text-center">
+        <div className="mt-20 p-12 bg-white border border-slate-200 rounded-[3rem] text-center shadow-sm">
           <Star className="w-10 h-10 text-yellow-500 mx-auto mb-6 animate-pulse" />
-          <h2 className="text-2xl font-black mb-4 uppercase">Help the Community</h2>
-          <p className="text-slate-700 mb-8 max-w-lg mx-auto">Have a tip that makes commuting better? Share it with the community and help others travel more comfortably.</p>
-          <button className="bg-blue-600 text-white px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all">Submit Tip</button>
+          <h2 className="text-2xl font-black mb-4 uppercase text-slate-900">Help the Community</h2>
+          <p className="text-slate-600 mb-8 max-w-lg mx-auto font-medium">Have a tip that makes commuting better? Share it with the community and help others travel more comfortably.</p>
+          <button className="bg-blue-600 text-white px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 transition-all shadow-md active:scale-95">Submit Tip</button>
         </div>
       </main>
 
       <footer className="py-20 border-t border-slate-200 text-center">
-        <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest">© 2026 COMMUNITY • CRAFTED WITH CARE</p>
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">© 2026 COMMUNITY • CRAFTED WITH CARE</p>
       </footer>
     </div>
   )
