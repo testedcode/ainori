@@ -76,7 +76,7 @@ export default function HomePage() {
               <Car className="w-6 h-6 text-slate-900 relative z-10" />
             </div>
             <div className="flex flex-col text-left">
-              <span className="text-xl font-black tracking-tighter leading-none">EazyRide</span>
+              <span className="text-xl font-black tracking-tighter leading-none">Pulse Lite</span>
               <span className="text-[8px] font-black tracking-[0.3em] text-blue-600 uppercase">Simple & Shared</span>
             </div>
           </Link>
@@ -140,8 +140,13 @@ export default function HomePage() {
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600">DAILY RIDE.</span>
               </h1>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-12">
-                <Link href="/register" className="group relative px-12 py-5 bg-blue-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-blue-600 hover:text-slate-900 transition-all shadow-xl active:scale-95 overflow-hidden">
+                {/* Desktop: Get Started */}
+                <Link href="/register" className="hidden sm:inline-block group relative px-12 py-5 bg-blue-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-blue-600 hover:text-slate-900 transition-all shadow-xl active:scale-95 overflow-hidden">
                   <span className="relative z-10 flex items-center gap-3">Get Started <ArrowRight className="w-5 h-5" /></span>
+                </Link>
+                {/* Mobile: Login */}
+                <Link href="/login" className="sm:hidden group relative px-12 py-5 bg-blue-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-blue-600 hover:text-slate-900 transition-all shadow-xl active:scale-95 overflow-hidden">
+                  <span className="relative z-10 flex items-center gap-3">Login <ArrowRight className="w-5 h-5" /></span>
                 </Link>
                 <Link href="#shift" className="px-10 py-5 bg-white border border-slate-200 rounded-2xl font-black text-sm uppercase tracking-widest text-slate-900/40 hover:text-slate-900 hover:bg-slate-100 transition-all">
                   Our Approach
