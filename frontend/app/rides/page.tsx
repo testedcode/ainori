@@ -569,11 +569,11 @@ function RidesContent() {
       <PulseNav />
 
       {/* ROUTE HUB - CIRCULAR ORBS */}
-      <div className="w-full py-8 overflow-x-auto scrollbar-hide">
+      <div className="w-full pt-32 pb-8 overflow-x-auto scrollbar-hide">
          <div className="flex items-center justify-start gap-10 px-12 min-w-max">
             <button 
               onClick={() => setFilter({ ...filter, corridor: 'all', direction: 'all' })}
-              className="group flex flex-col items-center gap-4 transition-all"
+              className="group flex flex-col items-center gap-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
             >
                <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${filter.corridor === 'all' ? `bg-white ${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'bg-white/5 border-white/10 hover:border-white/30'}`}>
                   <Zap className={`w-8 h-8 ${filter.corridor === 'all' ? 'text-black' : 'text-white/40 group-hover:text-white'}`} />
@@ -583,7 +583,7 @@ function RidesContent() {
 
             <button 
               onClick={() => setFilter({ ...filter, direction: filter.direction === 'to_office' ? 'all' : 'to_office' })}
-              className="group flex flex-col items-center gap-4 transition-all"
+              className="group flex flex-col items-center gap-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
             >
                <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${filter.direction === 'to_office' ? `bg-white ${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'bg-white/5 border-white/10 hover:border-white/30'}`}>
                   <Building2 className={`w-8 h-8 ${filter.direction === 'to_office' ? 'text-black' : 'text-white/40 group-hover:text-white'}`} />
@@ -593,7 +593,7 @@ function RidesContent() {
 
             <button 
               onClick={() => setFilter({ ...filter, direction: filter.direction === 'to_home' ? 'all' : 'to_home' })}
-              className="group flex flex-col items-center gap-4 transition-all"
+              className="group flex flex-col items-center gap-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
             >
                <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${filter.direction === 'to_home' ? `bg-white ${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'bg-white/5 border-white/10 hover:border-white/30'}`}>
                   <Home className={`w-8 h-8 ${filter.direction === 'to_home' ? 'text-black' : 'text-white/40 group-hover:text-white'}`} />
@@ -608,7 +608,7 @@ function RidesContent() {
                  <button 
                    key={c.id}
                    onClick={() => setFilter({ ...filter, corridor: String(c.id) })}
-                   className="group flex flex-col items-center gap-4 transition-all"
+                   className="group flex flex-col items-center gap-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
                  >
                     <div className={`w-20 h-20 rounded-full overflow-hidden transition-all duration-500 border-2 relative ${active ? `${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'border-white/10 hover:border-white/30'}`}>
                        {c.image_url ? (
