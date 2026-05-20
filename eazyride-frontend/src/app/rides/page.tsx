@@ -547,8 +547,9 @@ function RidesContent() {
               onClick={() => setFilter({ ...filter, direction: filter.direction === 'to_office' ? 'all' : 'to_office' })}
               className="group flex flex-col items-center gap-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
             >
-               <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${filter.direction === 'to_office' ? `bg-white ${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'bg-white border-slate-200 hover:border-slate-300'}`}>
-                  <Building2 className={`w-8 h-8 ${filter.direction === 'to_office' ? 'text-black' : 'text-slate-900/40 group-hover:text-slate-900'}`} />
+               <div className={`w-20 h-20 rounded-full overflow-hidden transition-all duration-500 border-2 relative ${filter.direction === 'to_office' ? `bg-white ${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'bg-white border-slate-200 hover:border-slate-300'}`}>
+                  <img src="/To_Office.png" alt="To Office" className={`w-full h-full object-cover transition-all duration-700 ${filter.direction === 'to_office' ? 'scale-110 opacity-100' : 'opacity-60 group-hover:opacity-100 group-hover:scale-110'}`} />
+                  {filter.direction === 'to_office' && <div className="absolute inset-0 bg-slate-100 pointer-events-none" />}
                </div>
                <span className={`text-[10px] font-black uppercase tracking-widest ${filter.direction === 'to_office' ? 'text-slate-900' : 'text-slate-900/20 group-hover:text-slate-900/40'}`}>To Office</span>
             </button>
@@ -557,8 +558,9 @@ function RidesContent() {
               onClick={() => setFilter({ ...filter, direction: filter.direction === 'to_home' ? 'all' : 'to_home' })}
               className="group flex flex-col items-center gap-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
             >
-               <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${filter.direction === 'to_home' ? `bg-white ${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'bg-white border-slate-200 hover:border-slate-300'}`}>
-                  <Home className={`w-8 h-8 ${filter.direction === 'to_home' ? 'text-black' : 'text-slate-900/40 group-hover:text-slate-900'}`} />
+               <div className={`w-20 h-20 rounded-full overflow-hidden transition-all duration-500 border-2 relative ${filter.direction === 'to_home' ? `bg-white ${theme.accent.replace('text-', 'border-')} scale-110 shadow-[0_0_30px_rgba(255,255,255,0.3)]` : 'bg-white border-slate-200 hover:border-slate-300'}`}>
+                  <img src="/To_Home.png" alt="To Home" className={`w-full h-full object-cover transition-all duration-700 ${filter.direction === 'to_home' ? 'scale-110 opacity-100' : 'opacity-60 group-hover:opacity-100 group-hover:scale-110'}`} />
+                  {filter.direction === 'to_home' && <div className="absolute inset-0 bg-slate-100 pointer-events-none" />}
                </div>
                <span className={`text-[10px] font-black uppercase tracking-widest ${filter.direction === 'to_home' ? 'text-slate-900' : 'text-slate-900/20 group-hover:text-slate-900/40'}`}>To Home</span>
             </button>
