@@ -67,7 +67,7 @@ export default function HomePage() {
       {user ? (
         <PulseNav />
       ) : (
-        <nav className={`fixed top-0 w-full z-50 transition-all duration-500 px-6 md:px-12 py-4 flex justify-between items-center ${
+        <nav className={`fixed top-0 w-full z-50 transition-all duration-500 px-6 md:px-12 pt-[env(safe-area-inset-top,1rem)] pb-4 flex justify-between items-center ${
           scrolled ? 'bg-slate-50/80 backdrop-blur-2xl border-b border-slate-200 py-3' : 'bg-transparent'
         }`}>
           <Link href="/" className="flex items-center gap-3 group cursor-pointer">
@@ -76,7 +76,7 @@ export default function HomePage() {
               <Car className="w-6 h-6 text-slate-900 relative z-10" />
             </div>
             <div className="flex flex-col text-left">
-              <span className="text-xl font-black tracking-tighter leading-none">Pulse</span>
+              <span className="text-xl font-black tracking-tighter leading-none">EazyRide</span>
               <span className="text-[8px] font-black tracking-[0.3em] text-blue-600 uppercase">Simple & Shared</span>
             </div>
           </Link>
@@ -90,7 +90,9 @@ export default function HomePage() {
 
           <div className="flex items-center gap-4">
             <Link href="/login" className="hidden sm:block px-5 py-2 text-[10px] font-black uppercase tracking-widest hover:text-slate-900 transition-colors text-slate-700">Log in</Link>
-            <Link href="/register" className="bg-blue-600 text-white hover:bg-blue-600 hover:text-slate-900 px-6 md:px-8 py-2 md:py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-slate-200 active:scale-95">Get Started</Link>
+            {/* Responsive CTA: Get Started on desktop, Login on mobile */}
+            <Link href="/register" className="hidden sm:inline-block bg-blue-600 text-white hover:bg-blue-600 hover:text-slate-900 px-6 md:px-8 py-2 md:py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-slate-200 active:scale-95">Get Started</Link>
+            <Link href="/login" className="sm:hidden bg-blue-600 text-white hover:bg-blue-600 hover:text-slate-900 px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-slate-200 active:scale-95">Login</Link>
             
             {/* Mobile Menu Trigger */}
             <button 
