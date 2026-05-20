@@ -321,13 +321,13 @@ export default function HomePage() {
                    { title: 'Be On Time', desc: 'Your neighbors are professionals. Every minute counts.', icon: Clock, color: 'amber' },
                    { title: 'No Spam', desc: 'Avoid forwarding chain messages or promotional content.', icon: Radio, color: 'cyan' }
                  ].map((hack, i) => (
-                   <div key={i} className="group bg-slate-50 border border-slate-200 rounded-[2rem] p-8 hover:bg-white hover:border-slate-300 transition-all text-left shadow-sm hover:shadow-xl hover:-translate-y-1">
+                   <Link key={i} href="/hacks" className="group bg-slate-50 border border-slate-200 rounded-[2rem] p-8 hover:bg-white hover:border-slate-300 transition-all text-left shadow-sm hover:shadow-xl hover:-translate-y-1 block cursor-pointer">
                       <div className={`w-14 h-14 bg-${hack.color}-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                          <hack.icon className={`w-7 h-7 text-${hack.color}-500`} />
                       </div>
                       <h4 className="text-xl font-black text-slate-900 uppercase italic mb-2 tracking-tighter">{hack.title}</h4>
                       <p className="text-slate-600 text-sm font-bold leading-relaxed">{hack.desc}</p>
-                   </div>
+                   </Link>
                  ))}
                </div>
            </div>
