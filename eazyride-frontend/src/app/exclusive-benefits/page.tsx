@@ -43,7 +43,7 @@ export default function ExclusiveBenefitsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-blue-600 text-white font-sans selection:bg-amber-100 pb-20 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-100 pb-20 overflow-x-hidden">
       {/* Dynamic Background Elements */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-amber-500/5 blur-[150px] -z-10 pointer-events-none" />
       <div className="fixed -top-40 -left-40 w-[600px] h-[600px] bg-blue-100 blur-[180px] -z-10 rounded-full animate-pulse" />
@@ -221,8 +221,8 @@ export default function ExclusiveBenefitsPage() {
       
       {/* Footer Branding */}
       <footer className="border-t border-slate-200 py-20 text-center">
-         <div className="opacity-10 text-[10vw] font-black tracking-tighter uppercase italic pointer-events-none select-none">
-            AINORI COMMUNITY
+         <div className="opacity-5 text-[15vw] font-black tracking-tighter uppercase italic pointer-events-none select-none text-slate-900">
+            PULSE
          </div>
       </footer>
     </div>

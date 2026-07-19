@@ -221,8 +221,8 @@ export default function ExclusiveBenefitsPage() {
       
       {/* Footer Branding */}
       <footer className="border-t border-white/5 py-20 text-center">
-         <div className="opacity-10 text-[10vw] font-black tracking-tighter uppercase italic pointer-events-none select-none">
-            AINORI COMMUNITY
+         <div className="opacity-10 text-[15vw] font-black tracking-tighter uppercase italic pointer-events-none select-none">
+            PULSE
          </div>
       </footer>
     </div>
