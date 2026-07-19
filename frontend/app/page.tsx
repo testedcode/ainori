@@ -159,7 +159,13 @@ export default function HomePage() {
                 </Link>
               </div>
               <p className="mt-12 text-xs md:text-sm text-white/30 font-black uppercase tracking-[0.2em] animate-pulse">
-                Trusted by neighbors • Verified Professionals •         {/* ─── THE CORE PILLARS: BENTO GRID ────────────────────────── */}
+                Trusted by neighbors • Verified Professionals • Green Commute
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── THE CORE PILLARS: BENTO GRID ────────────────────────── */}
         <section id="shift" className="py-24 relative overflow-hidden bg-[#020617]">
            <div className="container max-w-7xl mx-auto px-6 relative z-10">
               <div className="text-center mb-16">
@@ -225,13 +231,6 @@ export default function HomePage() {
                              </div>
                           ))}
                        </div>
-                    </div>
-                 </div>
-
-              </div>
-           </div>
-        </section>r prices.
-                       </p>
                     </div>
                  </div>
 
