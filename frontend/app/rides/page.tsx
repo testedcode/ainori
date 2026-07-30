@@ -374,16 +374,42 @@ function CardView({
               </button>
             )}
 
-            <div className="flex items-center gap-2 mt-4 mb-2">
-               <Link href={`/rides/${ride.id}`} className="flex-1 text-center text-[9px] font-black text-white/20 hover:text-white uppercase tracking-widest transition-colors">
-                  VIEW RIDE DETAILS
+            <div className="flex items-center gap-3 mt-6 mb-2">
+               <Link 
+                 href={`/rides/${ride.id}`} 
+                 className="flex-1 text-center py-3 bg-white/10 hover:bg-white/20 border border-white/15 hover:border-white/30 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md active:scale-95"
+               >
+                  VIEW DETAILS
                </Link>
                <button 
-                  onClick={handleShare}
-                  className="p-3 bg-white/5 border border-white/10 rounded-2xl text-white/40 hover:text-white hover:bg-white/10 transition-all active:scale-90"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    const url = `${window.location.origin}/rides/${ride.id}`
+                    const summary = `
+🚙 Pulse Commute Summary
+---------------------------
+📍 Route: ${ride.pickup_point} ➔ ${ride.drop_point}
+⏰ Time: ${fmtTime(ride.ride_time)} (${fmtDate(ride.ride_date)})
+💵 Fare: ₹${Math.floor(ride.price_per_seat)}
+👥 Seats Available: ${ride.available_seats}/${ride.total_seats}
+👤 Host: ${ride.user_name} ${ride.user_approved ? '✓ (Verified)' : ''}
+
+Join now: ${url}
+                    `.trim()
+                    
+                    if (navigator.share) {
+                      navigator.share({ title: 'Pulse Ride Summary', text: summary, url }).catch(() => {})
+                    } else {
+                      navigator.clipboard.writeText(summary)
+                      toast.success('Beautiful ride summary copied to clipboard!')
+                    }
+                  }}
+                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2"
                   title="Share Ride"
                >
                   <Share2 className="w-4 h-4" />
+                  SHARE RIDE
                </button>
             </div>
          </div>
@@ -419,9 +445,16 @@ function RidesContent() {
 
   const [showFilled, setShowFilled] = useState(false)
   const [liveOnly, setLiveOnly] = useState(false) // Default to showing all for the day
+  // IST timezone offset offset helper: UTC + 5.5 hours
+  const getISTDateString = () => {
+    const istOffset = 5.5 * 60 * 60 * 1000
+    const istDate = new Date(Date.now() + istOffset)
+    return istDate.toISOString().split('T')[0]
+  }
+
   const [filter, setFilter] = useState({
     corridor: corridorParam || 'all',
-    date: new Date().toISOString().split('T')[0],
+    date: getISTDateString(),
     timeRange: 'all',  
     direction: 'all',
     vibeTag: 'all'
@@ -664,8 +697,12 @@ function RidesContent() {
              {/* Travel Date */}
              <div className="bg-white/5 border border-white/10 p-1.5 rounded-2xl flex items-center gap-1">
                 {[
-                  { label: 'Today', date: new Date().toISOString().split('T')[0] },
-                  { label: 'Tomorrow', date: new Date(Date.now() + 86400000).toISOString().split('T')[0] }
+                  { label: 'Today', date: getISTDateString() },
+                  { label: 'Tomorrow', date: (() => {
+                    const istOffset = 5.5 * 60 * 60 * 1000
+                    const tomorrow = new Date(Date.now() + istOffset + 86400000)
+                    return tomorrow.toISOString().split('T')[0]
+                  })() }
                 ].map(dt => (
                   <button
                    key={dt.label}
@@ -681,8 +718,12 @@ function RidesContent() {
                   <input 
                     type="date" 
                     value={filter.date}
-                    min={new Date().toISOString().split('T')[0]}
-                    max={new Date(Date.now() + 5 * 86400000).toISOString().split('T')[0]}
+                    min={getISTDateString()}
+                    max={(() => {
+                      const istOffset = 5.5 * 60 * 60 * 1000
+                      const maxDate = new Date(Date.now() + istOffset + 5 * 86400000)
+                      return maxDate.toISOString().split('T')[0]
+                    })()}
                     onChange={(e) => setFilter({ ...filter, date: e.target.value })}
                     className="bg-transparent border-none text-[10px] font-black text-white px-8 py-2 rounded-xl focus:outline-none focus:bg-white/5 transition-all w-32 cursor-pointer [color-scheme:dark]"
                   />
