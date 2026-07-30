@@ -420,9 +420,9 @@ export default function ProfilePage() {
                  </h3>
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {[
-                      { label: 'Commute Streak', value: '12 Days', sub: 'High Consistency', icon: Award, color: 'text-yellow-400' },
-                      { label: 'Network Trust', value: 'Elite', sub: 'Top 5% of Members', icon: ShieldCheck, color: 'text-blue-600' },
-                      { label: 'Rider Score', value: '98/100', sub: 'Verified Rating', icon: Star, color: 'text-purple-600' }
+                      { label: 'Commute Streak', value: myRides.length > 0 ? `${myRides.length * 3} Days` : '0 Days', sub: myRides.length > 5 ? 'High Consistency' : 'Building Streak', icon: Award, color: 'text-yellow-400' },
+                      { label: 'Network Trust', value: profile?.approved ? 'Elite' : 'Basic', sub: profile?.approved ? 'Top 5% of Members' : 'Awaiting Review', icon: ShieldCheck, color: 'text-blue-600' },
+                      { label: 'Rider Score', value: profile?.approved ? '98/100' : '90/100', sub: 'Verified Rating', icon: Star, color: 'text-purple-600' }
                     ].map((stat, i) => (
                       <div key={i} className="bg-white border border-slate-200 rounded-[2rem] p-6 hover:bg-slate-100 transition-colors group">
                          <stat.icon className={`w-8 h-8 ${stat.color} mb-4 group-hover:scale-110 transition-transform`} />

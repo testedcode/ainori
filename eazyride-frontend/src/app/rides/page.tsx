@@ -339,7 +339,7 @@ function CardView({
             <div className="flex items-center gap-3 mt-6 mb-2">
                <Link 
                  href={`/rides/${ride.id}`} 
-                 className="flex-1 text-center py-3 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
+                 className="flex-1 text-center py-3.5 bg-[#0f172a] hover:bg-[#1e293b] border border-[#0f172a] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md active:scale-95"
                >
                   VIEW DETAILS
                </Link>
@@ -367,10 +367,10 @@ Join now: ${url}
                       toast.success('Beautiful ride summary copied to clipboard!')
                     }
                   }}
-                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2"
+                  className="flex-1 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/30 active:scale-95 flex items-center justify-center gap-2"
                   title="Share Ride"
                >
-                  <Share2 className="w-4 h-4" />
+                  <Share2 className="w-4 h-4 text-white" />
                   SHARE RIDE
                </button>
             </div>
