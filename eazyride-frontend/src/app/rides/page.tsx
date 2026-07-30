@@ -310,9 +310,9 @@ function CardView({
                {isOwnRide ? (
                   <Link 
                     href={`/rides/${ride.id}`}
-                    className="w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] bg-white/40 backdrop-blur-md border border-white/60 text-slate-900 shadow-[0_10px_30px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.8)] flex items-center justify-center gap-3 transition-all hover:scale-105 hover:bg-white/60"
+                    className="w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] bg-[#0f172a] hover:bg-[#1e293b] border border-[#0f172a] text-white shadow-lg flex items-center justify-center gap-3 transition-all hover:scale-105"
                   >
-                     MANAGE RIDE <ArrowRight className="w-4 h-4" />
+                     MANAGE RIDE <ArrowRight className="w-4 h-4 text-white" />
                   </Link>
                ) : !isRequested ? (
                   <button 
@@ -320,17 +320,17 @@ function CardView({
                      disabled={!isSelected}
                      className={`w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${
                        isSelected 
-                        ? 'bg-white/50 backdrop-blur-md border border-white/80 text-slate-900 shadow-[0_10px_30px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,1)] scale-[1.02] hover:bg-white/70' 
-                        : 'bg-white/20 backdrop-blur-sm border border-white/30 text-slate-500 cursor-not-allowed shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]'
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg active:scale-95' 
+                        : 'bg-blue-50 border border-blue-200 text-blue-600 cursor-not-allowed'
                      }`}
                   >
                      {isSelected && <div className="absolute inset-0 bg-gradient-to-r from-green-400/10 via-white/40 to-green-400/10 animate-pulse pointer-events-none" />}
-                     {isSelected ? <>REQUEST SEAT <ArrowRight className="w-4 h-4" /></> : 'CHOOSE SEATS'}
+                     {isSelected ? <>REQUEST SEAT <ArrowRight className="w-4 h-4 text-white" /></> : 'CHOOSE SEATS'}
                   </button>
                ) : (
                <button 
                 onClick={() => onRetract(ride.id)}
-                className="w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] bg-white/40 backdrop-blur-md border border-white/60 text-slate-900 shadow-[0_10px_30px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.8)] hover:bg-white/60 transition-all group flex items-center justify-center gap-3"
+                 className="w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-100 transition-all group flex items-center justify-center gap-3"
               >
                 <Check className="w-4 h-4" /> SENDING...
               </button>
