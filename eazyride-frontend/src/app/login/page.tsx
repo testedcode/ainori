@@ -208,8 +208,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-10">
-          <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-            <Car className="w-7 h-7 text-white" />
+          <div className="w-12 h-12 bg-transparent flex items-center justify-center">
+            <img src="/pulse_logo.png" alt="Pulse Logo" className="w-12 h-12 object-contain" />
           </div>
           <span className="text-4xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-600">Pulse</span>
         </div>

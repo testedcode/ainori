@@ -11,8 +11,8 @@ export default function PulseFooter() {
           {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <Car className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-transparent flex items-center justify-center">
+                <img src="/pulse_logo.png" alt="Pulse Logo" className="w-10 h-10 object-contain" />
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-black tracking-tight leading-none uppercase">Pulse</span>

@@ -68,8 +68,8 @@ export default function PulseNav({ adminMode = false }: { adminMode?: boolean })
         <div className="max-w-7xl mx-auto px-12 flex items-center justify-between relative h-full">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group shrink-0 relative z-10">
-            <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform duration-500">
-              <Car className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 bg-transparent flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+              <img src="/pulse_logo.png" alt="Pulse Logo" className="w-10 h-10 object-contain" />
             </div>
             <span className="text-2xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-600">Pulse</span>
           </Link>
@@ -140,8 +140,8 @@ export default function PulseNav({ adminMode = false }: { adminMode?: boolean })
         scrolled ? 'bg-slate-50/90 backdrop-blur-2xl border-b border-slate-200' : 'bg-transparent'
       }`}>
         <Link href="/" className="flex items-center gap-2 active:scale-95 transition-transform">
-           <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
-             <Car className="w-4.5 h-4.5 text-white" />
+           <div className="w-8 h-8 bg-transparent flex items-center justify-center">
+             <img src="/pulse_logo.png" alt="Pulse Logo" className="w-8 h-8 object-contain" />
            </div>
            <span className="text-lg font-black tracking-tighter text-slate-900 italic">Pulse</span>
         </Link>

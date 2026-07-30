@@ -77,9 +77,8 @@ export default function HomePage() {
           scrolled ? 'bg-[#0f172a]/80 backdrop-blur-2xl border-b border-white/5 py-3' : 'bg-transparent'
         }`}>
           <Link href="/" className="flex items-center gap-3 group cursor-pointer">
-            <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:rotate-12 transition-transform relative">
-               <div className="absolute inset-0 bg-blue-400 blur-lg opacity-0 group-hover:opacity-40 transition-opacity" />
-              <Car className="w-6 h-6 text-white relative z-10" />
+            <div className="w-10 h-10 bg-transparent flex items-center justify-center group-hover:rotate-12 transition-transform relative">
+              <img src="/pulse_logo.png" alt="Pulse Logo" className="w-10 h-10 object-contain relative z-10" />
             </div>
             <div className="flex flex-col text-left">
               <span className="text-xl font-black tracking-tighter leading-none">Pulse</span>
