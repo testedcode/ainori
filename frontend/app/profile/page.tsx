@@ -28,7 +28,9 @@ interface ProfileData {
   qr_code_url?: string
   approved?: boolean
   blocked?: boolean
-}interface UserRide {
+}
+
+interface UserRide {
   id: number
   corridor_name: string
   ride_date: string
@@ -40,20 +42,20 @@ interface ProfileData {
   confirmed_riders?: { id: number; name: string; avatar_url: string }[]
 }
 
-interface Vehicle {
-  id: number;
-  vehicle_type: string;
-  make: string;
-  model: string;
-  color: string;
-  vehicle_number: string;
-  total_seats: number;
-  default_available_seats: number;
-  image_url?: string;
-}
+  interface Vehicle {
+    id: number;
+    vehicle_type: string;
+    make: string;
+    model: string;
+    color: string;
+    vehicle_number: string;
+    total_seats: number;
+    default_available_seats: number;
+    image_url?: string;
+  }
 
 export default function ProfilePage() {
-  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null)
   const router = useRouter()
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -109,8 +111,8 @@ export default function ProfilePage() {
         if (Array.isArray(vehRes) && vehRes.length > 0) {
           setVehicle(vehRes[0] as Vehicle);
         }
-      } catch (vehError) {
-        console.error('Failed to load vehicle:', vehError);
+      } catch (vehErr) {
+        console.error('Failed to load vehicle:', vehErr);
       }
     } catch (e: any) {
       const status = e?.response?.status
@@ -132,7 +134,6 @@ export default function ProfilePage() {
         setMyRides(ridesRes as unknown as UserRide[])
       }
     } catch {}
-    setLoading(false)
   }
 
   const handleSave = async (e: React.FormEvent) => {
@@ -312,9 +313,9 @@ export default function ProfilePage() {
 
                  {/* Right Column: Benefits Hub */}
                  <div className="lg:w-1/4 w-full">
-                    <div className="bg-white/[0.03] border border-white/10 rounded-[3.5rem] p-8 space-y-6">
+                     <div className="bg-white/[0.03] border border-white/10 rounded-[3.5rem] p-8 space-y-6">
                         {vehicle && (
-                          <div className="bg-white/5 border border-white/10 rounded-[3rem] p-6 mb-6 shadow-2xl relative overflow-hidden group">
+                          <div className="bg-white/5 border border-white/10 rounded-[3rem] p-6 shadow-2xl relative overflow-hidden group">
                             <div className="flex items-center gap-4 mb-4">
                               <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shrink-0">
                                 <img src={vehicle.image_url || '/default_vehicle.png'} alt="Vehicle" className="w-full h-full object-cover" />
@@ -333,7 +334,7 @@ export default function ProfilePage() {
                           </div>
                         )}
                         <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] text-center mb-2">Member Benefits</p>
-                        <div className="space-y-3">
+                       <div className="space-y-3">
                           {[
                             { label: 'Priority Routes', active: profile?.approved },
                             { label: 'Smart Matching', active: profile?.approved },
@@ -439,29 +440,6 @@ export default function ProfilePage() {
                              />
                           </div>
                        </div>
-                     
-                     {/* Car details display inside the edit/view section */}
-                     {vehicle && (
-                        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mt-6">
-                           <h4 className="text-xs font-black text-white/40 uppercase tracking-widest mb-4 flex items-center gap-2">
-                              <Car className="w-4 h-4 text-blue-500" /> REGISTERED CAR DETAILS
-                           </h4>
-                           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                              <div>
-                                 <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] block mb-1">Make & Model</label>
-                                 <span className="text-sm font-black text-white uppercase italic">{vehicle.make} {vehicle.model}</span>
-                              </div>
-                              <div>
-                                 <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] block mb-1">Color</label>
-                                 <span className="text-sm font-black text-white uppercase italic">{vehicle.color}</span>
-                              </div>
-                              <div>
-                                 <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] block mb-1">Plate Number</label>
-                                 <span className="text-sm font-mono font-black text-white tracking-wider">{vehicle.vehicle_number}</span>
-                              </div>
-                           </div>
-                        </div>
-                     )}
                     </div>
 
                     {isEditing && (
@@ -482,9 +460,9 @@ export default function ProfilePage() {
                  </h3>
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {[
-                      { label: 'Commute Streak', value: myRides.length > 0 ? `${myRides.length * 3} Days` : '0 Days', sub: myRides.length > 5 ? 'High Consistency' : 'Building Streak', icon: Award, color: 'text-yellow-400' },
-                      { label: 'Network Trust', value: profile?.approved ? 'Elite' : 'Basic', sub: profile?.approved ? 'Top 5% of Members' : 'Awaiting Review', icon: ShieldCheck, color: 'text-blue-400' },
-                      { label: 'Rider Score', value: profile?.approved ? '98/100' : '90/100', sub: 'Verified Rating', icon: Star, color: 'text-purple-400' }
+                      { label: 'Commute Streak', value: '12 Days', sub: 'High Consistency', icon: Award, color: 'text-yellow-400' },
+                      { label: 'Network Trust', value: 'Elite', sub: 'Top 5% of Members', icon: ShieldCheck, color: 'text-blue-400' },
+                      { label: 'Rider Score', value: '98/100', sub: 'Verified Rating', icon: Star, color: 'text-purple-400' }
                     ].map((stat, i) => (
                       <div key={i} className="bg-white/5 border border-white/5 rounded-[2rem] p-6 hover:bg-white/10 transition-colors group">
                          <stat.icon className={`w-8 h-8 ${stat.color} mb-4 group-hover:scale-110 transition-transform`} />
@@ -494,10 +472,11 @@ export default function ProfilePage() {
                       </div>
                     ))}
                  </div>
-               </section>
-            </div>
-            {/* Right Column: Payment & Security */}
-            <div className="lg:col-span-4 space-y-12">
+              </section>
+           </div>
+
+           {/* Right Column: Payment & Security */}
+           <div className="lg:col-span-4 space-y-12">
               <section className="bg-gradient-to-br from-indigo-600/20 to-blue-600/20 border border-blue-500/20 rounded-[3rem] p-8 backdrop-blur-xl relative overflow-hidden group">
                  <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
                     <CreditCard className="w-24 h-24 text-white" />
