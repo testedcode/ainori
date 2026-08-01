@@ -104,10 +104,13 @@ export default function ProfilePage() {
       } else {
         throw new Error('Empty profile response')
       }
-      // Fetch vehicle
-      const vehRes = await api.get('/vehicles');
-      if (Array.isArray(vehRes) && vehRes.length > 0) {
-        setVehicle(vehRes[0] as Vehicle);
+      try {
+        const vehRes = await api.get('/vehicles');
+        if (Array.isArray(vehRes) && vehRes.length > 0) {
+          setVehicle(vehRes[0] as Vehicle);
+        }
+      } catch (vehError) {
+        console.error('Failed to load vehicle:', vehError);
       }
     } catch (e: any) {
       const status = e?.response?.status

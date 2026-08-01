@@ -104,9 +104,12 @@ export default function ProfilePage() {
       });
       localStorage.setItem('user', JSON.stringify(data));
     } else { throw new Error('Empty profile response'); }
-    // Fetch vehicle for this user
-    const vehRes = await api.get('/vehicles');
-    if (Array.isArray(vehRes) && vehRes.length > 0) setVehicle(vehRes[0] as Vehicle);
+    try {
+      const vehRes = await api.get('/vehicles');
+      if (Array.isArray(vehRes) && vehRes.length > 0) setVehicle(vehRes[0] as Vehicle);
+    } catch (vehErr) {
+      console.error('Failed to load vehicle:', vehErr);
+    }
   } catch (e: any) {
     try {
       const data = await api.getProfile() as unknown as ProfileData
