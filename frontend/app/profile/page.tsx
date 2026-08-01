@@ -439,6 +439,29 @@ export default function ProfilePage() {
                              />
                           </div>
                        </div>
+                     
+                     {/* Car details display inside the edit/view section */}
+                     {vehicle && (
+                        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mt-6">
+                           <h4 className="text-xs font-black text-white/40 uppercase tracking-widest mb-4 flex items-center gap-2">
+                              <Car className="w-4 h-4 text-blue-500" /> REGISTERED CAR DETAILS
+                           </h4>
+                           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                              <div>
+                                 <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] block mb-1">Make & Model</label>
+                                 <span className="text-sm font-black text-white uppercase italic">{vehicle.make} {vehicle.model}</span>
+                              </div>
+                              <div>
+                                 <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] block mb-1">Color</label>
+                                 <span className="text-sm font-black text-white uppercase italic">{vehicle.color}</span>
+                              </div>
+                              <div>
+                                 <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] block mb-1">Plate Number</label>
+                                 <span className="text-sm font-mono font-black text-white tracking-wider">{vehicle.vehicle_number}</span>
+                              </div>
+                           </div>
+                        </div>
+                     )}
                     </div>
 
                     {isEditing && (

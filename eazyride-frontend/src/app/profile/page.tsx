@@ -458,9 +458,32 @@ export default function ProfilePage() {
                              />
                           </div>
                        </div>
-                    </div>
+                     </div>
 
-                    {isEditing && (
+                     {/* Car details display inside the edit/view section */}
+                     {vehicle && (
+                        <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 mt-6">
+                           <h4 className="text-xs font-black text-slate-900/40 uppercase tracking-widest mb-4 flex items-center gap-2">
+                              <Car className="w-4 h-4 text-blue-600" /> REGISTERED CAR DETAILS
+                           </h4>
+                           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                              <div>
+                                 <label className="text-[10px] font-black text-slate-900/20 uppercase tracking-[0.2em] block mb-1">Make & Model</label>
+                                 <span className="text-sm font-black text-slate-900 uppercase italic">{vehicle.make} {vehicle.model}</span>
+                              </div>
+                              <div>
+                                 <label className="text-[10px] font-black text-slate-900/20 uppercase tracking-[0.2em] block mb-1">Color</label>
+                                 <span className="text-sm font-black text-slate-900 uppercase italic">{vehicle.color}</span>
+                              </div>
+                              <div>
+                                 <label className="text-[10px] font-black text-slate-900/20 uppercase tracking-[0.2em] block mb-1">Plate Number</label>
+                                 <span className="text-sm font-mono font-black text-slate-900 tracking-wider">{vehicle.vehicle_number}</span>
+                              </div>
+                           </div>
+                        </div>
+                     )}
+
+                     {isEditing && (
                        <button 
                          type="submit" 
                          disabled={saving}
