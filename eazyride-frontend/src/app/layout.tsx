@@ -4,6 +4,7 @@ import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import PulseFooter from '@/components/PulseFooter'
 import InstallBanner from '@/components/InstallBanner'
+import { Analytics } from '@vercel/analytics/react'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -60,6 +61,7 @@ export default function RootLayout({
         {children}
         <InstallBanner />
         <PulseFooter />
+        <Analytics />
         <Toaster 
           position="top-right"
           toastOptions={{

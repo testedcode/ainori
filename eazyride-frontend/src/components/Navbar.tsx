@@ -42,7 +42,9 @@ export default function Navbar() {
   return (
     <header className="topbar" aria-label="Pulse navigation">
       <Link href="/" className="brand" aria-label="Pulse home">
-        <span className="brand-mark"><Car size={24} /></span>
+        <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <img src="/pulse_logo.png" alt="Pulse Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        </div>
         <span style={{ fontStyle: 'italic', fontSize: '24px' }}>Pulse<small>Trusted Commute</small></span>
       </Link>
       

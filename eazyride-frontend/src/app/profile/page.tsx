@@ -42,7 +42,20 @@ interface UserRide {
   confirmed_riders?: { id: number; name: string; avatar_url: string }[]
 }
 
+interface Vehicle {
+  id: number;
+  vehicle_type: string;
+  make: string;
+  model: string;
+  color: string;
+  vehicle_number: string;
+  total_seats: number;
+  default_available_seats: number;
+  image_url?: string;
+}
+
 export default function ProfilePage() {
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const router = useRouter()
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -76,6 +89,25 @@ export default function ProfilePage() {
   }, [router])
 
   const fetchProfile = async () => {
+  try {
+    const data = await api.getProfile() as unknown as ProfileData;
+    if (data) {
+      setProfile(data);
+      setFormData({
+        name: data.name || '',
+        phone: data.phone || '',
+        city: data.city || '',
+        upi_id: data.upi_id || '',
+        bio: data.bio || '',
+        avatar_url: data.avatar_url || '',
+        qr_code_url: data.qr_code_url || ''
+      });
+      localStorage.setItem('user', JSON.stringify(data));
+    } else { throw new Error('Empty profile response'); }
+    // Fetch vehicle for this user
+    const vehRes = await api.get('/vehicles');
+    if (Array.isArray(vehRes) && vehRes.length > 0) setVehicle(vehRes[0] as Vehicle);
+  } catch (e: any) {
     try {
       const data = await api.getProfile() as unknown as ProfileData
       if (data) {
@@ -113,7 +145,9 @@ export default function ProfilePage() {
         setMyRides(ridesRes as unknown as UserRide[])
       }
     } catch {}
+    setLoading(false)
   }
+}
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -293,6 +327,27 @@ export default function ProfilePage() {
                  {/* Right Column: Benefits Hub */}
                  <div className="lg:w-1/4 w-full">
                     <div className="bg-slate-50 border border-slate-200 rounded-[3.5rem] p-8 space-y-6">
+  {/* Vehicle Info Card */}
+  {vehicle && (
+    <div className="bg-white border border-slate-200 rounded-[3rem] p-6 mb-6 shadow-lg">
+      <div className="flex items-center gap-4 mb-3">
+        <div className="w-20 h-20 rounded-xl overflow-hidden bg-slate-900 border border-slate-200">
+          <img src={vehicle.image_url || '/default_vehicle.png'} alt="Vehicle" className="w-full h-full object-cover" />
+        </div>
+        <div>
+          <h3 className="text-xl font-black text-slate-900">{vehicle.make} {vehicle.model}</h3>
+          <p className="text-sm text-slate-600">{vehicle.color} • {vehicle.vehicle_number}</p>
+        </div>
+      </div>
+      <button
+        onClick={() => router.push('/vehicles')}
+        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-[2rem] font-black text-sm transition-all"
+      >
+        EDIT VEHICLE
+      </button>
+    </div>
+  )}
+  <p className="text-[10px] font-black text-slate-900/30 uppercase tracking-[0.4em] text-center mb-2">Member Benefits</p>
                        <p className="text-[10px] font-black text-slate-900/30 uppercase tracking-[0.4em] text-center mb-2">Member Benefits</p>
                        <div className="space-y-3">
                           {[
