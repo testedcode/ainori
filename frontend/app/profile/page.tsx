@@ -113,6 +113,7 @@ export default function ProfilePage() {
         setMyRides(ridesRes as unknown as UserRide[])
       }
     } catch {}
+    setLoading(false)
   }
 
   const handleSave = async (e: React.FormEvent) => {
@@ -432,9 +433,10 @@ export default function ProfilePage() {
                       </div>
                     ))}
                  </div>
-              </section>
-           {/* Right Column: Payment & Security */}
-           <div className="lg:col-span-4 space-y-12">
+               </section>
+            </div>
+            {/* Right Column: Payment & Security */}
+            <div className="lg:col-span-4 space-y-12">
               <section className="bg-gradient-to-br from-indigo-600/20 to-blue-600/20 border border-blue-500/20 rounded-[3rem] p-8 backdrop-blur-xl relative overflow-hidden group">
                  <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
                     <CreditCard className="w-24 h-24 text-white" />
