@@ -65,9 +65,9 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <Car className="w-8 h-8 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-900">cpool.ai</h1>
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <img src="/pulse_logo.png" alt="Pulse Logo" className="w-10 h-10 object-contain" />
+          <h1 className="text-3xl font-black tracking-tight text-gray-900 leading-none">Pulse</h1>
         </div>
 
         <h2 className="text-2xl font-bold text-center mb-6">Sign Up</h2>

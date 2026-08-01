@@ -28,9 +28,7 @@ interface ProfileData {
   qr_code_url?: string
   approved?: boolean
   blocked?: boolean
-}
-
-interface UserRide {
+}interface UserRide {
   id: number
   corridor_name: string
   ride_date: string
@@ -42,7 +40,20 @@ interface UserRide {
   confirmed_riders?: { id: number; name: string; avatar_url: string }[]
 }
 
+interface Vehicle {
+  id: number;
+  vehicle_type: string;
+  make: string;
+  model: string;
+  color: string;
+  vehicle_number: string;
+  total_seats: number;
+  default_available_seats: number;
+  image_url?: string;
+}
+
 export default function ProfilePage() {
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const router = useRouter()
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -92,6 +103,11 @@ export default function ProfilePage() {
         localStorage.setItem('user', JSON.stringify(data))
       } else {
         throw new Error('Empty profile response')
+      }
+      // Fetch vehicle
+      const vehRes = await api.get('/vehicles');
+      if (Array.isArray(vehRes) && vehRes.length > 0) {
+        setVehicle(vehRes[0] as Vehicle);
       }
     } catch (e: any) {
       const status = e?.response?.status
@@ -294,8 +310,27 @@ export default function ProfilePage() {
                  {/* Right Column: Benefits Hub */}
                  <div className="lg:w-1/4 w-full">
                     <div className="bg-white/[0.03] border border-white/10 rounded-[3.5rem] p-8 space-y-6">
-                       <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] text-center mb-2">Member Benefits</p>
-                       <div className="space-y-3">
+                        {vehicle && (
+                          <div className="bg-white/5 border border-white/10 rounded-[3rem] p-6 mb-6 shadow-2xl relative overflow-hidden group">
+                            <div className="flex items-center gap-4 mb-4">
+                              <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shrink-0">
+                                <img src={vehicle.image_url || '/default_vehicle.png'} alt="Vehicle" className="w-full h-full object-cover" />
+                              </div>
+                              <div className="text-left">
+                                <h3 className="text-lg font-black text-white italic tracking-tighter uppercase">{vehicle.make} {vehicle.model}</h3>
+                                <p className="text-[10px] text-white/40 font-mono tracking-tighter uppercase">{vehicle.color} • {vehicle.vehicle_number}</p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => router.push('/vehicles')}
+                              className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-[9px] uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20"
+                            >
+                              EDIT VEHICLE
+                            </button>
+                          </div>
+                        )}
+                        <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] text-center mb-2">Member Benefits</p>
+                        <div className="space-y-3">
                           {[
                             { label: 'Priority Routes', active: profile?.approved },
                             { label: 'Smart Matching', active: profile?.approved },
